@@ -1,0 +1,36 @@
+﻿@model List<QLDiemRenLuyen.Models.SinhVien>
+@{
+    ViewData["Title"] = "Danh sách sinh viên";
+    var lop = ViewBag.Lop as QLDiemRenLuyen.Models.CauHinh.Lop;
+    Layout = "~/Views/Shared/_LayoutGVCN.cshtml";
+}
+
+<h4 class="text-danger">DANH SÁCH SINH VIÊN – LỚP @lop!.TenLop</h4>
+<p><strong>Khoa:</strong> @lop.Khoa!.TenKhoa | <strong>Niên khóa:</strong> @lop.NienKhoa!.TenNienKhoa</p>
+
+<table class="table table-bordered table-sm">
+    <thead class="table-light">
+        <tr>
+            <th>MSSV</th>
+            <th>Họ tên</th>
+            <th>Email</th>
+            <th>Trạng thái</th>
+            <th>Đánh giá</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var sv in Model)
+        {
+            <tr>
+                <td>@sv.MaSV</td>
+                <td>@sv.HoTen</td>
+                <td>@sv.Email</td>
+                <td>@sv.TrangThai</td>
+                <td>
+                    <a href="/GVCN/XemPhieuDanhGia?svId=@sv.SinhVienID" class="btn btn-sm btn-info">Xem phiếu</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<a href="/GVCN/Index" class="btn btn-secondary mt-3">Quay lại</a>

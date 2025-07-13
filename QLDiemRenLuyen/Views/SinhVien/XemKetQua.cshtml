@@ -1,0 +1,48 @@
+﻿@model List<QLDiemRenLuyen.Models.KetQuaRenLuyen>
+@{
+    ViewData["Title"] = "Kết quả rèn luyện";
+    Layout = "~/Views/Shared/_LayoutSinhVien.cshtml";
+    var sv = ViewBag.SinhVien as QLDiemRenLuyen.Models.SinhVien;
+}
+
+<h4 class="text-danger">KẾT QUẢ RÈN LUYỆN CỦA BẠN</h4>
+@if (sv?.Lop != null)
+{
+    <p><strong>Sinh viên:</strong> @sv.HoTen | <strong>MSSV:</strong> @sv.MaSV | <strong>Lớp:</strong> @sv.Lop.TenLop</p>
+}
+else
+{
+    <p class="text-danger">Không thể hiển thị lớp học vì dữ liệu thiếu.</p>
+}
+
+<table class="table table-bordered mt-3">
+    <thead class="table-success">
+        <tr>
+            <th>Học kỳ</th>
+            <th>Tổng điểm</th>
+            <th>Xếp loại</th>
+            <th>Ngày cập nhật</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            foreach (var kq in Model)
+            {
+                <tr>
+                    <td>@kq.HocKy!.TenHocKy - @kq.HocKy.NamHoc</td>
+                    <td>@kq.TongDiem</td>
+                    <td>@kq.XepLoai</td>
+                    <td>@kq.NgayCapNhat.ToString("dd/MM/yyyy")</td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr><td colspan="4" class="text-center text-danger">Chưa cập nhật kết quả rên luyện</td></tr>
+        }
+        
+    </tbody>
+</table>
+
+<a href="/SinhVien/Index" class="btn btn-secondary mt-3">Quay lại</a>

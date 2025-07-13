@@ -1,0 +1,30 @@
+﻿@{
+    ViewData["Title"] = "Đăng nhập";
+}
+
+<div class="container mt-5" style="max-width: 500px;">
+    <h3 class="text-center text-danger">ĐĂNG NHẬP HỆ THỐNG</h3>
+    <form method="post" asp-action="DangNhap">
+        <div class="mb-2">
+            <input name="username" class="form-control" placeholder="Mã sinh viên / nhân viên" required />
+        </div>
+        <div class="mb-2">
+            <input type="password" name="password" class="form-control" placeholder="Mật khẩu" required />
+        </div>
+        <div class="mb-2">
+            <select name="vaiTro" class="form-select" required>
+                <option value="">-- Chọn vai trò --</option>
+                <option value="SinhVien">Sinh viên</option>
+                <option value="GVCN">GVCN</option>
+                <option value="HoiDong">Hội đồng</option>
+                <option value="Admin">Admin</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Đăng nhập</button>
+        @if (ViewBag.Loi != null)
+        {
+            <p class="text-danger mt-2">@ViewBag.Loi</p>
+        }
+    </form>
+    <div class="text-danger mt-2">@ViewBag.ThongBao</div>
+</div>

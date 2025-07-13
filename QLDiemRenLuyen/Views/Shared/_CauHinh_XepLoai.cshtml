@@ -1,0 +1,25 @@
+﻿<h4>Quản lý Xếp loại rèn luyện</h4>
+<form method="post" asp-action="ThemXepLoai">
+    <div class="row mb-2">
+        <div class="col-md-3"><input name="TenXepLoai" class="form-control" placeholder="VD: Xuất sắc" required /></div>
+        <div class="col-md-2"><input name="DiemToiThieu" type="number" class="form-control" placeholder="Điểm từ" required /></div>
+        <div class="col-md-2"><input name="DiemToiDa" type="number" class="form-control" placeholder="Điểm đến" required /></div>
+        <div class="col-md-3"><input name="MoTa" class="form-control" placeholder="Mô tả" /></div>
+        <div class="col-md-2"><button class="btn btn-primary w-100">Thêm</button></div>
+    </div>
+</form>
+<table class="table table-bordered">
+    <thead class="table-warning"><tr><th>ID</th><th>Xếp loại</th><th>Từ</th><th>Đến</th><th>Mô tả</th></tr></thead>
+    <tbody>
+        @foreach (var x in ViewBag.XepLoai)
+        {
+            <tr>
+                <td>@x.XepLoaiID</td>
+                <td>@x.TenXepLoai</td>
+                <td>@x.DiemToiThieu</td>
+                <td>@x.DiemToiDa</td>
+                <td>@x.MoTa</td>
+            </tr>
+        }
+    </tbody>
+</table>

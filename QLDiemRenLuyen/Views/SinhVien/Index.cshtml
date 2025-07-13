@@ -1,0 +1,54 @@
+﻿@{
+    ViewData["Title"] = "Trang tổng quan";
+    Layout = "~/Views/Shared/_LayoutSinhVien.cshtml";
+    var sv = ViewBag.SinhVien as QLDiemRenLuyen.Models.SinhVien;
+    var hocKy = ViewBag.HocKy as QLDiemRenLuyen.Models.CauHinh.HocKy;
+    var ketQua = ViewBag.KetQua as List<QLDiemRenLuyen.Models.KetQuaRenLuyen>;
+    var trangThai = ViewBag.TrangThai as string;
+}
+
+<h3 class="text-danger">TRANG TỔNG QUAN SINH VIÊN</h3>
+
+<div class="card mb-3">
+    <div class="card-header bg-warning fw-bold text-dark">Thông tin sinh viên</div>
+    <div class="card-body">
+        <p><strong>Họ tên:</strong> @sv!.HoTen</p>
+        <p><strong>MSSV:</strong> @sv.MaSV</p>
+        <p><strong>Email:</strong> @sv.Email</p>
+        <p><strong>Lớp:</strong> @sv.Lop?.TenLop</p>
+        <p><strong>Khoa:</strong> @sv.Lop?.Khoa?.TenKhoa</p>
+        <p><strong>Trạng thái học tập:</strong> <span class="text-primary fw-bold">@sv.TrangThai</span></p>
+    </div>
+</div>
+
+
+<div class="card">
+    <div class="card-header bg-success text-white">Trạng thái đánh giá hiện tại</div>
+    <div class="card-body">
+        <h5 class="text-dark">@hocKy!.TenHocKy - <strong>@hocKy.NamHoc</strong></h5>
+        <p>
+            @* <strong>Trạng thái đánh giá:</strong><span class="text-danger fw-bold">@trangThai</span> *@
+
+            @if (trangThai == "Chưa đánh giá")
+            {
+                <strong>Trạng thái đánh giá:</strong>
+            
+                <span class="text-danger fw-bold">@trangThai</span>
+                <a href="/SinhVien/TuDanhGia" class="btn btn-sm btn-outline-primary ms-2">Thực hiện đánh giá</a>
+            }
+            else if (trangThai == "Đã gửi GVCN")
+            {
+                <strong>Trạng thái đánh giá:</strong><span class="text-danger fw-bold">@trangThai</span>
+                @* <span class="badge bg-warning text-dark">@trangThai</span> *@
+            }
+            else if (trangThai!.Contains("Hội đồng"))
+            {
+                <strong>Trạng thái đánh giá:</strong>
+            
+                <span class="text-danger fw-bold">@trangThai</span>
+                @* <span class="badge bg-success">@trangThai</span> *@
+                <a href="/SinhVien/XemKetQua" class="btn btn-sm btn-outline-info ms-2">Xem kết quả</a>
+            }
+        </p>
+    </div>
+</div>

@@ -1,0 +1,38 @@
+﻿@model List<QLDiemRenLuyen.Models.CauHinh.Lop>  
+@{  
+    Layout = "~/Views/Shared/_LayoutGVCN.cshtml";  
+    ViewData["Title"] = "Lớp Chủ Nhiệm";  
+    var gv = ViewBag.NhanVien as QLDiemRenLuyen.Models.NhanVien;  
+}  
+
+<h3 class="text-danger">DANH SÁCH LỚP CHỦ NHIỆM</h3>  
+<p><strong>Giáo viên:</strong> @gv!.HoTen | <strong>Email:</strong> @gv.Email | <strong>Khoa:</strong> @gv.Khoa!.TenKhoa</p>
+
+<table class="table table-bordered">  
+    <thead class="table-light">  
+        <tr>  
+            <th>Tên lớp</th>  
+            <th>Niên khóa</th>  
+            <th>Sinh viên</th>
+        </tr>  
+    </thead>  
+    <tbody>  
+        @foreach (var lop in Model)  
+        {  
+            <tr>  
+                <td>@lop.TenLop</td>  
+                <td>@lop.NienKhoa!.TenNienKhoa</td>  
+                <td>  
+                    <a href="/GVCN/XemSinhVien?lopId=@lop.LopID" class="btn btn-sm btn-primary">Xem sinh viên</a>  
+                </td>  
+            </tr>  
+        }  
+    </tbody>  
+</table>  
+
+@if (TempData["ThongBao"] != null)  
+{  
+    <div class="alert alert-success">  
+        @TempData["ThongBao"]  
+    </div>  
+}

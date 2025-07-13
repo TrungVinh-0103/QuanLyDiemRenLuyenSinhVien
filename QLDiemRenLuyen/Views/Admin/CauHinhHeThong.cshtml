@@ -1,0 +1,68 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    ViewData["Title"] = "Cấu hình hệ thống";
+    var tab = Context.Request.Query["tab"].ToString().ToLower();
+    string IsActive(string t) => tab == t ? "active show" : "";
+    //string IsTab(string t) => tab == t ? "true" : "false";
+}
+
+<h2>Cấu hình hệ thống</h2>
+<hr />
+
+<ul class="nav nav-tabs" role="tablist">
+    <li class="nav-item"><a class="nav-link @IsActive("truong")" data-bs-toggle="tab" href="#truong">Trường</a></li>
+    <li class="nav-item"><a class="nav-link @IsActive("khoa")" data-bs-toggle="tab" href="#khoa">Khoa</a></li>
+    <li class="nav-item"><a class="nav-link @IsActive("lop")" data-bs-toggle="tab" href="#lop">Lớp</a></li>
+    <li class="nav-item"><a class="nav-link @IsActive("nienkhoa")" data-bs-toggle="tab" href="#nienkhoa">Niên khóa</a></li>
+    <li class="nav-item"><a class="nav-link @IsActive("hocky")" data-bs-toggle="tab" href="#hocky">Học kỳ</a></li>
+    <li class="nav-item"><a class="nav-link @IsActive("nhomtieuchi")" data-bs-toggle="tab" href="#nhomtieuchi">Nhóm tiêu chí</a></li>
+    <li class="nav-item"><a class="nav-link @IsActive("tieuchi")" data-bs-toggle="tab" href="#tieuchi">Tiêu chí</a></li>
+    <li class="nav-item"><a class="nav-link @IsActive("trangthai")" data-bs-toggle="tab" href="#trangthai">Trạng thái</a></li>
+    <li class="nav-item"><a class="nav-link @IsActive("vaitro")" data-bs-toggle="tab" href="#vaitro">Vai trò</a></li>
+    <li class="nav-item"><a class="nav-link @IsActive("xeploai")" data-bs-toggle="tab" href="#xeploai">Xếp loại</a></li>
+</ul>
+
+<div class="tab-content p-3 border border-top-0">
+    <div class="tab-pane fade @IsActive("truong")" id="truong">
+        @await Html.PartialAsync("_CauHinh_Truong")
+    </div>
+    <div class="tab-pane fade @IsActive("khoa")" id="khoa">
+        @await Html.PartialAsync("_CauHinh_Khoa")
+    </div>
+    <div class="tab-pane fade @IsActive("lop")" id="lop">
+        @await Html.PartialAsync("_CauHinh_Lop")
+    </div>
+    <div class="tab-pane fade @IsActive("nienkhoa")" id="nienkhoa">
+        @await Html.PartialAsync("_CauHinh_NienKhoa")
+    </div>
+    <div class="tab-pane fade @IsActive("hocky")" id="hocky">
+        @await Html.PartialAsync("_CauHinh_HocKy")
+    </div>
+    <div class="tab-pane fade @IsActive("nhomtieuchi")" id="nhomtieuchi">
+        @await Html.PartialAsync("_CauHinh_NhomTieuChi")
+    </div>
+    <div class="tab-pane fade @IsActive("tieuchi")" id="tieuchi">
+        @await Html.PartialAsync("_CauHinh_TieuChi")
+    </div>
+    <div class="tab-pane fade @IsActive("trangthai")" id="trangthai">
+        @await Html.PartialAsync("_CauHinh_TrangThai")
+    </div>
+    <div class="tab-pane fade @IsActive("vaitro")" id="vaitro">
+        @await Html.PartialAsync("_CauHinh_VaiTro")
+    </div>
+    <div class="tab-pane fade @IsActive("xeploai")" id="xeploai">
+        @await Html.PartialAsync("_CauHinh_XepLoai")
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const tab = urlParams.get('tab');
+        if (tab) {
+            const trigger = document.querySelector(`a[href='#${tab}']`);
+            if (trigger) new bootstrap.Tab(trigger).show();
+        }
+    </script>
+}

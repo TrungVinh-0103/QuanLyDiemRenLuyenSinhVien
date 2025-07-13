@@ -1,0 +1,47 @@
+﻿@{
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    ViewData["Title"] = "Quản lý người dùng";
+}
+
+<h3>Quản lý người dùng</h3>
+
+<form method="post" asp-action="ThemNguoiDung">
+    <div class="row mb-3">
+        <div class="col-md-3"><input name="username" class="form-control" placeholder="Username" required /></div>
+        <div class="col-md-3"><input name="password" class="form-control" placeholder="Mật khẩu" required /></div>
+        <div class="col-md-3">
+            <select name="vaiTro" class="form-select">
+                <option value="SinhVien">Sinh viên</option>
+                <option value="GVCN">GVCN</option>
+                <option value="HoiDong">Hội đồng</option>
+                <option value="Admin">Admin</option>
+            </select>
+        </div>
+        <div class="col-md-3"><button class="btn btn-danger w-100">Thêm</button></div>
+    </div>
+</form>
+
+<table class="table table-bordered table-hover">
+    <thead class="table-warning">
+        <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Vai trò</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in ViewBag.NguoiDungs)
+        {
+            <tr>
+                <td>@item.NguoiDungID</td>
+                <td>@item.Username</td>
+                <td>@item.VaiTro</td>
+                <td>
+                    <a href="/Admin/ResetMatKhau/@item.NguoiDungID" class="btn btn-sm btn-outline-primary">Reset MK</a>
+                    <a href="/Admin/XoaNguoiDung/@item.NguoiDungID" class="btn btn-sm btn-outline-danger">Xóa</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

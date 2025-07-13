@@ -1,0 +1,41 @@
+﻿@model QLDiemRenLuyen.ViewModels.TuDanhGiaViewModel
+@{
+    ViewData["Title"] = "Tự đánh giá rèn luyện";
+    Layout = "~/Views/Shared/_LayoutSinhVien.cshtml";
+}
+
+<h3 class="text-danger mb-4">TỰ ĐÁNH GIÁ ĐIỂM RÈN LUYỆN</h3>
+
+<form asp-action="TuDanhGia" method="post" enctype="multipart/form-data">
+    <input type="hidden" name="HocKyID" value="@Model.HocKyID" />
+
+    @foreach (var nhom in Model.NhomTieuChi!)
+    {
+        <div class="card mb-3">
+            <div class="card-header bg-warning text-dark fw-bold">
+                @nhom.TenNhom (Tối đa: @nhom.DiemToiDa điểm)
+            </div>
+            <div class="card-body">
+                @for (int i = 0; i < nhom.TieuChi!.Count; i++)
+                {
+                    var tieuChi = nhom.TieuChi[i];
+                    <div class="mb-3">
+                        <label class="fw-semibold">@tieuChi.TenTieuChi (@tieuChi.DiemToiDa điểm)</label>
+                        <input type="number" class="form-control" name="DiemDanhGia_@tieuChi.TieuChiID"
+                               min="0" max="@tieuChi.DiemToiDa" required />
+
+                        @if (tieuChi.YeuCauMinhChung)
+                        {
+                            <div class="mt-2">
+                                <label class="text-muted">Minh chứng (nếu có):</label>
+                                <input type="file" name="MinhChung_@tieuChi.TieuChiID" class="form-control" />
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <button type="submit" class="btn btn-primary">Gửi phiếu đánh giá</button>
+</form>

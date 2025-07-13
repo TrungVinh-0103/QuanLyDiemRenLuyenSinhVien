@@ -1,0 +1,25 @@
+﻿<h4>Quản lý Trường</h4>
+<form method="post" asp-action="ThemTruong">
+    <div class="row mb-2">
+        <div class="col-md-3"><input name="TenTruong" class="form-control" placeholder="Tên trường" required /></div>
+        <div class="col-md-3"><input name="DiaChi" class="form-control" placeholder="Địa chỉ" /></div>
+        <div class="col-md-4"><input name="LogoUrl" class="form-control" placeholder="Logo URL" /></div>
+        <div class="col-md-2"><button class="btn btn-primary w-100">Thêm Trường</button></div>
+    </div>
+</form>
+<table class="table table-bordered">
+    <thead class="table-warning">
+        <tr><th>ID</th><th>Tên</th><th>Địa chỉ</th><th>Logo</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var t in ViewBag.Truong)
+        {
+            <tr>
+                <td>@t.TruongID</td>
+                <td>@t.TenTruong</td>
+                <td>@t.DiaChi</td>
+                <td>@t.LogoUrl</td>
+            </tr>
+        }
+    </tbody>
+</table>

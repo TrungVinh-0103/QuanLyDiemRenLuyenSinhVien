@@ -1,0 +1,35 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Điểm rèn luyện</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/QLDiemRenLuyen.styles.css" asp-append-version="true" />
+</head>
+<body>
+    <header style="background-color: #920309; padding: 1rem;">
+        <div class="container text-white d-flex align-items-center justify-content-between">
+            <img src="https://nctu.edu.vn/webp/logo_truong.webp" style="height: 50px;" />
+            <h5 class="mb-0">Hệ thống quản lý điểm rèn luyện sinh viên</h5>
+        </div>
+    </header>
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2025 - QLDiemRenLuyen - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+        </div>
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

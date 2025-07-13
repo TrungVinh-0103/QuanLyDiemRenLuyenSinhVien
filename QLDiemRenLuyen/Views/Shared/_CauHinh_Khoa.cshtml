@@ -1,0 +1,32 @@
+﻿<h4>Quản lý Khoa</h4>
+<form method="post" asp-action="ThemKhoa">
+    <div class="row mb-2">
+        <div class="col-md-3"><input name="TenKhoa" class="form-control" placeholder="Tên khoa" required /></div>
+        <div class="col-md-3">
+            <select name="TruongID" class="form-select">
+                @foreach (var t in ViewBag.Truong)
+                {
+                    <option value="@t.TruongID">@t.TenTruong</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-4"><input name="DiaChi" class="form-control" placeholder="Địa chỉ khoa" /></div>
+        <div class="col-md-2"><button class="btn btn-primary w-100">Thêm Khoa</button></div>
+    </div>
+</form>
+<table class="table table-bordered">
+    <thead class="table-warning">
+        <tr><th>ID</th><th>Tên khoa</th><th>Trường</th><th>Địa chỉ</th></tr>
+    </thead>
+    <tbody>
+        @foreach (var k in ViewBag.Khoa)
+        {
+            <tr>
+                <td>@k.KhoaID</td>
+                <td>@k.TenKhoa</td>
+                <td>@k.Truong?.TenTruong</td>
+                <td>@k.DiaChi</td>
+            </tr>
+        }
+    </tbody>
+</table>

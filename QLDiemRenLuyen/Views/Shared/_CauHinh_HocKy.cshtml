@@ -1,0 +1,26 @@
+﻿<h4>Quản lý Học kỳ</h4>
+<form method="post" asp-action="ThemHocKy">
+    <div class="row mb-2">
+        <div class="col-md-3"><input name="TenHocKy" class="form-control" placeholder="Tên học kỳ (VD: HK1)" required /></div>
+        <div class="col-md-3"><input name="NamHoc" class="form-control" placeholder="Năm học (VD: 2024-2025)" required /></div>
+        <div class="col-md-3"><input name="NgayBatDau" type="date" class="form-control" /></div>
+        <div class="col-md-3"><input name="NgayKetThuc" type="date" class="form-control" /></div>
+    </div>
+    <button class="btn btn-primary">Thêm Học kỳ</button>
+</form>
+
+<table class="table table-bordered">
+    <thead class="table-warning"><tr><th>ID</th><th>Học kỳ</th><th>Năm học</th><th>Từ</th><th>Đến</th></tr></thead>
+    <tbody>
+    @foreach (var hk in ViewBag.HocKy)
+    {
+        <tr>
+            <td>@hk.HocKyID</td>
+            <td>@hk.TenHocKy</td>
+            <td>@hk.NamHoc</td>
+            <td>@hk.NgayBatDau?.ToString("dd/MM/yyyy")</td>
+            <td>@hk.NgayKetThuc?.ToString("dd/MM/yyyy")</td>
+        </tr>
+    }
+    </tbody>
+</table>

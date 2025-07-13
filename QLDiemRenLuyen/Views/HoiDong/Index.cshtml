@@ -1,0 +1,44 @@
+﻿@* @model List<QLDiemRenLuyen.Models.PhieuDanhGia> *@
+@{
+    ViewData["Title"] = "Phiếu chờ hội đồng duyệt";
+    //var danhSach = ViewBag.PhiieuDanhGiaChoHoiDong as List<dynamic>;
+    var dsPhieu = ViewBag.PhieuChoCham as List<QLDiemRenLuyen.Models.PhieuDanhGia>;
+}
+
+<h4 class="text-danger">DANH SÁCH PHIẾU CHỜ HỘI ĐỒNG DUYỆT</h4>
+@* <h4 class="text-success">DANH SÁCH PHIẾU CHỜ HỘI ĐỒNG CHẤM</h4> *@
+
+<table class="table table-bordered mt-3">
+    <thead class="table-warning">
+        <tr>
+            <th>Mã SV</th>
+            <th>Họ tên</th>
+            <th>Lớp</th>
+            <th>Học kỳ</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (dsPhieu != null && dsPhieu.Any())
+        {
+            @foreach (var p in dsPhieu)
+            {
+                <tr>
+                    <td>@p.SinhVien?.MaSV</td> 
+                    <td>@p.SinhVien?.HoTen</td> 
+                    <td>@p.SinhVien?.Lop?.TenLop</td> 
+                    <td>@p.HocKy?.TenHocKy - @p.HocKy?.NamHoc</td> 
+                    <td>
+                        <a href="/HoiDong/XemPhieu?svID=@p.SinhVienID&hocKyID=@p.HocKyID" class="btn btn-primary btn-sm">Xem & Chấm</a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="5" class="text-center">Không có phiếu nào chờ hội đồng duyệt.</td>
+            </tr>
+        }
+    </tbody>
+</table>

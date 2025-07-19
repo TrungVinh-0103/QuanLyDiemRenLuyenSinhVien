@@ -25,6 +25,9 @@ namespace QLDiemRenLuyen.Data
         public DbSet<CauHinhTrangThaiHocTap> CauHinhTrangThaiHocTap { get; set; }
         public DbSet<CauHinhVaiTro> CauHinhVaiTro { get; set; }
         public DbSet<CauHinhXepLoai> CauHinhXepLoai { get; set; }
+        //blic DbSet<CauHinhHeThong> CauHinhHeThong { get; set; }
+        public DbSet<LichSuTrangThai> LichSuTrangThai { get; set; }
+        public DbSet<ThongKe> ThongKe { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

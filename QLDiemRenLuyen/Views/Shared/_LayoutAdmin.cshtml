@@ -18,15 +18,28 @@
         <nav class="bg-warning p-3" style="min-width:220px;">
             <ul class="nav flex-column">
                 <li class="nav-item"><a class="nav-link text-dark" href="/Admin/Index">Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/QuanLyNguoiDung">QL Người dùng</a></li>
-                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/CauHinhHeThong">Cấu hình hệ thống</a></li>
+                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/QuanLyNguoiDung">Người dùng</a></li>
+                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/QuanLySinhVien">Sinh Viên</a></li>
+                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/QuanLyNhanVien">Nhân Viên</a></li>
+                @* <li class="nav-item"><a class="nav-link text-dark" href="/Admin/CauHinhHeThong">Cấu Hình Hệ Thống</a></li> *@
+                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/QuanLyTruong">Trường</a></li>
+                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/QuanLyKhoa">Khoa</a></li>
+                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/QuanLyNienKhoa">Niên Khóa</a></li>
+                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/QuanLyLop">Lớp</a></li>
+                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/QuanLyVaiTro">Vai Trò</a></li>
+                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/QuanLyNhomTieuChi">Nhóm Tiêu Chí</a></li>
+                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/QuanLyTieuChi">Tiêu Chí</a></li>
+                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/QuanLyXepLoai">Xếp Loại</a></li>
+                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/QuanLyTrangThai">Trạng Thái</a></li>
+                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/QuanLyTrangThaiHocTap">Trạng Thái Học Tập</a></li>
+                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/ThongKe">Thống Kê</a></li>
             </ul>
         </nav>
         <main class="p-4 w-100">
             @RenderBody()
         </main>
-        @RenderSection("Scripts", required: false)
     </div>
+    @RenderSection("Scripts", required: false)
 </body>
 </html>
 

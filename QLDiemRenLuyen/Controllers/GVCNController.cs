@@ -61,7 +61,7 @@ namespace QLDiemRenLuyen.Controllers
         {
             var sv = _context.SinhVien
                 .Include(s => s.Lop)
-                    .ThenInclude(l => l.Khoa)
+                    .ThenInclude(l => l!.Khoa)
                 .FirstOrDefault(s => s.SinhVienID == svId);
 
             if (sv == null) return NotFound();
@@ -132,6 +132,15 @@ namespace QLDiemRenLuyen.Controllers
             TempData["ThongBao"] = "Đã duyệt và gửi phiếu cho hội đồng.";
 
             return RedirectToAction("XemSinhVien", new { lopID = _context.SinhVien.Find(SinhVienID)?.LopID });
+        }
+
+        private string XepLoaiTuDong(int tongDiem)
+        {
+            var config = _context.CauHinhXepLoai
+                      .Where(x => tongDiem >= x.DiemToiThieu && tongDiem <= x.DiemToiDa)
+                      .FirstOrDefault();
+
+            return config?.TenXepLoai ?? "Chưa xác định";
         }
 
     }

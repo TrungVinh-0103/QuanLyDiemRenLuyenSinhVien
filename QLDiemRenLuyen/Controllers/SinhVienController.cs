@@ -218,7 +218,16 @@ namespace QLDiemRenLuyen.Controllers
             return View(ketQua);
         }
 
-        
+        private string XepLoaiTuDong(int tongDiem)
+        {
+            var config = _context.CauHinhXepLoai
+                      .Where(x => tongDiem >= x.DiemToiThieu && tongDiem <= x.DiemToiDa)
+                      .FirstOrDefault();
+
+            return config?.TenXepLoai ?? "Chưa xác định";
+        }
+
+
 
     }
 }

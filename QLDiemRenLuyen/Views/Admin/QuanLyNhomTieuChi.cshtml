@@ -1,0 +1,68 @@
+﻿@model List<QLDiemRenLuyen.Models.CauHinh.NhomTieuChi>
+@{
+    ViewData["Title"] = "Quản lý Nhóm Tiêu chí";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<h4 class="text-danger">QUẢN LÝ NHÓM TIÊU CHÍ</h4>
+
+<!-- Thêm nhóm tiêu chí -->
+<form method="post" asp-action="ThemNhomTieuChi" class="row g-2 mb-3">
+    <div class="col-md-4"><input name="TenNhom" class="form-control" placeholder="Tên nhóm tiêu chí" required /></div>
+    <div class="col-md-2"><input name="DiemToiDa" type="number" class="form-control" placeholder="Điểm tối đa" required /></div>
+    <div class="col-md-4"><input name="MoTa" class="form-control" placeholder="Mô tả" /></div>
+    <div class="col-md-2"><button class="btn btn-primary w-100">Thêm</button></div>
+</form>
+
+<table class="table table-bordered">
+    <thead class="table-warning">
+        <tr>
+            <th>Tên nhóm</th>
+            <th>Điểm tối đa</th>
+            <th>Mô tả</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var n in Model)
+        {
+            <tr>
+                <td>@n.TenNhom</td>
+                <td>@n.DiemToiDa</td>
+                <td>@n.MoTa</td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modalSua_@n.NhomTieuChiID">
+                        Sửa
+                    </button>
+                    <a href="/Admin/XoaNhomTieuChi/@n.NhomTieuChiID" class="btn btn-sm btn-danger" onclick="return confirm('Xác nhận xóa?')">Xóa</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Modal sửa -->
+@foreach (var n in Model)
+{
+    <div class="modal fade" id="modalSua_@n.NhomTieuChiID" tabindex="-1">
+        <div class="modal-dialog">
+            <form method="post" asp-action="SuaNhomTieuChi" class="modal-content">
+                <input type="hidden" name="NhomTieuChiID" value="@n.NhomTieuChiID" />
+                <div class="modal-header bg-primary text-white"><h5 class="modal-title">Sửa nhóm tiêu chí</h5></div>
+                <div class="modal-body">
+                    <input name="TenNhom" value="@n.TenNhom" class="form-control mb-2" placeholder="Tên nhóm" required />
+                    <input name="DiemToiDa" type="number" value="@n.DiemToiDa" class="form-control mb-2" placeholder="Điểm tối đa" required />
+                    <input name="MoTa" value="@n.MoTa" class="form-control" placeholder="Mô tả" />
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-success">Cập nhật</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+}

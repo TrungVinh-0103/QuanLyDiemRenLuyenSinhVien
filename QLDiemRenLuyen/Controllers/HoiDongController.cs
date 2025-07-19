@@ -83,15 +83,14 @@ namespace QLDiemRenLuyen.Controllers
             int tongDiem = DiemHoiDongs.Sum();
 
             // 4. Xác định xếp loại
-            var xepLoai = _context.CauHinhXepLoai
-                .FirstOrDefault(x => tongDiem >= x.DiemToiThieu && tongDiem <= x.DiemToiDa);
+            string xepLoai = XepLoaiTuDong(tongDiem);
 
             var ketQua = new KetQuaRenLuyen
             {
                 SinhVienID = SinhVienID,
                 HocKyID = HocKyID,
                 TongDiem = tongDiem,
-                XepLoai = xepLoai?.TenXepLoai ?? "Chưa xác định",
+                XepLoai = xepLoai,
                 NgayCapNhat = DateTime.Now
             };
             _context.KetQuaRenLuyen.Add(ketQua);
@@ -100,6 +99,15 @@ namespace QLDiemRenLuyen.Controllers
             TempData["ThongBao"] = "Đã xác nhận điểm chính thức và lưu kết quả.";
 
             return RedirectToAction("Index");
+        }
+
+        private string XepLoaiTuDong(int tongDiem)
+        {
+            var config = _context.CauHinhXepLoai
+                      .Where(x => tongDiem >= x.DiemToiThieu && tongDiem <= x.DiemToiDa)
+                      .FirstOrDefault();
+
+            return config?.TenXepLoai ?? "Chưa xác định";
         }
 
     }

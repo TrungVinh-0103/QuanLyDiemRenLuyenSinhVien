@@ -1,0 +1,75 @@
+﻿@model List<QLDiemRenLuyen.Models.CauHinh.Truong>
+@{
+    ViewData["Title"] = "Quản lý Trường";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<h4 class="text-danger">QUẢN LÝ TRƯỜNG</h4>
+
+<form method="post" asp-action="ThemTruong" class="row g-2 mb-3">
+    <div class="col-md-3"><input name="TenTruong" class="form-control" placeholder="Tên trường" required /></div>
+    <div class="col-md-4"><input name="DiaChi" class="form-control" placeholder="Địa chỉ" /></div>
+    <div class="col-md-3"><input name="LogoUrl" class="form-control" placeholder="Link logo (nếu có)" /></div>
+    <div class="col-md-2"><button class="btn btn-primary w-100">Thêm</button></div>
+</form>
+
+<table class="table table-bordered">
+    <thead class="table-warning">
+        <tr>
+            <th>Tên trường</th>
+            <th>Địa chỉ</th>
+            <th>Logo</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var t in Model)
+        {
+            <tr>
+                <td>@t.TenTruong</td>
+                <td>@t.DiaChi</td>
+                <td>
+                    @if (!string.IsNullOrEmpty(t.LogoUrl))
+                    {
+                        <img src="@t.LogoUrl" alt="Logo" height="40" />
+                    }
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-warning" onclick="sua(@t.TruongID, '@t.TenTruong', '@t.DiaChi', '@t.LogoUrl')">Sửa</button>
+                    <a href="/Admin/XoaTruong?id=@t.TruongID" class="btn btn-sm btn-danger" onclick="return confirm('Xóa trường này?')">Xóa</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Modal sửa -->
+<div class="modal fade" id="modalTruong" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="post" asp-action="SuaTruong" class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Sửa Trường</h5></div>
+            <div class="modal-body">
+                <input type="hidden" name="TruongID" id="edit_id" />
+                <div class="mb-2"><input name="TenTruong" id="edit_ten" class="form-control" required /></div>
+                <div class="mb-2"><input name="DiaChi" id="edit_diachi" class="form-control" /></div>
+                <div class="mb-2"><input name="LogoUrl" id="edit_logo" class="form-control" /></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success">Lưu</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function sua(id, ten, diachi, logo) {
+            document.getElementById("edit_id").value = id;
+            document.getElementById("edit_ten").value = ten;
+            document.getElementById("edit_diachi").value = diachi;
+            document.getElementById("edit_logo").value = logo;
+            new bootstrap.Modal(document.getElementById("modalTruong")).show();
+        }
+    </script>
+}

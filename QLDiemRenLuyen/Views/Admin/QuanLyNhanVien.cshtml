@@ -1,0 +1,117 @@
+﻿@model List<QLDiemRenLuyen.Models.NhanVien>  
+@{  
+    ViewData["Title"] = "Quản lý Nhân viên";  
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";  
+    var khoas = ViewBag.Khoas as List<QLDiemRenLuyen.Models.CauHinh.Khoa> ?? new List<QLDiemRenLuyen.Models.CauHinh.Khoa>();  
+}  
+
+<h4 class="text-danger">QUẢN LÝ NHÂN VIÊN</h4>  
+@if (TempData["ThongBao"] != null)
+{
+    <div class="alert alert-success">@TempData["ThongBao"]</div>
+}
+<!-- Form sửa nhân viên (ẩn) -->
+<form method="post" asp-action="SuaNhanVien" id="formSuaNV" class="border rounded p-3 bg-light mt-4" style="display:none;">
+    <h5 class="text-primary">Chỉnh sửa thông tin nhân viên</h5>
+    <input type="hidden" name="NhanVienID" id="nv_id" />
+    <div class="row g-3">
+        <div class="col-md-3">
+            <input name="HoTen" id="nv_ten" class="form-control" placeholder="Họ tên" required />
+        </div>
+        <div class="col-md-3">
+            <input name="Email" id="nv_email" class="form-control" placeholder="Email" />
+        </div>
+        <div class="col-md-3">
+            <select name="KhoaID" id="nv_khoa" class="form-select">
+                @foreach (var khoa in khoas)
+                {
+                    <option value="@khoa.KhoaID">@khoa.TenKhoa</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select name="ChucVu" id="nv_cv" class="form-select">
+                <option value="GVCN">GVCN</option>
+                <option value="HoiDong">Hội đồng</option>
+                <option value="Admin">Admin</option>
+            </select>
+        </div>
+    </div>
+    <div class="mt-3 text-end">
+        <button type="submit" class="btn btn-warning">Cập nhật</button>
+        <button type="button" class="btn btn-secondary" onclick="document.getElementById('formSuaNV').style.display='none'">Hủy</button>
+    </div>
+</form>
+<!-- Form thêm nhân viên -->
+<form method="post" asp-action="ThemNhanVien" class="row row-cols-1 row-cols-md-4 g-3 mt-3 border rounded p-3 bg-light">
+    <div class="col-md-2"><input name="MaNV" class="form-control" placeholder="Mã NV" required /></div>  
+    <div class="col-md-2"><input name="HoTen" class="form-control" placeholder="Họ tên" required /></div>  
+    <div class="col-md-2"><input name="Email" class="form-control" placeholder="Email" required /></div>  
+    <div class="col-md-2">  
+        <select name="KhoaID" class="form-select" required>  
+            <option value="">--Chọn khoa--</option>  
+            @foreach (var k in khoas)  
+            {  
+                <option value="@k.KhoaID">@k.TenKhoa</option>  
+            }  
+        </select>  
+    </div>  
+    <div class="col-md-2">  
+        <select name="ChucVu" class="form-select" required>  
+            <option value="">--Chọn vai trò--</option>  
+            <option value="GVCN">GVCN</option>  
+            <option value="HoiDong">Hội đồng</option>  
+        </select>  
+    </div>  
+    <div class="col">
+        <input name="password" class="form-control" placeholder="Mật khẩu (mặc định: 0000)" />
+    </div>
+    <div class="col-md-2"><button type="submit" class="btn btn-primary w-100">Thêm</button></div>  
+</form>  
+
+<hr />
+
+<table class="table table-bordered mt-3">
+    <thead class="table-warning">
+        <tr>
+            <th>Mã NV</th>
+            <th>Họ tên</th>
+            <th>Email</th>
+            <th>Khoa</th>
+            <th>Chức vụ</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var nv in Model)
+        {
+            <tr>
+                <td>@nv.MaNV</td>
+                <td>@nv.HoTen</td>
+                <td>@nv.Email</td>
+                <td>@nv.Khoa?.TenKhoa</td>
+                <td>@nv.ChucVu</td>
+                <td>
+                    <button class="btn btn-primary btn-sm" onclick="suaNV(@nv.NhanVienID, '@nv.HoTen', '@nv.Email', @nv.KhoaID, '@nv.ChucVu')">Sửa</button>
+                    <a href="/Admin/XoaNhanVien?id=@nv.NhanVienID" class="btn btn-danger btn-sm" onclick="return confirm('Xác nhận xóa nhân viên này?')">Xóa</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+
+@section Scripts {
+    <script>
+        function suaNV(id, ten, email, khoaId, chucVu) {
+            document.getElementById('formSuaNV').style.display = 'block';
+            document.getElementById('nv_id').value = id;
+            document.getElementById('nv_ten').value = ten;
+            document.getElementById('nv_email').value = email;
+            document.getElementById('nv_khoa').value = khoaId;
+            document.getElementById('nv_cv').value = chucVu;
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+    </script>
+}

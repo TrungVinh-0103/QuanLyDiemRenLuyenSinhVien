@@ -1,0 +1,92 @@
+﻿@model List<QLDiemRenLuyen.Models.CauHinh.Khoa>
+@{
+    ViewData["Title"] = "Quản lý Khoa";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    var truongs = ViewBag.Truongs as List<QLDiemRenLuyen.Models.CauHinh.Truong> ?? new();
+}
+
+<h4 class="text-danger">QUẢN LÝ KHOA</h4>
+
+<form method="post" asp-action="ThemKhoa" class="row g-2 mb-3">
+    <div class="col-md-3">
+        <input name="TenKhoa" class="form-control" placeholder="Tên khoa" required />
+    </div>
+    <div class="col-md-3">
+        <select name="TruongID" class="form-select" required>
+            <option value="">-- Trường --</option>
+            @foreach (var t in truongs)
+            {
+                <option value="@t.TruongID">@t.TenTruong</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-4">
+        <input name="DiaChi" class="form-control" placeholder="Địa chỉ" />
+    </div>
+    <div class="col-md-2">
+        <button class="btn btn-primary w-100">Thêm</button>
+    </div>
+</form>
+
+<table class="table table-bordered">
+    <thead class="table-warning">
+        <tr>
+            <th>Tên khoa</th>
+            <th>Thuộc trường</th>
+            <th>Địa chỉ</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var k in Model)
+        {
+            <tr>
+                <td>@k.TenKhoa</td>
+                <td>@k.Truong?.TenTruong</td>
+                <td>@k.DiaChi</td>
+                <td>
+                    <button class="btn btn-sm btn-warning" onclick="sua(@k.KhoaID, '@k.TenKhoa', @k.TruongID, '@k.DiaChi')">Sửa</button>
+                    <a href="/Admin/XoaKhoa?id=@k.KhoaID" class="btn btn-sm btn-danger" onclick="return confirm('Xóa khoa này?')">Xóa</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Modal sửa -->
+<div class="modal fade" id="modalKhoa" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="post" asp-action="SuaKhoa" class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Sửa Khoa</h5></div>
+            <div class="modal-body">
+                <input type="hidden" name="KhoaID" id="edit_id" />
+                <div class="mb-2"><input name="TenKhoa" id="edit_ten" class="form-control" required /></div>
+                <div class="mb-2">
+                    <select name="TruongID" id="edit_truong" class="form-select" required>
+                        @foreach (var t in truongs)
+                        {
+                            <option value="@t.TruongID">@t.TenTruong</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-2"><input name="DiaChi" id="edit_diachi" class="form-control" /></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success">Lưu</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function sua(id, ten, truongId, diachi) {
+            document.getElementById("edit_id").value = id;
+            document.getElementById("edit_ten").value = ten;
+            document.getElementById("edit_truong").value = truongId;
+            document.getElementById("edit_diachi").value = diachi;
+            new bootstrap.Modal(document.getElementById("modalKhoa")).show();
+        }
+    </script>
+}

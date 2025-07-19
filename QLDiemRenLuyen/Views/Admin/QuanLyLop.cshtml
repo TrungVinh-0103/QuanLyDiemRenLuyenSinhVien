@@ -1,0 +1,105 @@
+﻿@model List<QLDiemRenLuyen.Models.CauHinh.Lop>
+@{
+    ViewData["Title"] = "Quản lý Lớp";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    var khoas = ViewBag.Khoa as List<QLDiemRenLuyen.Models.CauHinh.Khoa> ?? new();
+    var nienkhoa = ViewBag.NienKhoa as List<QLDiemRenLuyen.Models.CauHinh.NienKhoa> ?? new();
+}
+
+<h4 class="text-danger">QUẢN LÝ LỚP</h4>
+
+<form method="post" asp-action="ThemLop" class="row g-2 mb-3">
+    <div class="col-md-3"><input name="TenLop" class="form-control" placeholder="Tên lớp" required /></div>
+    <div class="col-md-3">
+        <select name="KhoaID" class="form-select" required>
+            <option value="">-- Khoa --</option>
+            @foreach (var k in khoas)
+            {
+                <option value="@k.KhoaID">@k.TenKhoa</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-3">
+        <select name="NienKhoaID" class="form-select" required>
+            <option value="">-- Niên khóa --</option>
+            @foreach (var nk in nienkhoa)
+            {
+                <option value="@nk.NienKhoaID">@nk.TenNienKhoa</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-3"><button class="btn btn-primary w-100">Thêm</button></div>
+</form>
+
+<table class="table table-bordered">
+    <thead class="table-warning">
+        <tr>
+            <th>Tên lớp</th>
+            <th>Khoa</th>
+            <th>Niên khóa</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var l in Model)
+        {
+            <tr>
+                <td>@l.TenLop</td>
+                <td>@l.Khoa?.TenKhoa</td>
+                <td>@l.NienKhoa?.TenNienKhoa</td>
+                <td>
+                    <button class="btn btn-sm btn-warning" onclick="suaLop(@l.LopID, '@l.TenLop', @l.KhoaID, @l.NienKhoaID)">Sửa</button>
+                    <a href="/Admin/XoaLop?id=@l.LopID" class="btn btn-sm btn-danger" onclick="return confirm('Xóa lớp này?')">Xóa</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Modal sửa lớp -->
+<div class="modal fade" id="modalLop" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="post" asp-action="SuaLop" class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Sửa lớp</h5></div>
+            <div class="modal-body">
+                <input type="hidden" name="LopID" id="edit_id" />
+                <div class="mb-2"><input name="TenLop" id="edit_ten" class="form-control" required /></div>
+                <div class="mb-2">
+                    <select name="KhoaID" id="edit_khoa" class="form-select" required>
+                        <option value="">-- Khoa --</option>
+                        @foreach (var k in khoas)
+                        {
+                            <option value="@k.KhoaID">@k.TenKhoa</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-2">
+                    <select name="NienKhoaID" id="edit_nk" class="form-select" required>
+                        <option value="">-- Niên khóa --</option>
+                        @foreach (var nk in nienkhoa)
+                        {
+                            <option value="@nk.NienKhoaID">@nk.TenNienKhoa</option>
+                        }
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success">Lưu</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function suaLop(id, ten, khoaId, nkId) {
+            document.getElementById("edit_id").value = id;
+            document.getElementById("edit_ten").value = ten;
+            document.getElementById("edit_khoa").value = khoaId;
+            document.getElementById("edit_nk").value = nkId;
+            var modal = new bootstrap.Modal(document.getElementById("modalLop"));
+            modal.show();
+        }
+    </script>
+}

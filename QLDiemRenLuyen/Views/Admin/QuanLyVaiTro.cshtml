@@ -1,0 +1,66 @@
+﻿@model List<QLDiemRenLuyen.Models.CauHinh.CauHinhVaiTro>
+@{
+    ViewData["Title"] = "Quản lý Vai Trò";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<h4 class="text-danger">QUẢN LÝ VAI TRÒ NGƯỜI DÙNG</h4>
+
+<form method="post" asp-action="ThemVaiTro" class="row g-2 mb-3">
+    <div class="col-md-4"><input name="TenVaiTro" class="form-control" placeholder="Tên vai trò (ví dụ: GVCN)" required /></div>
+    <div class="col-md-6"><input name="MoTa" class="form-control" placeholder="Mô tả vai trò" /></div>
+    <div class="col-md-2"><button class="btn btn-primary w-100">Thêm</button></div>
+</form>
+
+<table class="table table-bordered">
+    <thead class="table-warning">
+        <tr>
+            <th>Tên vai trò</th>
+            <th>Mô tả</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var vt in Model)
+        {
+            <tr>
+                <td>@vt.TenVaiTro</td>
+                <td>@vt.MoTa</td>
+                <td>
+                    <button class="btn btn-sm btn-warning" onclick="sua(@vt.VaiTroID, '@vt.TenVaiTro', '@vt.MoTa')">Sửa</button>
+                    <a href="/Admin/XoaVaiTro?id=@vt.VaiTroID" class="btn btn-sm btn-danger" onclick="return confirm('Xóa vai trò này?')">Xóa</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Modal sửa -->
+<div class="modal fade" id="modalVaiTro" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="post" asp-action="SuaVaiTro" class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Sửa Vai Trò</h5></div>
+            <div class="modal-body">
+                <input type="hidden" name="VaiTroID" id="edit_id" />
+                <div class="mb-2"><input name="TenVaiTro" id="edit_ten" class="form-control" required /></div>
+                <div class="mb-2"><input name="MoTa" id="edit_mota" class="form-control" /></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success">Lưu</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function sua(id, ten, mota) {
+            document.getElementById("edit_id").value = id;
+            document.getElementById("edit_ten").value = ten;
+            document.getElementById("edit_mota").value = mota;
+            var modal = new bootstrap.Modal(document.getElementById("modalVaiTro"));
+            modal.show();
+        }
+    </script>
+}

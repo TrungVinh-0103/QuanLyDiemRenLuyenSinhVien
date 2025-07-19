@@ -15,7 +15,9 @@ namespace QLDiemRenLuyen.Models
         public DateTime? NgayCapNhatTrangThai { get; set; } = DateTime.Now;
         public string? Email { get; set; }
 
-        public Lop? Lop { get; set; } 
+        public Lop? Lop { get; set; }
+        public ICollection<KetQuaRenLuyen>? KetQuaRenLuyen { get; set; }
+
 
     }
 

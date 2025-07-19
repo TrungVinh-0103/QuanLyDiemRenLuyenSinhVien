@@ -1,0 +1,74 @@
+﻿@model List<QLDiemRenLuyen.Models.CauHinh.HocKy>
+@{
+    ViewData["Title"] = "Quản lý học kỳ";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<h4 class="text-danger">QUẢN LÝ HỌC KỲ</h4>
+
+<form method="post" asp-action="ThemHocKy" class="row g-2 mb-3">
+    <div class="col-md-3"><input name="TenHocKy" class="form-control" placeholder="Tên học kỳ" required /></div>
+    <div class="col-md-2"><input name="NamHoc" class="form-control" placeholder="Năm học (vd: 2024-2025)" required /></div>
+    <div class="col-md-3"><input name="NgayBatDau" type="date" class="form-control" placeholder="Ngày bắt đầu" /></div>
+    <div class="col-md-3"><input name="NgayKetThuc" type="date" class="form-control" placeholder="Ngày kết thúc" /></div>
+    <div class="col-md-1"><button class="btn btn-primary w-100">Thêm</button></div>
+</form>
+
+<table class="table table-bordered">
+    <thead class="table-warning">
+        <tr>
+            <th>Tên học kỳ</th>
+            <th>Năm học</th>
+            <th>Thời gian</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var hk in Model)
+        {
+            <tr>
+                <td>@hk.TenHocKy</td>
+                <td>@hk.NamHoc</td>
+                <td>@hk.NgayBatDau?.ToString("dd/MM/yyyy") - @hk.NgayKetThuc?.ToString("dd/MM/yyyy")</td>
+                <td>
+                    <button class="btn btn-sm btn-warning" onclick="sua(@hk.HocKyID, '@hk.TenHocKy', '@hk.NamHoc', '@hk.NgayBatDau?.ToString("yyyy-MM-dd")', '@hk.NgayKetThuc?.ToString("yyyy-MM-dd")')">Sửa</button>
+                    <a href="/Admin/XoaHocKy?id=@hk.HocKyID" class="btn btn-sm btn-danger" onclick="return confirm('Xóa học kỳ này?')">Xóa</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- Modal sửa -->
+<div class="modal fade" id="modalHocKy" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="post" asp-action="SuaHocKy" class="modal-content">
+            <div class="modal-header"><h5 class="modal-title">Sửa Học Kỳ</h5></div>
+            <div class="modal-body">
+                <input type="hidden" name="HocKyID" id="edit_id" />
+                <div class="mb-2"><input name="TenHocKy" id="edit_ten" class="form-control" required /></div>
+                <div class="mb-2"><input name="NamHoc" id="edit_namhoc" class="form-control" required /></div>
+                <div class="mb-2"><input name="NgayBatDau" id="edit_bd" type="date" class="form-control" /></div>
+                <div class="mb-2"><input name="NgayKetThuc" id="edit_kt" type="date" class="form-control" /></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-success">Lưu</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function sua(id, ten, nam, bd, kt) {
+            document.getElementById("edit_id").value = id;
+            document.getElementById("edit_ten").value = ten;
+            document.getElementById("edit_namhoc").value = nam;
+            document.getElementById("edit_bd").value = bd;
+            document.getElementById("edit_kt").value = kt;
+            var modal = new bootstrap.Modal(document.getElementById("modalHocKy"));
+            modal.show();
+        }
+    </script>
+}

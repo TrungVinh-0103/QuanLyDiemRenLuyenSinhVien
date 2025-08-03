@@ -9,6 +9,8 @@ namespace QLDiemRenLuyen.Data
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
         public DbSet<NguoiDung> NguoiDung { get; set; }
+        public DbSet<ChucVu> ChucVu { get; set; }
+        public DbSet<ChuNhiem> ChuNhiem { get; set; }
         public DbSet<SinhVien> SinhVien { get; set; }
         public DbSet<NhanVien> NhanVien { get; set; }
         public DbSet<Truong> Truong { get; set; }
@@ -19,15 +21,13 @@ namespace QLDiemRenLuyen.Data
         public DbSet<NhomTieuChi> NhomTieuChi { get; set; }
         public DbSet<TieuChi> TieuChi { get; set; }
         public DbSet<PhieuDanhGia> PhieuDanhGia { get; set; }
-        public DbSet<DiemRenLuyen> DiemRenLuyen { get; set; }
+        public DbSet<ChiTietPhieuDanhGia> ChiTietPhieuDanhGia { get; set; }
         public DbSet<KetQuaRenLuyen> KetQuaRenLuyen { get; set; }
-        public DbSet<MinhChung> MinhChung { get; set; }
-        public DbSet<CauHinhTrangThaiHocTap> CauHinhTrangThaiHocTap { get; set; }
+        public DbSet<CauHinhTrangThaiSinhVien> CauHinhTrangThaiSinhVien { get; set; }
+        public DbSet<CauHinhTrangThaiDanhGia> CauHinhTrangThaiDanhGia { get; set; }
         public DbSet<CauHinhVaiTro> CauHinhVaiTro { get; set; }
         public DbSet<CauHinhXepLoai> CauHinhXepLoai { get; set; }
-        //blic DbSet<CauHinhHeThong> CauHinhHeThong { get; set; }
-        public DbSet<LichSuTrangThai> LichSuTrangThai { get; set; }
-        public DbSet<ThongKe> ThongKe { get; set; }
+        public DbSet<TrangThaiSinhVien> TrangThaiSinhVien { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

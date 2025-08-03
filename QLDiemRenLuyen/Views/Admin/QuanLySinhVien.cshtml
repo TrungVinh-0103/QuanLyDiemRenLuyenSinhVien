@@ -1,125 +1,252 @@
-﻿@using QLDiemRenLuyen.Models.CauHinh
-@model List<QLDiemRenLuyen.Models.SinhVien>  
-@{  
-    ViewData["Title"] = "Quản lý Sinh viên";  
-    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";  
-    var lops = ViewBag.Lop as List<QLDiemRenLuyen.Models.CauHinh.Lop> ?? new List<QLDiemRenLuyen.Models.CauHinh.Lop>();  
-}  
-
-<h4 class="text-danger">QUẢN LÝ SINH VIÊN</h4>  
-
-@if (TempData["ThongBao"] != null)
-{
-    <div class="alert alert-success">@TempData["ThongBao"]</div>
+﻿@model List<QLDiemRenLuyen.Models.SinhVien>
+@{
+    ViewData["Title"] = "Quản lý Sinh viên";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    var khoas = ViewBag.Khoas as List<QLDiemRenLuyen.Models.Khoa> ?? new List<QLDiemRenLuyen.Models.Khoa>();
+    var lops = ViewBag.Lops as List<QLDiemRenLuyen.Models.Lop> ?? new List<QLDiemRenLuyen.Models.Lop>();
+    var trangThais = ViewBag.TrangThaiSinhVien as List<QLDiemRenLuyen.Models.CauHinh.CauHinhTrangThaiSinhVien> ?? new List<QLDiemRenLuyen.Models.CauHinh.CauHinhTrangThaiSinhVien>();
 }
 
-<form asp-action="ThemSinhVien" method="post" class="row g-2 mb-4">  
-    <div class="col-md-2"><input name="MaSV" class="form-control" placeholder="Mã SV" required /></div>  
-    <div class="col-md-2"><input name="HoTen" class="form-control" placeholder="Họ tên" required /></div>  
-    <div class="col-md-2"><input type="date" name="NgaySinh" class="form-control" required /></div>  
-    <div class="col-md-2">  
-        <select name="LopID" class="form-select" required>
-            <option value="">-- Lớp --</option>
-            @foreach (var l in lops)
-            {
-                <option value="@l.LopID">@l.TenLop</option>
-            }
-        </select>
-    </div>  
-    <div class="col-md-2"><input name="Email" class="form-control" placeholder="Email" required /></div>
-    <div class="col">
-        <select name="TrangThai" class="form-select" required>
-            <option value="Đang học">Đang học</option>
-            <option value="Nghỉ">Nghỉ</option>
-            <option value="Bảo lưu">Bảo lưu</option>
-        </select>
-    </div>
-    <div class="col">
-        <input name="password" class="form-control" placeholder="Mật khẩu (mặc định: 1111)" />
-    </div>
-    <div class="col-md-2"><button type="submit" class="btn btn-primary w-100">Thêm</button></div>  
-</form> 
-<hr />
-<!-- Form sửa sinh viên (ẩn) -->
-<form method="post" asp-action="SuaSinhVien" id="formSua" class="border rounded p-3 bg-light mt-4" style="display:none;">
-    <h5 class="text-primary">Chỉnh sửa thông tin sinh viên</h5>
-    <input type="hidden" name="SinhVienID" id="edit_id" />
-    <div class="row g-3">
-        <div class="col-md-3">
-            <input name="HoTen" id="edit_ten" class="form-control" placeholder="Họ tên" required />
-        </div>
-        <div class="col-md-2">
-            <input type="date" name="NgaySinh" id="edit_ngaysinh" class="form-control" />
-        </div>
-        <div class="col-md-3">
-            <input name="Email" id="edit_email" class="form-control" placeholder="Email" />
-        </div>
-        <div class="col-md-2">
-            <select name="LopID" id="edit_lop" class="form-select">
-                @foreach (var lop in lops)
+<div class="container mt-4">
+    <h4 class="text-primary mb-3">QUẢN LÝ SINH VIÊN</h4>
+
+    @if (TempData["ThanhCong"] != null)
+    {
+        <div class="alert alert-success">@TempData["ThanhCong"]</div>
+    }
+    @if (TempData["Loi"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Loi"]</div>
+    }
+
+    <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalThem">+ Thêm Sinh viên</button>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-warning">Không có sinh viên nào để hiển thị.</div>
+    }
+    else
+    {
+        <table class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>MSSV</th>
+                    <th>Họ tên</th>
+                    <th>Giới tính</th>
+                    <th>Ngày sinh</th>
+                    <th>Nơi sinh</th>
+                    <th>Lớp</th>
+                    <th>Khoa</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var sv in Model)
                 {
-                    <option value="@lop.LopID">@lop.TenLop</option>
+                    <tr>
+                        <td>@sv.MaSV</td>
+                        <td>@sv.HoTen</td>
+                        <td>@sv.GioiTinh</td>
+                        <td>@(sv.NgaySinh?.ToString("dd/MM/yyyy"))</td>
+                        <td>@sv.NoiSinh</td>
+                        <td>@sv.Lop?.TenLop</td>
+                        <td>@sv.Khoa?.TenKhoa</td>
+                        <td>@sv.TrangThai?.TenTrangThai</td>
+                        <td>
+                            <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modalSua_@sv.SinhVienID">Sửa</button>
+                            <form asp-action="XoaSinhVien" asp-controller="Admin" method="post" style="display:inline;" onsubmit="return confirm('Xác nhận xóa sinh viên này\u003F');">
+                                <input type="hidden" name="id" value="@sv.SinhVienID" />
+                                <button type="submit" class="btn btn-sm btn-danger">Xóa</button>
+                            </form>
+                        </td>
+                    </tr>
                 }
-            </select>
+            </tbody>
+        </table>
+    }
+
+    <!-- Modal Sửa -->
+    @foreach (var sv in Model)
+    {
+        <div class="modal fade" id="modalSua_@sv.SinhVienID" tabindex="-1" aria-labelledby="modalSuaLabel_@sv.SinhVienID" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <form asp-action="SuaSinhVien" asp-controller="Admin" method="post">
+                        <div class="modal-header bg-warning">
+                            <h5 class="modal-title" id="modalSuaLabel_@sv.SinhVienID">Sửa sinh viên: @sv.HoTen</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body row">
+                            <input type="hidden" name="SinhVienID" value="@sv.SinhVienID" />
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">MSSV</label>
+                                <input name="MaSV" class="form-control" value="@sv.MaSV" required />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Họ tên</label>
+                                <input name="HoTen" class="form-control" value="@sv.HoTen" required />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Giới tính</label>
+                                <select name="GioiTinh" class="form-control" required>
+                                    @if (sv.GioiTinh == "Nam")
+                                    {
+                                        <option value="Nam" selected>Nam</option>
+                                        <option value="Nữ">Nữ</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="Nam">Nam</option>
+                                        <option value="Nữ" selected>Nữ</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Ngày sinh</label>
+                                <input type="date" name="NgaySinh" class="form-control" value="@sv.NgaySinh?.ToString("yyyy-MM-dd")" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Nơi sinh</label>
+                                <input name="NoiSinh" class="form-control" value="@sv.NoiSinh" required />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Khoa</label>
+                                <select name="KhoaID" class="form-control" required>
+                                    @foreach (var k in khoas)
+                                    {
+                                        if (k.KhoaID == sv.KhoaID)
+                                        {
+                                            <option value="@k.KhoaID" selected>@k.TenKhoa</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@k.KhoaID">@k.TenKhoa</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Lớp</label>
+                                <select name="LopID" class="form-control" required>
+                                    @foreach (var l in lops)
+                                    {
+                                        if (l.LopID == sv.LopID)
+                                        {
+                                            <option value="@l.LopID" selected>@l.TenLop</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@l.LopID">@l.TenLop</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Trạng thái</label>
+                                <select name="TrangThaiID" class="form-control" required>
+                                    @foreach (var t in trangThais)
+                                    {
+                                        if (t.TrangThaiID == sv.TrangThaiID)
+                                        {
+                                            <option value="@t.TrangThaiID" selected>@t.TenTrangThai</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@t.TrangThaiID">@t.TenTrangThai</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="submit" class="btn btn-primary">Lưu</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
-        <div class="col-md-2">
-            <select name="TrangThai" id="edit_tt" class="form-select">
-                <option value="Đang học">Đang học</option>
-                <option value="Nghỉ">Nghỉ</option>
-                <option value="Bảo lưu">Bảo lưu</option>
-            </select>
+    }
+
+    <!-- Modal Thêm -->
+    <div class="modal fade" id="modalThem" tabindex="-1" aria-labelledby="modalThemLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <form asp-action="ThemSinhVien" asp-controller="Admin" method="post">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title" id="modalThemLabel">Thêm Sinh viên</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">MSSV</label>
+                            <input name="MaSV" class="form-control" required />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Họ tên</label>
+                            <input name="HoTen" class="form-control" required />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Giới tính</label>
+                            <select name="GioiTinh" class="form-control" required>
+                                <option value="Nam">Nam</option>
+                                <option value="Nữ">Nữ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Ngày sinh</label>
+                            <input type="date" name="NgaySinh" class="form-control" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Nơi sinh</label>
+                            <input name="NoiSinh" class="form-control" required />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Khoa</label>
+                            <select name="KhoaID" class="form-control" required>
+                                @foreach (var k in khoas)
+                                {
+                                    <option value="@k.KhoaID">@k.TenKhoa</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Lớp</label>
+                            <select name="LopID" class="form-control" required>
+                                @foreach (var l in lops)
+                                {
+                                    <option value="@l.LopID">@l.TenLop</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Trạng thái</label>
+                            <select name="TrangThaiID" class="form-control" required>
+                                @foreach (var t in trangThais)
+                                {
+                                    <option value="@t.TrangThaiID">@t.TenTrangThai</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">Thêm</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-    <div class="mt-3 text-end">
-        <button type="submit" class="btn btn-warning">Cập nhật</button>
-        <button type="button" class="btn btn-secondary" onclick="document.getElementById('formSua').style.display='none'">Hủy</button>
-    </div>
-</form>
-<hr />
-<table class="table table-bordered">  
-    <thead class="table-warning">  
-        <tr>  
-            <th>Mã SV</th>  
-            <th>Họ tên</th>  
-            <th>Ngày sinh</th>  
-            <th>Lớp</th>  
-            <th>Email</th>  
-            <th>Trạng thái</th>  
-            <th>Thao tác</th>  
-        </tr>  
-    </thead>  
-    <tbody>  
-        @foreach (var sv in Model)  
-        {  
-            <tr>  
-                <td>@sv.MaSV</td>  
-                <td>@sv.HoTen</td>  
-                <td>@sv.NgaySinh?.ToString("dd/MM/yyyy")</td>  
-                <td>@sv.Lop?.TenLop</td>  
-                <td>@sv.Email</td>  
-                <td>@sv.TrangThai</td>
-                <td>
-                    <button class="btn btn-primary btn-sm" onclick="sua(@sv.SinhVienID, '@sv.HoTen', '@sv.Email', '@sv.NgaySinh?.ToString("yyyy-MM-dd")', @sv.LopID, '@sv.TrangThai')">Sửa</button>
-                    <a href="/Admin/XoaSinhVien?id=@sv.SinhVienID" class="btn btn-danger btn-sm" onclick="return confirm('Xác nhận xóa sinh viên này?')">Xóa</a>
-                </td>
-            </tr>  
-        }  
-    </tbody>  
-</table>
-
-
+</div>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
     <script>
-        function sua(id, ten, email, ngaysinh, lopId, tt) {
-            document.getElementById('formSua').style.display = 'block';
-            document.getElementById('edit_id').value = id;
-            document.getElementById('edit_ten').value = ten;
-            document.getElementById('edit_email').value = email;
-            document.getElementById('edit_ngaysinh').value = ngaysinh;
-            document.getElementById('edit_lop').value = lopId;
-            document.getElementById('edit_tt').value = tt;
-            window.scrollTo(0, document.body.scrollHeight);
-        }
+        document.querySelectorAll('[data-bs-toggle="modal"]').forEach(button => {
+            button.addEventListener('click', () => {
+                console.log('Modal button clicked: ', button.getAttribute('data-bs-target'));
+            });
+        });
     </script>
 }

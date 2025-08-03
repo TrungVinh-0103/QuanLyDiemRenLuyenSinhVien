@@ -1,4 +1,4 @@
-﻿@model List<QLDiemRenLuyen.Models.CauHinh.NhomTieuChi>
+﻿@model List<NhomTieuChi>
 @{
     ViewData["Title"] = "Quản lý Nhóm Tiêu chí";
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
@@ -10,7 +10,6 @@
 <form method="post" asp-action="ThemNhomTieuChi" class="row g-2 mb-3">
     <div class="col-md-4"><input name="TenNhom" class="form-control" placeholder="Tên nhóm tiêu chí" required /></div>
     <div class="col-md-2"><input name="DiemToiDa" type="number" class="form-control" placeholder="Điểm tối đa" required /></div>
-    <div class="col-md-4"><input name="MoTa" class="form-control" placeholder="Mô tả" /></div>
     <div class="col-md-2"><button class="btn btn-primary w-100">Thêm</button></div>
 </form>
 
@@ -19,7 +18,6 @@
         <tr>
             <th>Tên nhóm</th>
             <th>Điểm tối đa</th>
-            <th>Mô tả</th>
             <th>Thao tác</th>
         </tr>
     </thead>
@@ -29,7 +27,6 @@
             <tr>
                 <td>@n.TenNhom</td>
                 <td>@n.DiemToiDa</td>
-                <td>@n.MoTa</td>
                 <td>
                     <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modalSua_@n.NhomTieuChiID">
                         Sửa
@@ -52,7 +49,6 @@
                 <div class="modal-body">
                     <input name="TenNhom" value="@n.TenNhom" class="form-control mb-2" placeholder="Tên nhóm" required />
                     <input name="DiemToiDa" type="number" value="@n.DiemToiDa" class="form-control mb-2" placeholder="Điểm tối đa" required />
-                    <input name="MoTa" value="@n.MoTa" class="form-control" placeholder="Mô tả" />
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-success">Cập nhật</button>

@@ -1,105 +1,153 @@
-﻿@model List<QLDiemRenLuyen.Models.CauHinh.Lop>
+﻿@model List<QLDiemRenLuyen.Models.Lop>
 @{
-    ViewData["Title"] = "Quản lý Lớp";
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
-    var khoas = ViewBag.Khoa as List<QLDiemRenLuyen.Models.CauHinh.Khoa> ?? new();
-    var nienkhoa = ViewBag.NienKhoa as List<QLDiemRenLuyen.Models.CauHinh.NienKhoa> ?? new();
+    ViewData["Title"] = "Quản lý lớp";
+    var khoas = ViewBag.Khoas as List<QLDiemRenLuyen.Models.Khoa> ?? new List<QLDiemRenLuyen.Models.Khoa>();
+    var nienKhoas = ViewBag.NienKhoas as List<QLDiemRenLuyen.Models.NienKhoa> ?? new List<QLDiemRenLuyen.Models.NienKhoa>();
 }
 
-<h4 class="text-danger">QUẢN LÝ LỚP</h4>
+<div class="container mt-4">
+    <h4 class="text-primary mb-3">QUẢN LÝ LỚP</h4>
 
-<form method="post" asp-action="ThemLop" class="row g-2 mb-3">
-    <div class="col-md-3"><input name="TenLop" class="form-control" placeholder="Tên lớp" required /></div>
-    <div class="col-md-3">
-        <select name="KhoaID" class="form-select" required>
-            <option value="">-- Khoa --</option>
-            @foreach (var k in khoas)
-            {
-                <option value="@k.KhoaID">@k.TenKhoa</option>
-            }
-        </select>
-    </div>
-    <div class="col-md-3">
-        <select name="NienKhoaID" class="form-select" required>
-            <option value="">-- Niên khóa --</option>
-            @foreach (var nk in nienkhoa)
-            {
-                <option value="@nk.NienKhoaID">@nk.TenNienKhoa</option>
-            }
-        </select>
-    </div>
-    <div class="col-md-3"><button class="btn btn-primary w-100">Thêm</button></div>
-</form>
+    @if (TempData["Loi"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Loi"]</div>
+    }
+    @if (TempData["ThanhCong"] != null)
+    {
+        <div class="alert alert-success">@TempData["ThanhCong"]</div>
+    }
 
-<table class="table table-bordered">
-    <thead class="table-warning">
-        <tr>
-            <th>Tên lớp</th>
-            <th>Khoa</th>
-            <th>Niên khóa</th>
-            <th>Thao tác</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var l in Model)
-        {
-            <tr>
-                <td>@l.TenLop</td>
-                <td>@l.Khoa?.TenKhoa</td>
-                <td>@l.NienKhoa?.TenNienKhoa</td>
-                <td>
-                    <button class="btn btn-sm btn-warning" onclick="suaLop(@l.LopID, '@l.TenLop', @l.KhoaID, @l.NienKhoaID)">Sửa</button>
-                    <a href="/Admin/XoaLop?id=@l.LopID" class="btn btn-sm btn-danger" onclick="return confirm('Xóa lớp này?')">Xóa</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+    <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalThem">Thêm lớp</button>
 
-<!-- Modal sửa lớp -->
-<div class="modal fade" id="modalLop" tabindex="-1">
-    <div class="modal-dialog">
-        <form method="post" asp-action="SuaLop" class="modal-content">
-            <div class="modal-header"><h5 class="modal-title">Sửa lớp</h5></div>
-            <div class="modal-body">
-                <input type="hidden" name="LopID" id="edit_id" />
-                <div class="mb-2"><input name="TenLop" id="edit_ten" class="form-control" required /></div>
-                <div class="mb-2">
-                    <select name="KhoaID" id="edit_khoa" class="form-select" required>
-                        <option value="">-- Khoa --</option>
-                        @foreach (var k in khoas)
-                        {
-                            <option value="@k.KhoaID">@k.TenKhoa</option>
-                        }
-                    </select>
-                </div>
-                <div class="mb-2">
-                    <select name="NienKhoaID" id="edit_nk" class="form-select" required>
-                        <option value="">-- Niên khóa --</option>
-                        @foreach (var nk in nienkhoa)
-                        {
-                            <option value="@nk.NienKhoaID">@nk.TenNienKhoa</option>
-                        }
-                    </select>
-                </div>
+    @if (!Model.Any())
+    {
+        <div class="alert alert-warning">Không có lớp nào để hiển thị.</div>
+    }
+    else
+    {
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Tên lớp</th>
+                    <th>Khoa</th>
+                    <th>Niên khóa</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < Model.Count; i++)
+                {
+                    var lop = Model[i];
+                    <tr>
+                        <td>@(i + 1)</td>
+                        <td>@lop.TenLop</td>
+                        <td>@lop.Khoa?.TenKhoa</td>
+                        <td>@lop.NienKhoa?.TenNienKhoa</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalSua_@lop.LopID">Sửa</button>
+                            <form method="post" asp-action="XoaLop" asp-controller="Admin" style="display:inline;">
+                                <input type="hidden" name="id" value="@lop.LopID" />
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Xác nhận xóa lớp?')">Xóa</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+
+    <!-- Modal Sửa -->
+    @for (int i = 0; i < Model.Count; i++)
+    {
+        var lop = Model[i];
+        <div class="modal fade" id="modalSua_@lop.LopID" tabindex="-1" aria-labelledby="modalSuaLabel_@lop.LopID" aria-hidden="true">
+            <div class="modal-dialog">
+                <form method="post" asp-action="SuaLop" asp-controller="Admin">
+                    <div class="modal-content">
+                        <div class="modal-header bg-warning">
+                            <h5 class="modal-title" id="modalSuaLabel_@lop.LopID">Sửa lớp: @lop.TenLop</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" name="LopID" value="@lop.LopID" />
+                            <div class="mb-3">
+                                <label class="form-label">Tên lớp</label>
+                                <input name="TenLop" class="form-control" value="@lop.TenLop" required />
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Khoa</label>
+                                <select name="KhoaID" class="form-select" required>
+                                    @foreach (var k in khoas)
+                                    {
+                                        <option value="@k.KhoaID" selected="@(k.KhoaID == lop.KhoaID ? "selected" : "")">@k.TenKhoa</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Niên khóa</label>
+                                <select name="NienKhoaID" class="form-select" required>
+                                    @foreach (var nk in nienKhoas)
+                                    {
+                                        <option value="@nk.NienKhoaID" selected="@(nk.NienKhoaID == lop.NienKhoaID ? "selected" : "")">@nk.TenNienKhoa</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                            <button type="submit" class="btn btn-warning">Lưu thay đổi</button>
+                        </div>
+                    </div>
+                </form>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-success">Lưu</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-            </div>
-        </form>
+        </div>
+    }
+
+    <!-- Modal Thêm -->
+    <div class="modal fade" id="modalThem" tabindex="-1" aria-labelledby="modalThemLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <form method="post" asp-action="ThemLop" asp-controller="Admin">
+                <div class="modal-content">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title" id="modalThemLabel">Thêm lớp mới</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Tên lớp</label>
+                            <input name="TenLop" class="form-control" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Khoa</label>
+                            <select name="KhoaID" class="form-select" required>
+                                @foreach (var k in khoas)
+                                {
+                                    <option value="@k.KhoaID">@k.TenKhoa</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Niên khóa</label>
+                            <select name="NienKhoaID" class="form-select" required>
+                                @foreach (var nk in nienKhoas)
+                                {
+                                    <option value="@nk.NienKhoaID">@nk.TenNienKhoa</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="submit" class="btn btn-success">Thêm mới</button>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
 @section Scripts {
-    <script>
-        function suaLop(id, ten, khoaId, nkId) {
-            document.getElementById("edit_id").value = id;
-            document.getElementById("edit_ten").value = ten;
-            document.getElementById("edit_khoa").value = khoaId;
-            document.getElementById("edit_nk").value = nkId;
-            var modal = new bootstrap.Modal(document.getElementById("modalLop"));
-            modal.show();
-        }
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
 }

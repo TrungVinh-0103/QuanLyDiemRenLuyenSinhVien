@@ -6,8 +6,10 @@ namespace QLDiemRenLuyen.Models.CauHinh
     {
         [Key]
         public int VaiTroID { get; set; }
+
+        [Required(ErrorMessage = "Tên vai trò không được để trống")]
+        [MaxLength(50)]
         public string? TenVaiTro { get; set; }
-        public string? MoTa { get; set; }
     }
 
 }

@@ -1,41 +1,146 @@
 ﻿@model QLDiemRenLuyen.ViewModels.TuDanhGiaViewModel
 @{
-    ViewData["Title"] = "Tự đánh giá rèn luyện";
+    ViewData["Title"] = "Tự đánh giá";
     Layout = "~/Views/Shared/_LayoutSinhVien.cshtml";
+    var nhomTieuChis = Model.NhomTieuChi ?? new List<QLDiemRenLuyen.ViewModels.NhomTieuChiViewModel>();
+    var hocKy = ViewBag.HocKys as List<HocKy> ?? new List<HocKy>();
 }
 
-<h3 class="text-danger mb-4">TỰ ĐÁNH GIÁ ĐIỂM RÈN LUYỆN</h3>
+<div class="container mt-4">
+    <h4 class="text-uppercase text-center">Phiếu tự đánh giá rèn luyện</h4>
+    <form method="get" asp-action="TuDanhGia" class="row mb-4 justify-content-center">
+    <div class="col-md-6">
+        <label class="form-label fw-bold">Chọn học kỳ:</label>
+        <select name="hocKyID" class="form-select" onchange="this.form.submit()">
+            <option value="">-- Chọn học kỳ --</option>
+            @foreach (var hk in hocKy)
+            {
+                    <option value="@hk.HocKyID" selected="@(hk.HocKyID == Model.HocKyID ? "selected" : null)">
+                        @hk.TenHocKy - @hk.NamHoc (@hk.NienKhoa?.TenNienKhoa)
+                    </option>
+            }
+        </select>
+    </div>
+</form>
 
-<form asp-action="TuDanhGia" method="post" enctype="multipart/form-data">
-    <input type="hidden" name="HocKyID" value="@Model.HocKyID" />
-
-    @foreach (var nhom in Model.NhomTieuChi!)
+    @if (TempData["Loi"] != null)
     {
-        <div class="card mb-3">
-            <div class="card-header bg-warning text-dark fw-bold">
-                @nhom.TenNhom (Tối đa: @nhom.DiemToiDa điểm)
-            </div>
-            <div class="card-body">
-                @for (int i = 0; i < nhom.TieuChi!.Count; i++)
-                {
-                    var tieuChi = nhom.TieuChi[i];
-                    <div class="mb-3">
-                        <label class="fw-semibold">@tieuChi.TenTieuChi (@tieuChi.DiemToiDa điểm)</label>
-                        <input type="number" class="form-control" name="DiemDanhGia_@tieuChi.TieuChiID"
-                               min="0" max="@tieuChi.DiemToiDa" required />
-
-                        @if (tieuChi.YeuCauMinhChung)
-                        {
-                            <div class="mt-2">
-                                <label class="text-muted">Minh chứng (nếu có):</label>
-                                <input type="file" name="MinhChung_@tieuChi.TieuChiID" class="form-control" />
-                            </div>
-                        }
-                    </div>
-                }
-            </div>
-        </div>
+        <div class="alert alert-danger">@TempData["Loi"]</div>
+    }
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
     }
 
-    <button type="submit" class="btn btn-primary">Gửi phiếu đánh giá</button>
-</form>
+    @if (!nhomTieuChis.Any() || nhomTieuChis.All(n => !n.TieuChi?.Any() ?? true))
+    {
+        <div class="alert alert-warning">Không có tiêu chí đánh giá nào để hiển thị.</div>
+    }
+    else
+    {
+        <form asp-action="TuDanhGia" asp-controller="SinhVien" method="post" enctype="multipart/form-data">
+            <input type="hidden" asp-for="HocKyID" />
+
+            @foreach (var nhom in nhomTieuChis)
+            {
+                <div class="card mt-3">
+                    <div class="card-header bg-primary text-white">
+                        @nhom.TenNhom (Tối đa: @nhom.DiemToiDa điểm)
+                    </div>
+                    <div class="card-body">
+                        @if (nhom.TieuChi != null && nhom.TieuChi.Any())
+                        {
+                            @foreach (var tieuChi in nhom.TieuChi)
+                            {
+                                bool laTieuChiViPham = tieuChi.DiemToiDa < 0;
+
+                                <div class="mb-3">
+                                    <label class="form-label">
+                                        <strong>@tieuChi.TenTieuChi</strong>
+                                        (Tối đa: @tieuChi.DiemToiDa @(laTieuChiViPham ? " (Điểm trừ nếu có vi phạm)" : ""))
+                                    </label>
+
+                                    <!-- Binding đúng để ASP.NET hiểu -->
+                                    <input type="hidden" name="DiemTieuChiList.Index" value="@tieuChi.TieuChiID" />
+                                    <input type="hidden" name="DiemTieuChiList[@tieuChi.TieuChiID].TieuChiID" value="@tieuChi.TieuChiID" />
+
+                                    <input type="number"
+                                           name="DiemTieuChiList[@tieuChi.TieuChiID].DiemTuDanhGia"
+                                           class="form-control diem-input"
+                                           data-nhom="@nhom.NhomTieuChiID"
+                                           min="@(laTieuChiViPham ? -Math.Abs(tieuChi.DiemToiDa) : 0)"
+                                           max="@(laTieuChiViPham ? 0 : tieuChi.DiemToiDa)"
+                                           placeholder="@(laTieuChiViPham ? "Không cần nhập nếu không vi phạm" : "Nhập điểm")"
+                                           @(laTieuChiViPham ? "" : "required") />
+                                </div>
+                            }
+
+                            <div class="text-end mt-3">
+                                <strong>Tổng điểm nhóm:</strong>
+                                <span class="text-primary" id="tong-nhom-@nhom.NhomTieuChiID" data-max="@nhom.DiemToiDa">0</span> / @nhom.DiemToiDa
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted">Không có tiêu chí trong nhóm này.</p>
+                        }
+                    </div>
+                </div>
+            }
+
+            <div class="mt-4 text-end">
+                <h5><strong>Tổng điểm đánh giá:</strong> <span id="tongDiemDanhGia">0</span> điểm</h5>
+            </div>
+
+            <div class="mt-3 text-center">
+                <button type="submit" class="btn btn-success">Gửi phiếu đánh giá</button>
+            </div>
+        </form>
+    }
+</div>
+
+@section Scripts {
+    <script>
+                function capNhatDiem() {
+            let tongDiem = 0;
+            let nhomDiem = {};
+
+            // Lặp qua từng input điểm
+            document.querySelectorAll(".diem-input").forEach(input => {
+                let diem = parseInt(input.value);
+                let nhomId = input.getAttribute("data-nhom");
+
+                if (!isNaN(diem)) {
+                    // Cộng điểm nhóm
+                    if (!nhomDiem[nhomId]) nhomDiem[nhomId] = 0;
+                    nhomDiem[nhomId] += diem;
+                }
+            });
+
+            // Cập nhật tổng điểm nhóm và cộng tổng
+            for (let nhomId in nhomDiem) {
+                let span = document.getElementById("tong-nhom-" + nhomId);
+                if (span) {
+                    let gioiHan = parseInt(span.getAttribute("data-max")) || Infinity;
+                    let diemNhom = Math.min(nhomDiem[nhomId], gioiHan);
+
+                    span.innerText = diemNhom;
+
+                    // ✅ chỉ cộng vào tổng điểm sau khi đã giới hạn
+                    tongDiem += diemNhom;
+                }
+            }
+
+            // Cập nhật tổng điểm toàn bộ
+            document.getElementById("tongDiemDanhGia").innerText = tongDiem;
+        }
+
+
+        document.addEventListener("DOMContentLoaded", function () {
+            capNhatDiem();
+            document.querySelectorAll(".diem-input").forEach(input => {
+                input.addEventListener("input", capNhatDiem);
+            });
+        });
+    </script>
+}

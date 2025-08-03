@@ -1,54 +1,103 @@
-﻿@{
-    ViewData["Title"] = "Trang tổng quan";
+﻿@* @{
+    ViewData["Title"] = "Trang chính";
     Layout = "~/Views/Shared/_LayoutSinhVien.cshtml";
     var sv = ViewBag.SinhVien as QLDiemRenLuyen.Models.SinhVien;
-    var hocKy = ViewBag.HocKy as QLDiemRenLuyen.Models.CauHinh.HocKy;
-    var ketQua = ViewBag.KetQua as List<QLDiemRenLuyen.Models.KetQuaRenLuyen>;
-    var trangThai = ViewBag.TrangThai as string;
 }
 
-<h3 class="text-danger">TRANG TỔNG QUAN SINH VIÊN</h3>
+<h3 class="text-uppercase text-center">Chào mừng bạn: @sv?.HoTen</h3>
+<hr />
+<p><strong>Mã số sinh viên:</strong> @sv?.MaSV</p>
+<p><strong>Lớp:</strong> @sv?.Lop?.TenLop</p>
+<p><strong>Khoa:</strong> @sv?.Khoa?.TenKhoa</p>
+<p><strong>Trạng thái học tập:</strong> @sv?.TrangThai?.TenTrangThai</p> *@
 
-<div class="card mb-3">
-    <div class="card-header bg-warning fw-bold text-dark">Thông tin sinh viên</div>
-    <div class="card-body">
-        <p><strong>Họ tên:</strong> @sv!.HoTen</p>
-        <p><strong>MSSV:</strong> @sv.MaSV</p>
-        <p><strong>Email:</strong> @sv.Email</p>
-        <p><strong>Lớp:</strong> @sv.Lop?.TenLop</p>
-        <p><strong>Khoa:</strong> @sv.Lop?.Khoa?.TenKhoa</p>
-        <p><strong>Trạng thái học tập:</strong> <span class="text-primary fw-bold">@sv.TrangThai</span></p>
+
+@{
+    ViewData["Title"] = "Trang chính";
+    Layout = "~/Views/Shared/_LayoutSinhVien.cshtml";
+    var sv = ViewBag.SinhVien as QLDiemRenLuyen.Models.SinhVien;
+}
+<link rel="stylesheet" href="~/css/Index_SV.css" />
+
+<div class="row">
+    <div class="col-12">
+        <div class="welcome-card p-4 mb-4" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; color: white; box-shadow: 0 10px 40px rgba(0,0,0,0.1); animation: slideInDown 0.6s ease;">
+            <h3 class="text-uppercase text-center mb-3">
+                <i class="fas fa-hand-wave me-2"></i>
+                Chào mừng bạn: @sv?.HoTen
+            </h3>
+            <div class="text-center">
+                <i class="fas fa-user-graduate fa-3x mb-3" style="opacity: 0.8;"></i>
+            </div>
+        </div>
     </div>
 </div>
 
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="info-card h-100" style="background: white; border-radius: 15px; padding: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); border-left: 5px solid #667eea; animation: slideInLeft 0.8s ease;">
+            <h5 class="mb-4" style="color: #667eea; font-weight: 600;">
+                <i class="fas fa-id-card me-2"></i>
+                Thông tin cá nhân
+            </h5>
+            <div class="info-item mb-3">
+                <strong style="color: #495057;">
+                    <i class="fas fa-hashtag me-2 text-primary"></i>
+                    Mã số sinh viên:
+                </strong>
+                <span class="ms-2" style="color: #6c757d;">@sv?.MaSV</span>
+            </div>
+            <div class="info-item mb-3">
+                <strong style="color: #495057;">
+                    <i class="fas fa-users me-2 text-success"></i>
+                    Lớp:
+                </strong>
+                <span class="ms-2" style="color: #6c757d;">@sv?.Lop!.TenLop</span>
+            </div>
+            <div class="info-item mb-3">
+                <strong style="color: #495057;">
+                    <i class="fas fa-users me-2 text-success"></i>
+                    Niên khóa:
+                </strong>
+                <span class="ms-2" style="color: #6c757d;">@sv?.Lop!.NienKhoa!.TenNienKhoa</span>
+            </div>
+            <div class="info-item mb-3">
+                <strong style="color: #495057;">
+                    <i class="fas fa-university me-2 text-info"></i>
+                    Khoa:
+                </strong>
+                <span class="ms-2" style="color: #6c757d;">@sv?.Khoa!.TenKhoa</span>
+            </div>
+            <div class="info-item">
+                <strong style="color: #495057;">
+                    <i class="fas fa-check-circle me-2 text-warning"></i>
+                    Trạng thái học tập:
+                </strong>
+                <span class="ms-2 badge bg-success">@sv?.TrangThai!.TenTrangThai</span>
+            </div>
+        </div>
+    </div>
 
-<div class="card">
-    <div class="card-header bg-success text-white">Trạng thái đánh giá hiện tại</div>
-    <div class="card-body">
-        <h5 class="text-dark">@hocKy!.TenHocKy - <strong>@hocKy.NamHoc</strong></h5>
-        <p>
-            @* <strong>Trạng thái đánh giá:</strong><span class="text-danger fw-bold">@trangThai</span> *@
-
-            @if (trangThai == "Chưa đánh giá")
-            {
-                <strong>Trạng thái đánh giá:</strong>
-            
-                <span class="text-danger fw-bold">@trangThai</span>
-                <a href="/SinhVien/TuDanhGia" class="btn btn-sm btn-outline-primary ms-2">Thực hiện đánh giá</a>
-            }
-            else if (trangThai == "Đã gửi GVCN")
-            {
-                <strong>Trạng thái đánh giá:</strong><span class="text-danger fw-bold">@trangThai</span>
-                @* <span class="badge bg-warning text-dark">@trangThai</span> *@
-            }
-            else if (trangThai!.Contains("Hội đồng"))
-            {
-                <strong>Trạng thái đánh giá:</strong>
-            
-                <span class="text-danger fw-bold">@trangThai</span>
-                @* <span class="badge bg-success">@trangThai</span> *@
-                <a href="/SinhVien/XemKetQua" class="btn btn-sm btn-outline-info ms-2">Xem kết quả</a>
-            }
-        </p>
+    <div class="col-md-6 mb-4">
+        <div class="quick-actions h-100" style="background: white; border-radius: 15px; padding: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); border-left: 5px solid #f093fb; animation: slideInRight 0.8s ease;">
+            <h5 class="mb-4" style="color: #f093fb; font-weight: 600;">
+                <i class="fas fa-bolt me-2"></i>
+                Thao tác nhanh
+            </h5>
+            <div class="d-grid gap-3">
+                <a href="@Url.Action("TuDanhGia", "SinhVien")" class="btn btn-outline-primary btn-lg" style="border-radius: 10px; transition: all 0.3s ease;">
+                    <i class="fas fa-user-check me-2"></i>
+                    Bắt đầu tự đánh giá
+                </a>
+                <a href="@Url.Action("KetQua", "SinhVien")" class="btn btn-outline-success btn-lg" style="border-radius: 10px; transition: all 0.3s ease;">
+                    <i class="fas fa-trophy me-2"></i>
+                    Xem kết quả rèn luyện
+                </a>
+                <a href="@Url.Action("ThongBao", "SinhVien")" class="btn btn-outline-info btn-lg" style="border-radius: 10px; transition: all 0.3s ease;">
+                    <i class="fas fa-bell me-2"></i>
+                    Thông báo mới
+                </a>
+            </div>
+        </div>
     </div>
 </div>

@@ -1,0 +1,166 @@
+﻿@using Microsoft.AspNetCore.Http
+@using Azure.Core
+@model List<QLDiemRenLuyen.Models.ChiTietPhieuDanhGia>
+@{
+    ViewData["Title"] = "Quản lý chi tiết phiếu đánh giá";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    var bangthongtin = ViewBag.BangThongTin as List<QLDiemRenLuyen.Models.ChiTietPhieuDanhGia> ?? new List<QLDiemRenLuyen.Models.ChiTietPhieuDanhGia>();
+    var query = Context.Request.Query; 
+}
+
+<h3 class="text-center text-uppercase mb-4">CHI TIẾT PHIẾU ĐÁNH GIÁ</h3>
+<form asp-action="QuanLyChiTietPhieuDanhGia" method="get" class="row mb-4">
+    <div class="col-md-2">
+        <label>Năm học</label>
+        <select name="namHoc" class="form-select">
+            <option value="">-- Tất cả --</option>
+            @if (ViewBag.NamHocs is List<string> namHocs)
+            {
+                foreach (var nam in namHocs)
+                {
+                    <option value="@nam" selected="@(query["namHoc"] == nam ? "selected" : null)">@nam</option>
+                }
+            }
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <label>Học kỳ</label>
+        <select name="hocKy" class="form-select">
+            <option value="">-- Tất cả --</option>
+            @if (ViewBag.HocKys is List<string> hocKys)
+            {
+                foreach (var hk in hocKys)
+                {
+                    <option value="@hk" selected="@(query["hocKy"] == hk ? "selected" : null)">@hk</option>
+                }
+            }
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <label>Khoa</label>
+        <select name="khoaId" class="form-select">
+            <option value="">-- Tất cả --</option>
+            @if (ViewBag.Khoas is List<Khoa> khoas)
+            {
+                foreach (var khoa in khoas)
+                {
+                    <option value="@khoa.KhoaID" selected="@(query["khoaId"] == khoa.KhoaID.ToString() ? "selected" : null)">@khoa.TenKhoa</option>
+                }
+            }
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <label>Lớp</label>
+        <select name="lopId" class="form-select">
+            <option value="">-- Tất cả --</option>
+            @if (ViewBag.Lops is List<Lop> lops)
+            {
+                foreach (var lop in lops)
+                {
+                    <option value="@lop.LopID" selected="@(query["lopId"] == lop.LopID.ToString() ? "selected" : null)">@lop.TenLop</option>
+                }
+            }
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <label>Mã sinh viên</label>
+        <input type="text" name="maSV" class="form-control" value="@query["maSV"]" placeholder="Nhập mã SV" />
+    </div>
+
+    <div class="col-md-2 align-self-end">
+        <button type="submit" class="btn btn-primary">Lọc</button>
+    </div>
+</form>
+
+<form asp-action="XoaNhieuChiTietPhieu" method="post" onsubmit="return confirm('Xác nhận xóa các mục đã chọn?');">
+    <div class="d-flex justify-content-between mb-2">
+        <div>
+            <button type="submit" class="btn btn-danger btn-sm me-2">Xóa các mục đã chọn</button>
+            <button type="button" id="chonTatCaBtn" class="btn btn-secondary btn-sm">Chọn tất cả</button>
+        </div>
+    </div>
+
+    <table class="table table-bordered table-hover">
+        <thead class="table-warning text-center">
+            <tr>
+                <th><input type="checkbox" id="checkAll" /></th>
+                <th>Họ tên SV</th>
+                <th>Mã phiếu</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var bangtt in bangthongtin)
+            {
+                <tr>
+                    <td class="text-center">
+                        <input type="checkbox" name="selectedIds" value="@bangtt.ChiTietPhieuDanhGiaID" class="check-item" />
+                    </td>
+                    <td>@bangtt.PhieuDanhGia?.SinhVien?.HoTen</td>
+                    <td>@bangtt.PhieuDanhGia?.PhieuDanhGiaID</td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-info btn-sm"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalChiTietTieuChi_@bangtt.ChiTietPhieuDanhGiaID">
+                            Xem
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</form>
+
+
+@for (var i = 0; i < Model.Count; i++)
+{
+    var item = Model[i];
+
+    <!-- Modal xem chi tiết tiêu chí -->
+    <div class="modal fade" id="modalChiTietTieuChi_@item.ChiTietPhieuDanhGiaID" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title">Chi tiết tiêu chí: @item.TieuChi!.TenTieuChi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Điểm SV:</strong> @item.DiemTuDanhGia</p>
+                    <p><strong>Điểm GV:</strong> @item.DiemGiaoVienDeXuat</p>
+                    <p><strong>Điểm Hội đồng:</strong> @item.DiemHoiDongDuyet</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+}
+
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.getElementById("checkAll").addEventListener("change", function () {
+            const checkboxes = document.querySelectorAll(".check-item");
+            checkboxes.forEach(cb => cb.checked = this.checked);
+        });
+
+        document.getElementById("chonTatCaBtn").addEventListener("click", function () {
+            const checkboxes = document.querySelectorAll(".check-item");
+            checkboxes.forEach(cb => cb.checked = true);
+        });
+    </script>
+}
+

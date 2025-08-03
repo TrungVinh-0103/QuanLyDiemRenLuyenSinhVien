@@ -1,0 +1,156 @@
+﻿@model List<QLDiemRenLuyen.Models.PhieuDanhGia>
+@{
+    ViewData["Title"] = "Quản lý Phiếu đánh giá";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+    var nienKhoas = ViewBag.NienKhoas as List<QLDiemRenLuyen.Models.NienKhoa> ?? new List<QLDiemRenLuyen.Models.NienKhoa>();
+    var khoas = ViewBag.Khoas as List<QLDiemRenLuyen.Models.Khoa> ?? new List<QLDiemRenLuyen.Models.Khoa>();
+    var hocKys = ViewBag.HocKys as List<QLDiemRenLuyen.Models.HocKy> ?? new List<QLDiemRenLuyen.Models.HocKy>();
+    var lopList = ViewBag.Lops as List<QLDiemRenLuyen.Models.Lop> ?? new List<QLDiemRenLuyen.Models.Lop>();
+    var trangThai = ViewBag.TrangThai as List<QLDiemRenLuyen.Models.CauHinh.CauHinhTrangThaiSinhVien> ?? new List<QLDiemRenLuyen.Models.CauHinh.CauHinhTrangThaiSinhVien>();
+}
+
+<div class="container mt-3">
+    <h4 class="text-danger">Quản lý phiếu đánh giá</h4>
+
+    @if (TempData["Loi"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Loi"]</div>
+    }
+    @if (TempData["ThanhCong"] != null)
+    {
+        <div class="alert alert-success">@TempData["ThanhCong"]</div>
+    }
+    @if (ViewBag.KhongTimThay != null)
+    {
+        <div class="alert alert-warning">@ViewBag.KhongTimThay</div>
+    }
+
+    <form method="get" asp-action="QuanLyPhieuDanhGia" class="row mb-3">
+        <div class="col-md-3">
+            <select name="NamHoc" class="form-select">
+                <option value="">-- Chọn năm học --</option>
+                @foreach (var hk in hocKys)
+                {
+                    <option value="@hk.NamHoc" selected="@(hk.NamHoc == (string?)ViewBag.NamHoc)">@hk.NamHoc</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select name="KhoaID" class="form-select">
+                <option value="">-- Chọn khoa --</option>
+                @foreach (var khoa in khoas)
+                {
+                    <option value="@khoa.KhoaID" selected="@(khoa.KhoaID == (int?)ViewBag.KhoaID)">@khoa.TenKhoa</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select name="HocKyID" class="form-select">
+                <option value="">-- Chọn học kỳ --</option>
+                @foreach (var hk in hocKys)
+                {
+                    <option value="@hk.HocKyID" selected="@(hk.HocKyID == (int?)ViewBag.HocKyID)">@hk.TenHocKy - @hk.NamHoc - @hk.NienKhoa?.TenNienKhoa</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select name="LopID" class="form-select">
+                <option value="">-- Chọn lớp --</option>
+                @foreach (var lop in lopList)
+                {
+                    <option value="@lop.LopID" selected="@(lop.LopID == (int?)ViewBag.LopID)">@lop.TenLop</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-3 mt-2">
+            <input type="text" name="MaSV" class="form-control" placeholder="Nhập mã sinh viên" value="@ViewBag.MaSV" />
+        </div>
+        <div class="col-md-2 mt-2">
+            <button type="submit" class="btn btn-primary w-100">Lọc</button>
+        </div>
+    </form>
+
+    <table class="table table-bordered table-hover">
+        <thead class="table-warning">
+            <tr>
+                <th>STT</th>
+                <th>Sinh viên</th>
+                <th>Lớp</th>
+                <th>Học kỳ</th>
+                <th>Ngày tạo</th>
+                <th>Trạng thái</th>
+                <th>Điểm tự đánh giá</th>
+                <th>Điểm GVCN đề xuất</th>
+                <th>Điểm hội đồng duyệt</th>
+                <th>Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model != null && Model.Count > 0)
+            {
+                int stt = 1;
+                foreach (var p in Model)
+                {
+                    <tr>
+                        <td>@(stt++)</td>
+                        <td>@p.SinhVien?.HoTen (@p.SinhVien?.MaSV)</td>
+                        <td>@p.SinhVien?.Lop?.TenLop</td>
+                        <td>@p.HocKy?.TenHocKy - @p.HocKy?.NamHoc - NK: @p.HocKy?.NienKhoa?.TenNienKhoa</td>
+                        <td>@p.NgayLapPhieu.ToString("dd/MM/yyyy")</td>
+                        <td>@p.TrangThaiDanhGia?.TenTrangThai</td>
+                        <td>@p.TongDiemTuDanhGia</td>
+                        <td>@p.TongDiemGiaoVienDeXuat</td>
+                        <td>@p.TongDiemHoiDongDuyet</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#modalChiTietPhieu_@p.PhieuDanhGiaID">Chi tiết</button>
+                            <form asp-action="XoaPhieuDanhGia" method="post" class="d-inline">
+                                <input type="hidden" name="id" value="@p.PhieuDanhGiaID" />
+                                <button class="btn btn-sm btn-danger" onclick="return confirm('Xác nhận xóa?')">Xóa</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr><td colspan="10" class="text-center text-danger">Không có dữ liệu.</td></tr>
+            }
+        </tbody>
+    </table>
+    @if (Model != null)
+    {
+        @foreach (var item in Model)
+        {
+            <div class="modal fade" id="modalChiTietPhieu_@item.PhieuDanhGiaID" tabindex="-1" aria-labelledby="chiTietPhieuLabel_@item.PhieuDanhGiaID" aria-hidden="true">
+                <div class="modal-dialog modal-xl">
+                    <div class="modal-content">
+                        <div class="modal-header bg-primary text-white">
+                            <h5 class="modal-title">Chi tiết phiếu đánh giá - @(item.SinhVien?.HoTen ?? "N/A")</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p><strong>Sinh viên:</strong> @(item.SinhVien?.HoTen ?? "N/A") (@(item.SinhVien?.MaSV ?? "N/A"))</p>
+                            <p><strong>Lớp:</strong> @(item.SinhVien?.Lop?.TenLop ?? "N/A")</p>
+                            <p><strong>Khoa:</strong> @(item.SinhVien?.Lop?.Khoa?.TenKhoa ?? "N/A")</p>
+                            <p><strong>Học kỳ:</strong> @(item.HocKy?.TenHocKy ?? "N/A") - @(item.HocKy?.NamHoc ?? "N/A") - NK: @(item.HocKy?.NienKhoa?.TenNienKhoa ?? "N/A")</p>
+                            <p><strong>Ngày tạo:</strong> @item.NgayLapPhieu.ToString("dd/MM/yyyy")</p>
+                            <p><strong>Trạng thái:</strong> @(item.TrangThaiDanhGia?.TenTrangThai ?? "Chưa xác định")</p>
+                            <p><strong>Tổng điểm tự đánh giá:</strong> @(item.TongDiemTuDanhGia?.ToString() ?? "Chưa có")</p>
+                            <p><strong>Tổng điểm GVCN đề xuất:</strong> @(item.TongDiemGiaoVienDeXuat?.ToString() ?? "Chưa có")</p>
+                            <p><strong>Tổng điểm hội đồng duyệt:</strong> @(item.TongDiemHoiDongDuyet?.ToString() ?? "Chưa có")</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+
+</div>
+@section Scripts {
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+}

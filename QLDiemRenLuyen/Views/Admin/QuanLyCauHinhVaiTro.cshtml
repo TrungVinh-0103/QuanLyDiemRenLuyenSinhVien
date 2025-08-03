@@ -1,0 +1,156 @@
+﻿@model List<QLDiemRenLuyen.Models.CauHinh.CauHinhVaiTro>
+@{
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    ViewData["Title"] = "Quản lý Vai trò người dùng";
+}
+<link href="~/css/CauHinhVaiTro.css" rel="stylesheet" />
+
+<div class="modern-container">
+    <div class="container">
+        <div class="content-card">
+            <h4 class="page-title">👥 QUẢN LÝ VAI TRÒ NGƯỜI DÙNG</h4>
+
+            @if (TempData["Loi"] != null)
+            {
+                <div class="alert alert-danger modern-alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>@TempData["Loi"]
+                </div>
+            }
+            @if (TempData["ThanhCong"] != null)
+            {
+                <div class="alert alert-success modern-alert">
+                    <i class="fas fa-check-circle me-2"></i>@TempData["ThanhCong"]
+                </div>
+            }
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <button class="modern-btn" data-bs-toggle="modal" data-bs-target="#modalThem">
+                    <i class="fas fa-plus me-2"></i>Thêm mới
+                </button>
+                <div class="text-muted">
+                    <i class="fas fa-user-shield me-2"></i>Tổng: <strong>@Model.Count</strong> vai trò
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table modern-table">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-hashtag me-2"></i>#</th>
+                            <th><i class="fas fa-user-shield me-2"></i>Tên vai trò</th>
+                            <th><i class="fas fa-cogs me-2"></i>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < Model.Count; i++)
+                        {
+                            <tr>
+                                <td class="text-center"><strong>@(i + 1)</strong></td>
+                                <td>
+                                    <div class="role-badge">
+                                        <i class="fas fa-shield-alt me-2"></i>
+                                        @Model[i].TenVaiTro
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <button class="action-btn btn-edit" data-bs-toggle="modal" data-bs-target="#modalSua_@Model[i].VaiTroID" title="Chỉnh sửa">
+                                        <i class="fas fa-edit me-1"></i>
+                                    </button>
+                                    <form method="post" asp-action="XoaVaiTro" style="display:inline;">
+                                        <input type="hidden" name="id" value="@Model[i].VaiTroID" />
+                                        <button type="submit" class="action-btn btn-delete" onclick="return confirm('⚠️ Xác nhận xóa vai trò này?')" title="Xóa">
+                                            <i class="fas fa-trash me-1"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+@for (int i = 0; i < Model.Count; i++)
+{
+    <div class="modal fade modern-modal" id="modalSua_@Model[i].VaiTroID" tabindex="-1">
+        <div class="modal-dialog">
+            <form method="post" asp-action="SuaVaiTro">
+                <div class="modal-content">
+                    <div class="modal-header bg-warning">
+                        <h5 class="modal-title text-dark">
+                            <i class="fas fa-edit me-2"></i>Sửa vai trò
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="VaiTroID" value="@Model[i].VaiTroID" />
+                        <div class="mb-3">
+                            <label class="form-label">
+                                <i class="fas fa-user-shield me-2"></i>Tên vai trò
+                            </label>
+                            <input name="TenVaiTro" class="form-control" value="@Model[i].TenVaiTro" required placeholder="Nhập tên vai trò..." />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Hủy
+                        </button>
+                        <button type="submit" class="btn btn-warning">
+                            <i class="fas fa-save me-2"></i>Cập nhật
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+
+<div class="modal fade modern-modal" id="modalThem" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="post" asp-action="ThemVaiTro">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-plus me-2"></i>Thêm vai trò
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-user-shield me-2"></i>Tên vai trò
+                        </label>
+                        <input name="TenVaiTro" class="form-control" required placeholder="Nhập tên vai trò..." />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Hủy
+                    </button>
+                    <button type="submit" class="modern-btn">
+                        <i class="fas fa-plus me-2"></i>Thêm
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto hide alerts after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.modern-alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.style.animation = 'slideInDown 0.5s ease reverse';
+                    setTimeout(() => alert.remove(), 500);
+                }, 5000);
+            });
+        });
+    </script>
+}

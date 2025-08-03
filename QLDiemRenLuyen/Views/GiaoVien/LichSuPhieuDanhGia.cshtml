@@ -1,0 +1,91 @@
+﻿@model List<QLDiemRenLuyen.Models.PhieuDanhGia>
+@{
+    ViewData["Title"] = "Lịch sử duyệt phiếu";
+    Layout = "~/Views/Shared/_LayoutGiaoVien.cshtml";
+}
+<link rel="stylesheet" href="~/css/LichSuPhieuDanhGia.css" />
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="page-header" style="background: linear-gradient(135deg, #26d0ce 0%, #1a2980 100%); border-radius: 15px; padding: 20px; color: white; text-align: center; animation: slideInDown 0.6s ease;">
+            <h4 class="text-uppercase mb-0">
+                <i class="fas fa-history me-2"></i>
+                LỊCH SỬ DUYỆT PHIẾU
+            </h4>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="table-responsive">
+            <table class="table table-custom table-hover">
+                <thead>
+                    <tr class="text-center">
+                        <th><i class="fas fa-user me-2"></i>Sinh viên</th>
+                        <th><i class="fas fa-users me-2"></i>Lớp</th>
+                        <th><i class="fas fa-calendar me-2"></i>Học kỳ</th>
+                        <th><i class="fas fa-user-check me-2"></i>Điểm SV</th>
+                        <th><i class="fas fa-chalkboard-teacher me-2"></i>Điểm GVCN</th>
+                        <th><i class="fas fa-users-cog me-2"></i>Điểm HĐ</th>
+                        <th><i class="fas fa-calendar-alt me-2"></i>Ngày lập</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        @foreach (var p in Model)
+                        {
+                            <tr style="animation: fadeInUp 0.6s ease; animation-delay: @(Model.IndexOf(p) * 0.1)s;">
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <i class="fas fa-user-circle text-primary me-2"></i>
+                                        @p.SinhVien?.HoTen
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">@p.SinhVien?.Lop?.TenLop</span>
+                                </td>
+                                <td>@p.HocKy?.TenHocKy - @p.HocKy?.NamHoc</td>
+                                <td class="text-center">
+                                    <span class="badge bg-secondary">@p.TongDiemTuDanhGia</span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-warning text-dark">@p.TongDiemGiaoVienDeXuat</span>
+                                </td>
+                                <td class="text-center">
+                                    @if (p.TongDiemHoiDongDuyet == null)
+                                    {
+                                        <span class="badge bg-danger">Chưa duyệt</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-success">@p.TongDiemHoiDongDuyet</span>
+                                    }
+                                </td>
+                                <td class="text-center">
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>
+                                        @p.NgayLapPhieu.ToString("dd/MM/yyyy")
+                                    </small>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center py-4">
+                                <div style="color: #6c757d;">
+                                    <i class="fas fa-inbox fa-3x mb-3"></i>
+                                    <p class="mb-0">Chưa có lịch sử duyệt phiếu</p>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+

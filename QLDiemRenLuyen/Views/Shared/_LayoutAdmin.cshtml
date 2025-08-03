@@ -1,45 +1,241 @@
-﻿@{
-    Layout = null;
-}
-
-<!DOCTYPE html>
-<html>
+﻿<!DOCTYPE html>
+<html lang="vi">
 <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Quản trị hệ thống</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/admin.css" />
+
 </head>
-<body style="background-color: white;">
-    <header class="bg-danger text-white p-3 d-flex justify-content-between align-items-center">
-        <img src="https://nctu.edu.vn/webp/logo_truong.webp" style="height:50px;">
-        <h5 class="mb-0">QUẢN TRỊ HỆ THỐNG – ĐẠI HỌC NAM CẦN THƠ</h5>
-        <a href="/TaiKhoan/DangXuat" class="btn btn-warning text-dark">Đăng xuất</a>
-    </header>
-    <div class="d-flex">
-        <nav class="bg-warning p-3" style="min-width:220px;">
-            <ul class="nav flex-column">
-                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/Index">Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/QuanLyNguoiDung">Người dùng</a></li>
-                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/QuanLySinhVien">Sinh Viên</a></li>
-                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/QuanLyNhanVien">Nhân Viên</a></li>
-                @* <li class="nav-item"><a class="nav-link text-dark" href="/Admin/CauHinhHeThong">Cấu Hình Hệ Thống</a></li> *@
-                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/QuanLyTruong">Trường</a></li>
-                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/QuanLyKhoa">Khoa</a></li>
-                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/QuanLyNienKhoa">Niên Khóa</a></li>
-                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/QuanLyLop">Lớp</a></li>
-                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/QuanLyVaiTro">Vai Trò</a></li>
-                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/QuanLyNhomTieuChi">Nhóm Tiêu Chí</a></li>
-                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/QuanLyTieuChi">Tiêu Chí</a></li>
-                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/QuanLyXepLoai">Xếp Loại</a></li>
-                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/QuanLyTrangThai">Trạng Thái</a></li>
-                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/QuanLyTrangThaiHocTap">Trạng Thái Học Tập</a></li>
-                <li class="nav-item"><a class="nav-link text-dark" href="/Admin/ThongKe">Thống Kê</a></li>
-            </ul>
-        </nav>
-        <main class="p-4 w-100">
-            @RenderBody()
-        </main>
+<body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
     </div>
+
+    <!-- Floating Background Elements -->
+    <div class="floating-elements">
+        <div class="floating-circle"></div>
+        <div class="floating-circle"></div>
+        <div class="floating-circle"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="admin-header">
+        <div class="header-left">
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <img src="https://nctu.edu.vn/webp/logo_truong.webp" alt="Logo" class="university-logo">
+            <h1 class="header-title">QUẢN TRỊ HỆ THỐNG – ĐẠI HỌC NAM CẦN THƠ</h1>
+        </div>
+        <div class="header-right">
+            <div class="admin-info">
+                <i class="fas fa-user-shield"></i>
+                <span>Administrator</span>
+            </div>
+            <a href="/TaiKhoan/DangXuat" class="logout-btn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Đăng xuất</span>
+            </a>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <nav class="admin-sidebar" id="adminSidebar">
+        <div class="sidebar-nav">
+            <!-- Dashboard Section -->
+            <div class="nav-section">
+                <div class="nav-section-title">Tổng quan</div>
+                <div class="sidebar-nav-item">
+                    <a href="/Admin/Index" class="sidebar-nav-link">
+                        <i class="sidebar-nav-icon fas fa-tachometer-alt"></i>
+                        <span class="sidebar-nav-text">Dashboard</span>
+                        <div class="tooltip-collapsed">Dashboard</div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Configuration Section -->
+            <div class="nav-section">
+                <div class="nav-section-title">Cấu hình hệ thống</div>
+                <div class="sidebar-nav-item">
+                    <a href="/Admin/QuanLyCauHinhTrangThaiSinhVien" class="sidebar-nav-link">
+                        <i class="sidebar-nav-icon fas fa-user-cog"></i>
+                        <span class="sidebar-nav-text">Trạng thái sinh viên</span>
+                        <div class="tooltip-collapsed">Trạng thái sinh viên</div>
+                    </a>
+                </div>
+                <div class="sidebar-nav-item">
+                    <a href="/Admin/QuanLyCauHinhTrangThaiDanhGia" class="sidebar-nav-link">
+                        <i class="sidebar-nav-icon fas fa-clipboard-check"></i>
+                        <span class="sidebar-nav-text">Trạng thái đánh giá</span>
+                        <div class="tooltip-collapsed">Trạng thái đánh giá</div>
+                    </a>
+                </div>
+                <div class="sidebar-nav-item">
+                    <a href="/Admin/QuanLyCauHinhVaiTro" class="sidebar-nav-link">
+                        <i class="sidebar-nav-icon fas fa-user-tag"></i>
+                        <span class="sidebar-nav-text">Vai trò</span>
+                        <div class="tooltip-collapsed">Vai trò</div>
+                    </a>
+                </div>
+                <div class="sidebar-nav-item">
+                    <a href="/Admin/QuanLyCauHinhXepLoai" class="sidebar-nav-link">
+                        <i class="sidebar-nav-icon fas fa-medal"></i>
+                        <span class="sidebar-nav-text">Xếp loại</span>
+                        <div class="tooltip-collapsed">Xếp loại</div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- User Management Section -->
+            <div class="nav-section">
+                <div class="nav-section-title">Quản lý người dùng</div>
+                <div class="sidebar-nav-item">
+                    <a href="/Admin/QuanLyNguoiDung" class="sidebar-nav-link">
+                        <i class="sidebar-nav-icon fas fa-users"></i>
+                        <span class="sidebar-nav-text">Người dùng</span>
+                        <div class="tooltip-collapsed">Người dùng</div>
+                    </a>
+                </div>
+                <div class="sidebar-nav-item">
+                    <a href="/Admin/QuanLySinhVien" class="sidebar-nav-link">
+                        <i class="sidebar-nav-icon fas fa-user-graduate"></i>
+                        <span class="sidebar-nav-text">Sinh viên</span>
+                        <div class="tooltip-collapsed">Sinh viên</div>
+                    </a>
+                </div>
+                <div class="sidebar-nav-item">
+                    <a href="/Admin/QuanLyNhanVien" class="sidebar-nav-link">
+                        <i class="sidebar-nav-icon fas fa-user-tie"></i>
+                        <span class="sidebar-nav-text">Nhân viên</span>
+                        <div class="tooltip-collapsed">Nhân viên</div>
+                    </a>
+                </div>
+                <div class="sidebar-nav-item">
+                    <a href="/Admin/QuanLyChucVu" class="sidebar-nav-link">
+                        <i class="sidebar-nav-icon fas fa-briefcase"></i>
+                        <span class="sidebar-nav-text">Chức vụ</span>
+                        <div class="tooltip-collapsed">Chức vụ</div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Academic Management Section -->
+            <div class="nav-section">
+                <div class="nav-section-title">Quản lý học tập</div>
+                <div class="sidebar-nav-item">
+                    <a href="/Admin/QuanLyTruong" class="sidebar-nav-link">
+                        <i class="sidebar-nav-icon fas fa-university"></i>
+                        <span class="sidebar-nav-text">Trường</span>
+                        <div class="tooltip-collapsed">Trường</div>
+                    </a>
+                </div>
+                <div class="sidebar-nav-item">
+                    <a href="/Admin/QuanLyKhoa" class="sidebar-nav-link">
+                        <i class="sidebar-nav-icon fas fa-building"></i>
+                        <span class="sidebar-nav-text">Khoa</span>
+                        <div class="tooltip-collapsed">Khoa</div>
+                    </a>
+                </div>
+                <div class="sidebar-nav-item">
+                    <a href="/Admin/QuanLyLop" class="sidebar-nav-link">
+                        <i class="sidebar-nav-icon fas fa-chalkboard"></i>
+                        <span class="sidebar-nav-text">Lớp</span>
+                        <div class="tooltip-collapsed">Lớp</div>
+                    </a>
+                </div>
+                <div class="sidebar-nav-item">
+                    <a href="/Admin/QuanLyNienKhoa" class="sidebar-nav-link">
+                        <i class="sidebar-nav-icon fas fa-calendar-alt"></i>
+                        <span class="sidebar-nav-text">Niên khóa</span>
+                        <div class="tooltip-collapsed">Niên khóa</div>
+                    </a>
+                </div>
+                <div class="sidebar-nav-item">
+                    <a href="/Admin/QuanLyHocKy" class="sidebar-nav-link">
+                        <i class="sidebar-nav-icon fas fa-calendar"></i>
+                        <span class="sidebar-nav-text">Học kỳ</span>
+                        <div class="tooltip-collapsed">Học kỳ</div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Assessment Management Section -->
+            <div class="nav-section">
+                <div class="nav-section-title">Quản lý đánh giá</div>
+                <div class="sidebar-nav-item">
+                    <a href="/Admin/QuanLyNhomTieuChi" class="sidebar-nav-link">
+                        <i class="sidebar-nav-icon fas fa-layer-group"></i>
+                        <span class="sidebar-nav-text">Nhóm tiêu chí</span>
+                        <div class="tooltip-collapsed">Nhóm tiêu chí</div>
+                    </a>
+                </div>
+                <div class="sidebar-nav-item">
+                    <a href="/Admin/QuanLyTieuChi" class="sidebar-nav-link">
+                        <i class="sidebar-nav-icon fas fa-list-check"></i>
+                        <span class="sidebar-nav-text">Tiêu chí</span>
+                        <div class="tooltip-collapsed">Tiêu chí</div>
+                    </a>
+                </div>
+                <div class="sidebar-nav-item">
+                    <a href="/Admin/QuanLyPhieuDanhGia" class="sidebar-nav-link">
+                        <i class="sidebar-nav-icon fas fa-file-alt"></i>
+                        <span class="sidebar-nav-text">Phiếu đánh giá</span>
+                        <div class="tooltip-collapsed">Phiếu đánh giá</div>
+                    </a>
+                </div>
+                <div class="sidebar-nav-item">
+                    <a href="/Admin/QuanLyChiTietPhieuDanhGia" class="sidebar-nav-link">
+                        <i class="sidebar-nav-icon fas fa-file-invoice"></i>
+                        <span class="sidebar-nav-text">Chi tiết phiếu</span>
+                        <div class="tooltip-collapsed">Chi tiết phiếu</div>
+                    </a>
+                </div>
+                <div class="sidebar-nav-item">
+                    <a href="/Admin/QuanLyKetQuaRenLuyen" class="sidebar-nav-link">
+                        <i class="sidebar-nav-icon fas fa-trophy"></i>
+                        <span class="sidebar-nav-text">Kết quả rèn luyện</span>
+                        <div class="tooltip-collapsed">Kết quả rèn luyện</div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- System Section -->
+            <div class="nav-section">
+                <div class="nav-section-title">Hệ thống</div>
+                <div class="sidebar-nav-item">
+                    <a href="/Admin/QuanLyTrangThaiSinhVien" class="sidebar-nav-link">
+                        <i class="sidebar-nav-icon fas fa-user-check"></i>
+                        <span class="sidebar-nav-text">Trạng thái SV</span>
+                        <div class="tooltip-collapsed">Trạng thái SV</div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="admin-main" id="adminMain">
+        <div class="main-content">
+            @RenderBody()
+        </div>
+    </main>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Custom Admin JS -->
+    <script src="~/js/admin.js"></script>
+
     @RenderSection("Scripts", required: false)
 </body>
 </html>
-

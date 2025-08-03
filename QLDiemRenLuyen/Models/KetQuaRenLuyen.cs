@@ -1,6 +1,6 @@
 ﻿using QLDiemRenLuyen.Models.CauHinh;
-using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace QLDiemRenLuyen.Models
 {
@@ -8,13 +8,34 @@ namespace QLDiemRenLuyen.Models
     {
         [Key]
         public int KetQuaID { get; set; }
-        public int SinhVienID { get; set; }
-        public int HocKyID { get; set; }
-        public int TongDiem { get; set; }
-        public string? XepLoai { get; set; }
-        public DateTime NgayCapNhat { get; set; }
 
+        [Required]
+        public int SinhVienID { get; set; }
+
+        [Required]
+        public int HocKyID { get; set; }
+
+        [Required]
+        public int PhieuDanhGiaID { get; set; }
+
+        [Required]
+        public int TongDiemHoiDongDuyet { get; set; }
+        
+        [Required]
+        public int XepLoaiID { get; set; }
+
+        public DateTime NgayCapNhat { get; set; } = DateTime.Now;
+
+        [ForeignKey("SinhVienID")]
         public SinhVien? SinhVien { get; set; }
+
+        [ForeignKey("HocKyID")]
         public HocKy? HocKy { get; set; }
+
+        [ForeignKey("PhieuDanhGiaID")]
+        public PhieuDanhGia? PhieuDanhGia { get; set; }
+
+        [ForeignKey("XepLoaiID")]
+        public CauHinhXepLoai? XepLoai { get; set; }
     }
 }

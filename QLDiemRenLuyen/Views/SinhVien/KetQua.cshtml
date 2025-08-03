@@ -1,0 +1,40 @@
+﻿@model List<QLDiemRenLuyen.Models.KetQuaRenLuyen>
+@{
+    ViewData["Title"] = "Kết quả rèn luyện";
+    Layout = "~/Views/Shared/_LayoutSinhVien.cshtml";
+    var sv = ViewBag.SinhVien as QLDiemRenLuyen.Models.SinhVien;
+}
+
+<h4 class="text-center text-uppercase">KẾT QUẢ RÈN LUYỆN</h4>
+
+<table class="table table-bordered table-hover mt-3">
+    <thead class="table-success text-center">
+        <tr>
+            <th>Học kỳ</th>
+            <th>Tổng điểm</th>
+            <th>Xếp loại</th>
+            <th>Ngày cập nhật</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var k in Model)
+            {
+                <tr>
+                    <td>@k.HocKy?.TenHocKy - @k.HocKy?.NamHoc</td>
+                    <td class="text-center">@k.TongDiemHoiDongDuyet</td>
+                    <td>@k.XepLoai?.TenXepLoai</td>
+                    <td>@k.NgayCapNhat.ToString("dd/MM/yyyy")</td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr><td colspan="4" class="text-center text-danger">Chưa cập nhật kết quả rên luyện</td></tr>
+        }
+        
+    </tbody>
+</table>
+
+<a href="/SinhVien/Index" class="btn btn-secondary mt-3">Quay lại</a>

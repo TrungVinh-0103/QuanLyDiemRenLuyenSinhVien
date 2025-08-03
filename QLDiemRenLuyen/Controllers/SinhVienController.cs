@@ -3,8 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using QLDiemRenLuyen.Data;
 using QLDiemRenLuyen.Models;
 using QLDiemRenLuyen.ViewModels;
-using System.Linq;
-using System.Security.Claims;
 
 namespace QLDiemRenLuyen.Controllers
 {
@@ -17,217 +15,174 @@ namespace QLDiemRenLuyen.Controllers
             _context = context;
         }
 
-        // Trang tổng quan sinh viên
         public IActionResult Index()
         {
-            var username = HttpContext.Session.GetString("Username");
-            var vaiTro = HttpContext.Session.GetString("VaiTro");
-                
-            if (string.IsNullOrEmpty(username) || vaiTro != "SinhVien")
-            {
-                return RedirectToAction("DangNhap", "TaiKhoan");
-            }
-
-            //var nguoiDung = _context.NguoiDung
-            //    .Include(x => x.SinhVien)
-            //        .ThenInclude(x => x!.Lop)
-            //    .FirstOrDefault(x => x.Username == username && x.VaiTro == vaiTro);
-            var nguoiDung = _context.NguoiDung
-                .Include(x => x.SinhVien)
-                .ThenInclude(x => x!.Lop)
-                .ThenInclude(l => l!.Khoa)
-                .FirstOrDefault(x => x.Username == username && x.VaiTro == "SinhVien");
-
-
-            if (nguoiDung == null || nguoiDung.SinhVien == null)
-            {
-                return RedirectToAction("DangNhap", "TaiKhoan");
-            }
-
-            var sv = nguoiDung.SinhVien;
-            //
-            var ketQuas = _context.KetQuaRenLuyen
-                .Include(k => k.HocKy)
-                .Where(k => k.SinhVienID == sv.SinhVienID)
-                .OrderByDescending(k => k.HocKy!.NgayBatDau)
-                .ToList();
-
-            var hocKyMoiNhat = _context.HocKy
-                .OrderByDescending(h => h.NgayBatDau)
-                .FirstOrDefault();
-
-            //var phieuGanNhat = _context.PhieuDanhGia
-            //    .Where(p => p.SinhVienID == sv.SinhVienID && p.HocKyID == hocKyMoiNhat!.HocKyID)
-            //    .OrderByDescending(p => p.NgayDanhGia)
-            //    .FirstOrDefault();
-            var trangThaiMoiNhat = _context.PhieuDanhGia
-                .Where(p => p.SinhVienID == sv.SinhVienID && p.HocKyID == hocKyMoiNhat!.HocKyID)
-                .Select(p => p.TrangThai)
-                .FirstOrDefault() ?? "Chưa đánh giá";
+            var sinhVienID = HttpContext.Session.GetInt32("SinhVienID");
+            var sv = _context.SinhVien
+                .Include(s => s.Lop).ThenInclude(l => l!.NienKhoa)
+                .Include(s => s.Khoa)
+                .Include(s => s.TrangThai)
+                .FirstOrDefault(s => s.SinhVienID == sinhVienID);
 
             ViewBag.SinhVien = sv;
-            ViewBag.HocKy = hocKyMoiNhat;
-            //ViewBag.TrangThai = phieuGanNhat?.TrangThai ?? "Chưa đánh giá";
-            ViewBag.TrangThai = trangThaiMoiNhat;
-            ViewBag.KetQua = ketQuas;
-
+            ViewBag.Lop = sv?.Lop;
             return View();
         }
 
-        public IActionResult TuDanhGia()
+        public IActionResult TuDanhGia(int? hocKyID)
         {
-            var username = HttpContext.Session.GetString("Username");
-            var nguoiDung = _context.NguoiDung
-            .Include(x => x.SinhVien)
-            .FirstOrDefault(x => x.Username == username && x.VaiTro == "SinhVien");
+            var sinhVienID = HttpContext.Session.GetInt32("SinhVienID");
+            if (sinhVienID == null) return RedirectToAction("Index");
 
-            if (nguoiDung == null || nguoiDung.SinhVien == null)
+            var sinhVien = _context.SinhVien
+                .Include(s => s.Lop).ThenInclude(l => l!.NienKhoa)
+                .FirstOrDefault(s => s.SinhVienID == sinhVienID);
+
+            if (sinhVien == null) return RedirectToAction("Index");
+
+            // Lấy danh sách học kỳ phù hợp với sinh viên (theo NienKhoa)
+            var hocKys = _context.HocKy
+                .Include(h => h.NienKhoa)
+                .Where(h => h.NienKhoaID == sinhVien.Lop!.NienKhoaID)
+                .OrderByDescending(h => h.HocKyID)
+                .ToList();
+
+            ViewBag.HocKys = hocKys;
+
+            var hocKyDuocChon = hocKyID.HasValue ? hocKys.FirstOrDefault(h => h.HocKyID == hocKyID) : hocKys.FirstOrDefault();
+            if (hocKyDuocChon == null)
             {
-                return RedirectToAction("DangNhap", "TaiKhoan");
+                TempData["Loi"] = "Không tìm thấy học kỳ phù hợp.";
+                return RedirectToAction("Index");
             }
 
-            var hocKyMoiNhat = _context.HocKy.OrderByDescending(h => h.NgayBatDau).FirstOrDefault();
-            if (hocKyMoiNhat == null)
-            {
-                ViewBag.ThongBao = "Chưa có học kỳ nào.";
-                return View();
-            }
-
-            var nhomTieuChi = _context.NhomTieuChi
-                .Include(n => n.TieuChi)
+            var nhomTieuChis = _context.NhomTieuChi
                 .Select(n => new NhomTieuChiViewModel
                 {
                     NhomTieuChiID = n.NhomTieuChiID,
                     TenNhom = n.TenNhom,
                     DiemToiDa = n.DiemToiDa,
-                    TieuChi = n.TieuChi!.Select(t => new TieuChiViewModel
-                    {
-                        TieuChiID = t.TieuChiID,
-                        TenTieuChi = t.TenTieuChi,
-                        DiemToiDa = t.DiemToiDa,
-                        YeuCauMinhChung = t.YeuCauMinhChung
-                    }).ToList()
-                }).ToList();
+                    TieuChi = _context.TieuChi
+                        .Where(t => t.NhomTieuChiID == n.NhomTieuChiID)
+                        .Select(t => new TieuChiViewModel
+                        {
+                            TieuChiID = t.TieuChiID,
+                            TenTieuChi = t.TenTieuChi,
+                            DiemToiDa = t.DiemToiDa
+                        })
+                        .ToList()
+                })
+                .ToList();
 
             var model = new TuDanhGiaViewModel
             {
-                HocKyID = hocKyMoiNhat.HocKyID,
-                NhomTieuChi = nhomTieuChi
+                HocKyID = hocKyDuocChon.HocKyID,
+                NhomTieuChi = nhomTieuChis
             };
 
             return View(model);
         }
+
         [HttpPost]
-        public async Task<IActionResult> TuDanhGia(IFormCollection form)
+        public async Task<IActionResult> TuDanhGia(TuDanhGiaViewModel model)
         {
-            var username = HttpContext.Session.GetString("Username");
-            var nguoiDung = _context.NguoiDung
-                .Include(x => x.SinhVien)
-                .FirstOrDefault(x => x.Username == username && x.VaiTro == "SinhVien");
-
-            if (nguoiDung == null || nguoiDung.SinhVien == null)
+            var sinhVienID = HttpContext.Session.GetInt32("SinhVienID") ?? 0;
+            if (sinhVienID == 0 || model.HocKyID == 0)
             {
-                return RedirectToAction("DangNhap", "TaiKhoan");
+                TempData["Loi"] = "Không thể gửi phiếu đánh giá. Vui lòng đăng nhập lại hoặc chọn học kỳ.";
+                return RedirectToAction("Index");
             }
 
-            if (!form.TryGetValue("HocKyID", out var hocKyIdValue) || string.IsNullOrEmpty(hocKyIdValue))
-            {
-                TempData["ThongBao"] = "Học kỳ không hợp lệ.";
-                return RedirectToAction("TuDanhGia");
-            }
+            var chiTietPhieuList = new List<ChiTietPhieuDanhGia>();
+            var tongTheoNhom = new Dictionary<int, int>();
+            var gioiHanTheoNhom = new Dictionary<int, int>();
 
-            if (!int.TryParse(hocKyIdValue, out var hocKyId))
+            foreach (var item in model.DiemTieuChiList)
             {
-                TempData["ThongBao"] = "Học kỳ không hợp lệ.";
-                return RedirectToAction("TuDanhGia");
-            }
+                var tieuChi = await _context.TieuChi.FindAsync(item.TieuChiID);
+                if (tieuChi == null) continue;
 
-            foreach (var key in form.Keys)
-            {
-                if (key.StartsWith("DiemDanhGia_"))
+                int diemNhap = item.DiemTuDanhGia;
+
+                if (tieuChi.NhomTieuChiID != 0)
                 {
-                    var tieuChiIdStr = key.Replace("DiemDanhGia_", "");
-                    if (!int.TryParse(tieuChiIdStr, out int tieuChiId)) continue;
+                    int nhomID = tieuChi.NhomTieuChiID;
 
-                    var diemStr = form[key];
-                    if (!int.TryParse(diemStr, out int diem)) diem = 0;
-
-                    var phieu = new PhieuDanhGia
+                    if (!tongTheoNhom.ContainsKey(nhomID)) tongTheoNhom[nhomID] = 0;
+                    if (!gioiHanTheoNhom.ContainsKey(nhomID))
                     {
-                        SinhVienID = nguoiDung.SinhVien.SinhVienID,
-                        HocKyID = hocKyId,
-                        TieuChiID = tieuChiId,
-                        Diem = diem,
-                        NguonDanhGia = "SinhVien",
-                        TrangThai = "Đã gửi GVCN",
-                        NgayDanhGia = DateTime.Now
-                    };
-                    _context.PhieuDanhGia.Add(phieu);
-                    await _context.SaveChangesAsync();
-
-                    var file = form.Files.FirstOrDefault(f => f.Name == $"MinhChung_{tieuChiId}");
-                    if (file != null && file.Length > 0)
-                    {
-                        var folderPath = Path.Combine("wwwroot", "uploads", "minhchung");
-                        Directory.CreateDirectory(folderPath);
-
-                        var fileName = $"{Guid.NewGuid()}_{file.FileName}";
-                        var filePath = Path.Combine(folderPath, fileName);
-
-                        using (var stream = new FileStream(filePath, FileMode.Create))
-                        {
-                            await file.CopyToAsync(stream);
-                        }
-
-                        var minhChung = new MinhChung
-                        {
-                            PhieuDanhGiaID = phieu.PhieuDanhGiaID,
-                            DuongDan = "/uploads/minhchung/" + fileName,
-                            MoTa = "Minh chứng tự đánh giá",
-                            NgayUpload = DateTime.Now
-                        };
-                        _context.MinhChung.Add(minhChung);
-                        await _context.SaveChangesAsync();
+                        var nhom = await _context.NhomTieuChi.FindAsync(nhomID);
+                        gioiHanTheoNhom[nhomID] = nhom?.DiemToiDa ?? 0;
                     }
+
+                    tongTheoNhom[nhomID] += diemNhap;
                 }
+
+                chiTietPhieuList.Add(new ChiTietPhieuDanhGia
+                {
+                    TieuChiID = item.TieuChiID,
+                    DiemTuDanhGia = diemNhap
+                });
             }
 
-            TempData["ThongBao"] = "Gửi phiếu tự đánh giá thành công!";
-            return RedirectToAction("Index");
+            // ✅ Tính tổng điểm = tổng từng nhóm (giới hạn theo DiemToiDa nếu vượt)
+            int tongDiem = 0;
+            foreach (var nhomId in tongTheoNhom.Keys)
+            {
+                int diemNhom = tongTheoNhom[nhomId];
+                int gioiHan = gioiHanTheoNhom[nhomId];
+                tongDiem += Math.Min(diemNhom, gioiHan); // ✅ áp giới hạn tại tổng
+            }
+
+            // ✅ Tạo và lưu phiếu
+            var phieu = new PhieuDanhGia
+            {
+                SinhVienID = sinhVienID,
+                HocKyID = model.HocKyID,
+                TrangThaiDanhGiaID = 2,
+                NgayLapPhieu = DateTime.Now,
+                TongDiemTuDanhGia = tongDiem
+            };
+
+            _context.PhieuDanhGia.Add(phieu);
+            await _context.SaveChangesAsync();
+
+            // ✅ Gán ID phiếu cho các chi tiết
+            foreach (var ct in chiTietPhieuList)
+            {
+                ct.PhieuDanhGiaID = phieu.PhieuDanhGiaID;
+            }
+
+            _context.ChiTietPhieuDanhGia.AddRange(chiTietPhieuList);
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Gửi phiếu đánh giá thành công!";
+            return RedirectToAction("LichSuDanhGia");
         }
-        public IActionResult XemKetQua()
+
+        public IActionResult LichSuDanhGia()
         {
-            var username = HttpContext.Session.GetString("Username");
-            var nguoiDung = _context.NguoiDung
-                .Include(x => x.SinhVien)
-                    .ThenInclude(sv => sv!.Lop)
-                .FirstOrDefault(x => x.Username == username && x.VaiTro == "SinhVien");
-
-            if (nguoiDung == null || nguoiDung.SinhVien == null)
-                return RedirectToAction("DangNhap", "TaiKhoan");
-
-            var sv = nguoiDung.SinhVien;
-
-            var ketQua = _context.KetQuaRenLuyen
-                .Include(kq => kq.HocKy)
-                .Where(kq => kq.SinhVienID == sv.SinhVienID)
-                .OrderByDescending(kq => kq.NgayCapNhat)
+            var sinhVienID = HttpContext.Session.GetInt32("SinhVienID");
+            var danhSach = _context.PhieuDanhGia
+                .Include(p => p.HocKy)
+                .Include(p => p.TrangThaiDanhGia)
+                .Where(p => p.SinhVienID == sinhVienID)
+                .OrderByDescending(p => p.NgayLapPhieu)
                 .ToList();
 
-            ViewBag.SinhVien = nguoiDung.SinhVien;
-            return View(ketQua);
+            return View(danhSach);
         }
 
-        private string XepLoaiTuDong(int tongDiem)
+        public IActionResult KetQua()
         {
-            var config = _context.CauHinhXepLoai
-                      .Where(x => tongDiem >= x.DiemToiThieu && tongDiem <= x.DiemToiDa)
-                      .FirstOrDefault();
-
-            return config?.TenXepLoai ?? "Chưa xác định";
+            var sinhVienID = HttpContext.Session.GetInt32("SinhVienID");
+            var kq = _context.KetQuaRenLuyen
+                .Include(k => k.HocKy)
+                .Include(k => k.XepLoai)
+                .Where(k => k.SinhVienID == sinhVienID)
+                .OrderByDescending(k => k.NgayCapNhat)
+                .ToList();
+            return View(kq);
         }
-
-
-
     }
 }

@@ -1,0 +1,190 @@
+﻿@{
+    ViewData["Title"] = "Công bố điểm rèn luyện";
+    Layout = "~/Views/Shared/_LayoutHoiDong.cshtml";
+}
+
+<h4 class="text-uppercase text-center">Công bố điểm rèn luyện sinh viên</h4>
+
+<form method="post" asp-action="XuatKetQua" id="formCongBo">
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <label><strong>Chọn loại thống kê</strong></label>
+            <select class="form-control" id="chonLoai" name="loai" required>
+                <option value="">-- Lọc --</option>
+                <option value="CaNhan">Theo cá nhân</option>
+                <option value="Lop">Theo lớp</option>
+                <option value="HocKy">Theo học kỳ</option>
+                <option value="NamHoc">Theo năm học</option>
+            </select>
+        </div>
+
+        <div class="col-md-12" id="chonCaNhan" style="display:none;">
+            <div class="row">
+                <div class="col-md-3">
+                    <label>Mã sinh viên</label>
+                    <input type="text" class="form-control" name="maSinhVien" placeholder="Nhập mã sinh viên..." />
+                </div>
+                <div class="col-md-3">
+                    <label>Học kỳ</label>
+                    <select class="form-control" name="hocKyIdCaNhan">
+                        @foreach (var hk in (ViewBag.HocKys as List<QLDiemRenLuyen.Models.HocKy> ?? new List<QLDiemRenLuyen.Models.HocKy>()))
+                        {
+                            <option value="@hk.HocKyID">@hk.TenHocKy - @hk.NamHoc | @hk.NienKhoa?.TenNienKhoa</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3" id="chonLop" style="display:none;">
+            <label>Lớp</label>
+            <select class="form-control" name="lopId">
+                @foreach (var l in (List<QLDiemRenLuyen.Models.Lop>)ViewBag.Lops)
+                {
+                    <option value="@l.LopID">@l.TenLop</option>
+                }
+            </select>
+        </div>
+
+        <div class="col-md-3" id="chonHocKy" style="display:none;">
+            <label>Học kỳ</label>
+            <select class="form-control" name="hocKyId">
+                @foreach (var hk in (List<QLDiemRenLuyen.Models.HocKy>)ViewBag.HocKys)
+                {
+                    <option value="@hk.HocKyID">@hk.TenHocKy - @hk.NamHoc | @hk.NienKhoa?.TenNienKhoa</option>
+                }
+            </select>
+        </div>
+
+        <div class="col-md-3" id="chonNamHoc" style="display:none;">
+            <label>Năm học</label>
+            <select class="form-control" name="namHoc">
+                @foreach (var nh in (List<string>)ViewBag.NamHocs)
+                {
+                    <option value="@nh">@nh</option>
+                }
+            </select>
+        </div>
+    </div>
+
+  @*   <div class="row mt-4 text-center">
+        <div class="col">
+            <label>Chọn định dạng xuất</label><br />
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="dinhDang" value="PDF" required>
+                <label class="form-check-label">PDF</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="dinhDang" value="Excel" required>
+                <label class="form-check-label">Excel</label>
+            </div>
+        </div>
+    </div> *@
+
+    <div class="text-center mt-4">
+        <button type="button" class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#modalExport">
+            <i class="fas fa-bullhorn me-1"></i> Công bố điểm
+        </button>
+    </div>
+
+    <div class="text-center mt-4">
+        <button type="button" class="btn btn-primary btn-lg" id="btnXemKetQua">
+            <i class="fas fa-eye me-1"></i> Xem kết quả
+        </button>
+    </div>
+    <div class="mt-5" id="ketQuaContainer">
+        <!-- Bảng kết quả sẽ được load ở đây -->
+        <div class="alert alert-info text-center">Nhấn "Xem kết quả" để hiển thị dữ liệu</div>
+    </div>
+</form>
+
+<!-- Modal Export -->
+<div class="modal fade" id="modalExport" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" asp-action="XuatFile" target="_blank">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">Xuất & Gửi file</h5>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-2">
+                        <label>Chọn định dạng</label><br />
+                        <input type="radio" name="dinhDang" value="PDF" checked /> PDF
+                        <input type="radio" name="dinhDang" value="Excel" class="ms-3" /> Excel
+                    </div>
+                    <div class="mb-2">
+                        <input type="hidden" name="loai" id="xLoai" />
+                        <input type="hidden" name="lopId" id="xLopId" />
+                        <input type="hidden" name="hocKyId" id="xHocKyId" />
+                        <input type="hidden" name="namHoc" id="xNamHoc" />
+                        <input type="hidden" name="maSinhVien" id="xMaSV" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Xuất và gửi</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        function hienThiBangKetQua(data) {
+            let html = '<table class="table table-bordered text-center">';
+            html += '<thead class="table-success"><tr><th>STT</th><th>Họ tên</th><th>Mã SV</th><th>Lớp</th><th>Học kỳ</th><th>Năm học</th><th>Điểm</th></tr></thead><tbody>';
+
+            data.forEach((p, i) => {
+                html += `<tr>
+                    <td>${i + 1}</td>
+                    <td>${p.sinhVien.hoTen}</td>
+                    <td>${p.sinhVien.maSV}</td>
+                    <td>${p.sinhVien.lop.tenLop}</td>
+                    <td>${p.hocKy.tenHocKy}</td>
+                    <td>${p.hocKy.namHoc}</td>
+                    <td class="fw-bold">${p.tongDiemHoiDongDuyet}</td>
+                </tr>`;
+            });
+
+            html += '</tbody></table>';
+
+            document.getElementById("ketQuaContainer").innerHTML = html;
+        }
+
+        document.getElementById("btnXemKetQua").addEventListener("click", function () {
+            const formData = new FormData(document.getElementById("formCongBo"));
+
+            fetch("/HoiDong/LayKetQuaAjax", {
+                method: "POST",
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                hienThiBangKetQua(data);
+            })
+            .catch(err => alert("Lỗi khi lấy dữ liệu"));
+        });
+
+        document.getElementById("chonLoai").addEventListener("change", function () {
+            let loai = this.value;
+            document.getElementById("chonCaNhan").style.display = (loai === "CaNhan") ? "block" : "none";
+            document.getElementById("chonLop").style.display = (loai === "Lop") ? "block" : "none";
+            document.getElementById("chonHocKy").style.display = (loai === "HocKy") ? "block" : "none";
+            document.getElementById("chonNamHoc").style.display = (loai === "NamHoc") ? "block" : "none";
+        });
+
+            document.getElementById("modalExport").addEventListener("show.bs.modal", function () {
+            const form = document.getElementById("formCongBo");
+
+            // Lấy giá trị từ form chính
+            document.getElementById("xLoai").value = form.loai.value;
+            document.getElementById("xLopId").value = form.lopId?.value || "";
+            document.getElementById("xHocKyId").value = form.hocKyId?.value || "";
+            document.getElementById("xNamHoc").value = form.namHoc?.value || "";
+            document.getElementById("xMaSV").value = form.maSinhVien?.value || "";
+        });
+    </script>
+}
+

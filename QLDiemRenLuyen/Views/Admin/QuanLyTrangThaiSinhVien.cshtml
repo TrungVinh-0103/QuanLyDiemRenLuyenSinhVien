@@ -1,0 +1,88 @@
+﻿@model List<QLDiemRenLuyen.Models.TrangThaiSinhVien>
+@{
+    ViewData["Title"] = "Quản lý trạng thái sinh viên";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    var trangthai = ViewBag.trangthai as List<QLDiemRenLuyen.Models.CauHinh.CauHinhTrangThaiSinhVien> ?? new List<QLDiemRenLuyen.Models.CauHinh.CauHinhTrangThaiSinhVien>();
+    var thongtin = ViewBag.thongtin_TT as List<QLDiemRenLuyen.Models.TrangThaiSinhVien> ?? new List<QLDiemRenLuyen.Models.TrangThaiSinhVien>();
+}
+
+<h3 class="text-center text-uppercase mb-3">TRẠNG THÁI SINH VIÊN</h3>
+
+<table class="table table-bordered table-striped">
+    <thead class="table-primary text-center">
+        <tr>
+            <th>Sinh viên</th>
+            <th>Trạng thái</th>
+            <th>Ngày cập nhật</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var thongTin in thongtin)
+        {
+            <tr>
+                <td>@thongTin.SinhVien?.HoTen</td>
+                <td>
+                    @trangthai.FirstOrDefault(t => t.TrangThaiID == thongTin.TrangThaiID)?.TenTrangThai
+                </td>
+
+                <td class="text-center">@thongTin.NgayCapNhat.ToString("dd/MM/yyyy")</td>
+                <td>@thongTin.NgayCapNhat</td>
+                <td class="text-center">
+                    <!-- Nút Sửa mở modal -->
+                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#modalSua_@thongTin.LichSuID">Sửa</button>
+
+                    <a asp-action="XoaLichSuTrangThai" asp-route-id="@thongTin.LichSuID" class="btn btn-danger btn-sm" onclick="return confirm('Xác nhận xóa?')">Xóa</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+@foreach (var thongTin in thongtin)
+{
+    <div class="modal fade" id="modalSua_@thongTin.LichSuID" tabindex="-1" aria-labelledby="modalLabel_@thongTin.LichSuID" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form asp-action="SuaTrangThaiSinhVien" asp-controller="Admin" method="post">
+                    <div class="modal-header bg-warning text-dark">
+                        <h5 class="modal-title" id="modalLabel_@thongTin.LichSuID">Sửa trạng thái sinh viên</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="LichSuID" value="@thongTin.LichSuID" />
+                        <div class="mb-3">
+                            <label class="form-label">Họ tên sinh viên</label>
+                            <input type="text" class="form-control" value="@thongTin.SinhVien?.HoTen" disabled />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Trạng thái</label>
+                            <select name="TrangThaiID" class="form-select" required>
+                                @foreach (var tt in trangthai)
+                                {
+                                    <option value="@tt.TrangThaiID" selected="@(thongTin.TrangThaiID == tt.TrangThaiID ? "true" : "false")">@tt.TenTrangThai</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-success">Lưu</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success mt-2">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger mt-2">@TempData["Error"]</div>
+}
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+}

@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using NuGet.Packaging;
 using QLDiemRenLuyen.Data;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +38,9 @@ app.UseSession();
 
 app.UseAuthorization();
 
+//uestPDF.Settings.License = LicenseType.Community; // Add this line
+// Update the line causing the error to use the correct enum value
+QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community; // Corrected namespace
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=TaiKhoan}/{action=DangNhap}/{id?}");

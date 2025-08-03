@@ -1,8 +1,8 @@
-﻿@model List<QLDiemRenLuyen.Models.CauHinh.TieuChi>
+﻿@model List<TieuChi>
 @{
     ViewData["Title"] = "Quản lý Tiêu chí";
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
-    var nhoms = ViewBag.NhomTieuChi as List<QLDiemRenLuyen.Models.CauHinh.NhomTieuChi> ?? new();
+    var nhoms = ViewBag.NhomTieuChiList as List<NhomTieuChi> ?? new();
 }
 
 <h4 class="text-danger">QUẢN LÝ TIÊU CHÍ</h4>
@@ -35,7 +35,6 @@
             <th>Nhóm</th>
             <th>Tiêu chí</th>
             <th>Điểm tối đa</th>
-            <th>Minh chứng</th>
             <th>Thao tác</th>
         </tr>
     </thead>
@@ -46,7 +45,6 @@
                 <td>@tc.NhomTieuChi?.TenNhom</td>
                 <td>@tc.TenTieuChi</td>
                 <td>@tc.DiemToiDa</td>
-                <td>@(tc.YeuCauMinhChung ? "Cần" : "Không")</td>
                 <td>
                     <!-- Nút sửa -->
                     <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modalSua_@tc.TieuChiID">Sửa</button>
@@ -96,23 +94,6 @@
                     <div class="mb-2">
                         <label class="form-label">Điểm tối đa</label>
                         <input name="DiemToiDa" type="number" value="@tc.DiemToiDa" class="form-control" required />
-                    </div>
-                    <div class="mb-2">
-                        <label class="form-label">Yêu cầu minh chứng</label>
-                        <select name="YeuCauMinhChung" class="form-select">
-                            @if (tc.YeuCauMinhChung)
-                            {
-                                <option value="false">Không cần minh chứng</option>
-                                <option value="true" selected>Cần minh chứng</option>
-                            }
-                            else
-                            {
-                                <option value="false" selected>Không cần minh chứng</option>
-                                <option value="true">Cần minh chứng</option>
-                            }
-                        </select>
-
-
                     </div>
                 </div>
                 <div class="modal-footer">

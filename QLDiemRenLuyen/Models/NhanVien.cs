@@ -1,5 +1,5 @@
-﻿using QLDiemRenLuyen.Models.CauHinh;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace QLDiemRenLuyen.Models
 {
@@ -7,13 +7,22 @@ namespace QLDiemRenLuyen.Models
     {
         [Key]
         public int NhanVienID { get; set; }
+
+        [Required]
+        [StringLength(20)]
         public string? MaNV { get; set; }
+
+        [Required]
+        [StringLength(100)]
         public string? HoTen { get; set; }
-        public string? Email { get; set; }
-        public int KhoaID { get; set; }
-        public string? ChucVu { get; set; }
 
+        public int? KhoaID { get; set; }
+        public int ChucVuID { get; set; }
+
+        [ForeignKey("KhoaID")]
         public Khoa? Khoa { get; set; }
-    }
 
+        [ForeignKey("ChucVuID")]
+        public ChucVu? ChucVu { get; set; }
+    }
 }

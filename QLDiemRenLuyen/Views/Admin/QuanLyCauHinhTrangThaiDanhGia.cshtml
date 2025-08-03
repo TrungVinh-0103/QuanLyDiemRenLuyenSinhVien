@@ -1,0 +1,210 @@
+﻿@model List<QLDiemRenLuyen.Models.CauHinh.CauHinhTrangThaiDanhGia>
+@{
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    ViewData["Title"] = "Quản lý trạng thái đánh giá";
+}
+<link rel="stylesheet" href="~/css/CauHinhTrangThaiDanhGia.css" />
+<div class="modern-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="header-content">
+            <div class="header-left">
+                <h2 class="page-title">
+                    <i class="fas fa-clipboard-check me-3"></i>
+                    Quản lý trạng thái đánh giá
+                </h2>
+                <p class="page-subtitle">Cấu hình các trạng thái cho quá trình đánh giá</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn-modern btn-primary" data-bs-toggle="modal" data-bs-target="#modalThem">
+                    <i class="fas fa-plus me-2"></i>
+                    Thêm mới
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alerts -->
+    @if (TempData["Loi"] != null)
+    {
+        <div class="alert-modern alert-danger">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            @TempData["Loi"]
+        </div>
+    }
+    @if (TempData["ThanhCong"] != null)
+    {
+        <div class="alert-modern alert-success">
+            <i class="fas fa-check-circle me-2"></i>
+            @TempData["ThanhCong"]
+        </div>
+    }
+
+    <!-- Data Table -->
+    <div class="table-container">
+        <div class="table-header">
+            <h4 class="table-title">
+                <i class="fas fa-list me-2"></i>
+                Danh sách trạng thái
+            </h4>
+            <div class="table-stats">
+                <span class="stat-item">
+                    <i class="fas fa-database me-1"></i>
+                    Tổng: <strong>@Model.Count</strong>
+                </span>
+            </div>
+        </div>
+
+        <div class="table-responsive">
+            <table class="modern-table">
+                <thead>
+                    <tr>
+                        <th width="80">
+                            <i class="fas fa-hashtag me-1"></i>
+                            STT
+                        </th>
+                        <th>
+                            <i class="fas fa-tag me-1"></i>
+                            Tên trạng thái
+                        </th>
+                        <th width="200" class="text-center">
+                            <i class="fas fa-cogs me-1"></i>
+                            Thao tác
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (int i = 0; i < Model.Count; i++)
+                    {
+                        <tr class="table-row" style="animation-delay: @(i * 0.1)s">
+                            <td>
+                                <span class="row-number">@(i + 1)</span>
+                            </td>
+                            <td>
+                                <div class="status-item">
+                                    <div class="status-indicator"></div>
+                                    <span class="status-name">@Model[i].TenTrangThai</span>
+                                </div>
+                            </td>
+                            <td class="text-center">
+                                <div class="action-buttons">
+                                    <button class="btn-action btn-edit" data-bs-toggle="modal" data-bs-target="#modalSua_@Model[i].TrangThaiDanhGiaID" title="Chỉnh sửa">
+                                        <i class="fas fa-edit me-1"></i>
+                                    </button>
+                                    <form method="post" asp-action="XoaTrangThaiDanhGia" class="d-inline">
+                                        <input type="hidden" name="id" value="@Model[i].TrangThaiDanhGiaID" />
+                                        <button type="submit" class="btn-action btn-delete" onclick="return confirm('⚠️ Xác nhận xóa trạng thái này?')" title="Xóa">
+                                            <i class="fas fa-trash me-1"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Thêm -->
+<div class="modal fade" id="modalThem" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content modern-modal">
+            <form method="post" asp-action="ThemTrangThaiDanhGia">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-plus-circle me-2"></i>
+                        Thêm trạng thái đánh giá
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-tag me-2"></i>
+                            Tên trạng thái
+                        </label>
+                        <input name="TenTrangThai" class="form-control modern-input" placeholder="Nhập tên trạng thái..." required />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-modern btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Hủy
+                    </button>
+                    <button type="submit" class="btn-modern btn-primary">
+                        <i class="fas fa-save me-2"></i>Thêm mới
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Sửa -->
+@for (int i = 0; i < Model.Count; i++)
+{
+    <div class="modal fade" id="modalSua_@Model[i].TrangThaiDanhGiaID" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content modern-modal">
+                <form method="post" asp-action="SuaTrangThaiDanhGia">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-edit me-2"></i>
+                            Sửa trạng thái đánh giá
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="TrangThaiDanhGiaID" value="@Model[i].TrangThaiDanhGiaID" />
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-tag me-2"></i>
+                                Tên trạng thái
+                            </label>
+                            <input name="TenTrangThai" class="form-control modern-input" value="@Model[i].TenTrangThai" required />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn-modern btn-secondary" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Hủy
+                        </button>
+                        <button type="submit" class="btn-modern btn-warning">
+                            <i class="fas fa-save me-2"></i>Cập nhật
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add loading animation to forms
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('submit', function() {
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    if (submitBtn) {
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
+                        submitBtn.disabled = true;
+                    }
+                });
+            });
+
+            // Auto-hide alerts after 5 seconds
+            const alerts = document.querySelectorAll('.alert-modern');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.style.opacity = '0';
+                    alert.style.transform = 'translateY(-20px)';
+                    setTimeout(() => alert.remove(), 300);
+                }, 5000);
+            });
+        });
+    </script>
+}

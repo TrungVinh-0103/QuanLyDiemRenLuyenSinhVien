@@ -1,0 +1,51 @@
+﻿@model List<QLDiemRenLuyen.Models.PhieuDanhGia>
+@{
+    ViewData["Title"] = "Lịch sử đánh giá";
+    Layout = "~/Views/Shared/_LayoutSinhVien.cshtml";
+}
+
+<h4 class="text-center text-uppercase">Lịch sử phiếu tự đánh giá</h4>
+
+<table class="table table-bordered table-striped mt-3">
+    <thead class="table-secondary text-center">
+        <tr>
+            <th>Học kỳ</th>
+            <th>Trạng thái</th>
+            <th>Tổng điểm tự đánh giá</th>
+            <th>Tổng điểm GVCN duyệt</th>
+            <th>Tổng điểm Hội đồng duyệt</th>
+            <th>Ngày gửi</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var p in Model)
+        {
+            string trangThai = p.TrangThaiDanhGia?.TenTrangThai ?? "Chưa rõ";
+
+            // Cập nhật lại trạng thái nếu đã duyệt
+            if (p.TrangThaiDanhGiaID == 3) // GVCN đã duyệt
+            {
+                trangThai = "GVCN đã duyệt";
+            }
+            else if (p.TrangThaiDanhGiaID == 5) // Hội đồng đã duyệt
+            {
+                trangThai = "Hội đồng đã duyệt";
+            }
+
+            <tr>
+                <td>@p.HocKy?.TenHocKy - @p.HocKy?.NamHoc</td>
+                <td>@trangThai</td>
+                <td class="text-center">@p.TongDiemTuDanhGia</td>
+
+                <td class="text-center">
+                    @(p.TongDiemGiaoVienDeXuat > 0 ? p.TongDiemGiaoVienDeXuat.ToString() : "Chưa duyệt")
+                </td>
+                <td class="text-center">
+                    @(p.TongDiemHoiDongDuyet > 0 ? p.TongDiemHoiDongDuyet.ToString() : "Chưa duyệt")
+                </td>
+
+                <td>@p.NgayLapPhieu.ToString("dd/MM/yyyy")</td>
+            </tr>
+        }
+    </tbody>
+</table>

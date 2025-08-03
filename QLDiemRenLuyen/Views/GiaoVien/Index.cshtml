@@ -1,0 +1,72 @@
+﻿
+@{
+    ViewData["Title"] = "Trang chính";
+    Layout = "~/Views/Shared/_LayoutGiaoVien.cshtml";
+    var gv = ViewBag.GiaoVien as QLDiemRenLuyen.Models.NhanVien;
+}
+<link rel="stylesheet" href="css/Index_GV.css" />
+<div class="row">
+    <div class="col-12">
+        <div class="welcome-card p-4 mb-4" style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%); border-radius: 15px; color: white; box-shadow: 0 10px 40px rgba(0,0,0,0.1); animation: slideInDown 0.6s ease;">
+            <h3 class="text-uppercase text-center mb-3">
+                <i class="fas fa-chalkboard-teacher me-2"></i>
+                Chào mừng Giáo viên: @gv?.HoTen
+            </h3>
+            <div class="text-center">
+                <i class="fas fa-user-tie fa-3x mb-3" style="opacity: 0.8;"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="info-card h-100" style="background: white; border-radius: 15px; padding: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); border-left: 5px solid #ff6b6b; animation: slideInLeft 0.8s ease;">
+            <h5 class="mb-4" style="color: #ff6b6b; font-weight: 600;">
+                <i class="fas fa-id-badge me-2"></i>
+                Thông tin giáo viên
+            </h5>
+            <div class="info-item mb-3">
+                <strong style="color: #495057;">
+                    <i class="fas fa-user me-2 text-danger"></i>
+                    Họ tên:
+                </strong>
+                <span class="ms-2" style="color: #6c757d;">@gv?.HoTen</span>
+            </div>
+            <div class="info-item mb-3">
+                <strong style="color: #495057;">
+                    <i class="fas fa-university me-2 text-warning"></i>
+                    Khoa:
+                </strong>
+                <span class="ms-2" style="color: #6c757d;">@gv?.Khoa?.TenKhoa</span>
+            </div>
+            <div class="info-item">
+                <strong style="color: #495057;">
+                    <i class="fas fa-briefcase me-2 text-info"></i>
+                    Vai trò:
+                </strong>
+                <span class="ms-2 badge bg-danger">Chủ nhiệm</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="quick-actions h-100" style="background: white; border-radius: 15px; padding: 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.1); border-left: 5px solid #ffa726; animation: slideInRight 0.8s ease;">
+            <h5 class="mb-4" style="color: #ffa726; font-weight: 600;">
+                <i class="fas fa-tasks me-2"></i>
+                Công việc chính
+            </h5>
+            <div class="d-grid gap-3">
+                <a href="@Url.Action("DanhSachPhieuDanhGia", "GiaoVien")" class="btn btn-custom-primary btn-lg text-white">
+                    <i class="fas fa-clipboard-check me-2"></i>
+                    Duyệt phiếu đánh giá
+                </a>
+                <a href="@Url.Action("LichSuPhieuDanhGia", "GiaoVien")" class="btn btn-custom-secondary btn-lg text-white">
+                    <i class="fas fa-history me-2"></i>
+                    Xem lịch sử duyệt
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+

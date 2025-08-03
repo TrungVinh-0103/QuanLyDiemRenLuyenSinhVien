@@ -1,0 +1,55 @@
+﻿@model List<QLDiemRenLuyen.Models.KetQuaRenLuyen>
+@{
+    ViewData["Title"] = "Quản lý kết quả rèn luyện";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    var ketQua = ViewBag.KetQua as List<QLDiemRenLuyen.Models.KetQuaRenLuyen> ?? new List<QLDiemRenLuyen.Models.KetQuaRenLuyen>();
+    var phieu = ViewBag.Phieu as List<QLDiemRenLuyen.Models.PhieuDanhGia> ?? new List<QLDiemRenLuyen.Models.PhieuDanhGia>();
+}
+
+<h3 class="text-center text-uppercase mb-4">KẾT QUẢ RÈN LUYỆN</h3>
+
+<table class="table table-bordered table-striped">
+    <thead class="table-info text-center">
+        <tr>
+            <th>Sinh viên</th>
+            <th>MSSV</th>
+            <th>Lớp</th>
+            <th>Học kỳ</th>
+            <th>Phiếu đánh giá</th>
+            <th>Kết quả</th>
+            <th>Xếp loại</th>
+            <th>Ngày cập nhật</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var kq in ketQua)
+        {
+            <tr>
+                <td>@kq.SinhVien?.HoTen</td>
+                <td>@kq.SinhVien?.MaSV</td>
+                <td>@kq.SinhVien?.Lop?.TenLop</td>
+                <td>@kq.HocKy?.TenHocKy - @kq.HocKy?.NamHoc</td>
+                <td class="text-center">@kq.PhieuDanhGia!.PhieuDanhGiaID</td>
+                @foreach (var p in phieu)
+                {
+                    <td class="text-center">@p.TongDiemHoiDongDuyet</td>
+                }
+                <td>@kq.XepLoai?.TenXepLoai</td>
+                <td class="text-center">@kq.NgayCapNhat.ToString("dd/MM/yyyy")</td>
+                <td class="text-center">
+                    <a asp-action="XoaKetQuaRenLuyen" asp-route-id="@kq.KetQuaID" class="btn btn-sm btn-danger" onclick="return confirm('Xác nhận xóa?')">Xóa</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}

@@ -1,6 +1,7 @@
 ﻿using QLDiemRenLuyen.Models.CauHinh;
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace QLDiemRenLuyen.Models
 {
@@ -8,17 +9,33 @@ namespace QLDiemRenLuyen.Models
     {
         [Key]
         public int PhieuDanhGiaID { get; set; }
-        public int SinhVienID { get; set; }
-        public int HocKyID { get; set; }
-        public int TieuChiID { get; set; }
-        public string? NguonDanhGia { get; set; }
-        public int Diem { get; set; }
-        public string? TrangThai { get; set; }
-        public DateTime NgayDanhGia { get; set; }
-        public string? GhiChu { get; set; }
 
+        [Required]
+        public int SinhVienID { get; set; }
+
+        [Required]
+        public int HocKyID { get; set; }
+
+        public DateTime NgayLapPhieu { get; set; } = DateTime.Now;
+
+        public int? TrangThaiDanhGiaID { get; set; }
+
+        public int? TongDiemTuDanhGia { get; set; }
+
+        public int? TongDiemGiaoVienDeXuat { get; set; }
+
+        public int? TongDiemHoiDongDuyet { get; set; }
+
+        // ======== Liên kết khóa ngoại ==========
+
+        [ForeignKey("SinhVienID")]
         public SinhVien? SinhVien { get; set; }
+
+        [ForeignKey("HocKyID")]
         public HocKy? HocKy { get; set; }
-        public TieuChi? TieuChi { get; set; }
+
+        [ForeignKey("TrangThaiDanhGiaID")]
+        public CauHinhTrangThaiDanhGia? TrangThaiDanhGia { get; set; }
+
     }
 }

@@ -1,0 +1,197 @@
+﻿@model IEnumerable<QLDiemRenLuyen.Models.ChuNhiem>
+@{
+    ViewData["Title"] = "Quản lý chủ nhiệm";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+    var nhanViens = ViewBag.NhanViens as List<NhanVien> ?? new();
+    var lops = ViewBag.Lops as List<Lop> ?? new();
+    var hocKys = ViewBag.HocKys as List<HocKy> ?? new();
+}
+
+<h3 class="text-uppercase mb-4 text-primary">Quản lý chủ nhiệm lớp</h3>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+<!-- Nút mở modal thêm -->
+<button class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#modalThem">
+    <i class="fas fa-plus"></i> Thêm chủ nhiệm
+</button>
+
+<!-- Bảng danh sách -->
+<table class="table table-bordered table-striped">
+    <thead class="table-light">
+        <tr>
+            <th>STT</th>
+            <th>Nhân viên</th>
+            <th>Lớp</th>
+            <th>Học kỳ</th>
+            <th>Ghi chú</th>
+            <th>Thao tác</th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (!Model.Any())
+        {
+            <tr>
+                <td colspan="6" class="text-center text-muted">Chưa có dữ liệu</td>
+            </tr>
+        }
+        else
+        {
+            int stt = 1;
+            foreach (var cn in Model)
+            {
+                <tr>
+                    <td>@(stt++)</td>
+                    <td>@(cn.NhanVien?.HoTen ?? "—")</td>
+                    <td>@(cn.Lop?.TenLop ?? "—")</td>
+                    <td>
+                        @(cn.HocKy != null ? $"{cn.HocKy.TenHocKy} - {cn.HocKy.NamHoc}" + (cn.HocKy.NienKhoa != null ? $" | {cn.HocKy.NienKhoa.TenNienKhoa}" : "") : "—")
+                    </td>
+
+                    <td>@(cn.GhiChu ?? "Không có")</td>
+                    <td>
+                        <!-- Sửa -->
+                        <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modalSua-@cn.ChuNhiemID">
+                            <i></i> Sửa
+                        </button>
+
+                        <!-- Xóa -->
+                        <form asp-action="XoaChuNhiem" method="post" class="d-inline" onsubmit="return confirm('Xác nhận xóa?')">
+                            <input type="hidden" name="id" value="@cn.ChuNhiemID" />
+                            <button class="btn btn-sm btn-danger"><i></i>Xóa</button>
+                        </form>
+                    </td>
+                </tr>
+
+                
+            }
+        }
+    </tbody>
+</table>
+
+@for (int i = 0; i < Model.Count(); i++)
+{
+    var cn = Model.ToList()[i];
+    <!-- Modal Sửa -->
+    <div class="modal fade" id="modalSua-@cn.ChuNhiemID" tabindex="-1" aria-labelledby="labelSua-@cn.ChuNhiemID" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <form asp-action="SuaChuNhiem" method="post">
+                    <div class="modal-header bg-warning">
+                        <h5 class="modal-title text-white" id="labelSua-@cn.ChuNhiemID">Sửa Chủ nhiệm</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" name="ChuNhiemID" value="@cn.ChuNhiemID" />
+
+                        <div class="mb-2">
+                            <label>Nhân viên</label>
+                            <select class="form-select" name="NhanVienID" required>
+                                @foreach (var nv in nhanViens)
+                                {
+                                    <option value="@nv.NhanVienID" selected="@(nv.NhanVienID == cn.NhanVienID ? "selected" : null)">
+                                        @nv.HoTen
+                                    </option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-2">
+                            <label>Lớp</label>
+                            <select class="form-select" name="LopID" required>
+                                @foreach (var lop in lops)
+                                {
+                                    <option value="@lop.LopID" selected="@(lop.LopID == cn.LopID ? "selected" : null)">
+                                        @lop.TenLop
+                                    </option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-2">
+                            <label>Học kỳ</label>
+                            <select class="form-select" name="HocKyID" required>
+                                @foreach (var hk in hocKys)
+                                {
+                                    <option value="@hk.HocKyID" selected="@(hk.HocKyID == cn.HocKyID ? "selected" : null)">
+                                        @hk.TenHocKy - @hk.NamHoc | @hk.NienKhoa!.TenNienKhoa
+                                    </option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="mb-2">
+                            <label>Ghi chú</label>
+                            <input type="text" name="GhiChu" class="form-control" value="@cn.GhiChu" />
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-success">Lưu</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+<!-- Modal Thêm -->
+<div class="modal fade" id="modalThem" tabindex="-1" aria-labelledby="labelThem" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="ThemChuNhiem" method="post">
+                <div class="modal-header bg-primary">
+                    <h5 class="modal-title text-white" id="labelThem">Thêm Chủ nhiệm</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-2">
+                        <label>Nhân viên</label>
+                        <select class="form-select" name="NhanVienID" required>
+                            @foreach (var nv in nhanViens)
+                            {
+                                <option value="@nv.NhanVienID">@nv.HoTen</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-2">
+                        <label>Lớp</label>
+                        <select class="form-select" name="LopID" required>
+                            @foreach (var lop in lops)
+                            {
+                                <option value="@lop.LopID">@lop.TenLop</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-2">
+                        <label>Học kỳ</label>
+                        <select class="form-select" name="HocKyID" required>
+                            @foreach (var hk in hocKys)
+                            {
+                                <option value="@hk.HocKyID">@hk.TenHocKy - @hk.NamHoc | @hk.NienKhoa!.TenNienKhoa</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-2">
+                        <label>Ghi chú</label>
+                        <input type="text" name="GhiChu" class="form-control" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-primary">Thêm</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

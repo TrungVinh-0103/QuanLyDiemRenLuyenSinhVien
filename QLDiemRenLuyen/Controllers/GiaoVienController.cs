@@ -17,11 +17,21 @@ namespace QLDiemRenLuyen.Controllers
             _context = context;
         }
 
+        // 🔒 Giả định có session chứa NhanVienID sau khi đăng nhập
+        private int GetNhanVienID()
+        {
+            return HttpContext.Session.GetInt32("NhanVienID") ?? 0;
+        }
         // Trang chính GVCN
         public IActionResult Index()
         {
             // Giả sử lấy GVCN theo session (ví dụ hardcode NhanVienID = 1)
-            var giaoVien = _context.NhanVien.Include(k => k.Khoa).FirstOrDefault(g => g.NhanVienID == 1);
+            //var giaoVien = _context.NhanVien.Include(k => k.Khoa).FirstOrDefault(g => g.NhanVienID == 1);
+            //ViewBag.GiaoVien = giaoVien;
+            //return View();
+            int nhanVienID = GetNhanVienID();
+            var giaoVien = _context.NhanVien.Include(k => k.Khoa)
+                .FirstOrDefault(g => g.NhanVienID == nhanVienID);
             ViewBag.GiaoVien = giaoVien;
             return View();
         }
@@ -29,10 +39,21 @@ namespace QLDiemRenLuyen.Controllers
         // Danh sách phiếu cần duyệt
         public IActionResult DanhSachPhieuDanhGia()
         {
+            int nhanVienID = GetNhanVienID();
+
+            // Lấy danh sách lớp mà giáo viên đang là GVCN trong học kỳ hiện tại
+            var lopIDs = _context.ChuNhiem
+                .Where(cn => cn.NhanVienID == nhanVienID)
+                .Select(cn => cn.LopID)
+                .Distinct()
+                .ToList();
+
             var phieus = _context.PhieuDanhGia
                 .Include(p => p.SinhVien).ThenInclude(s => s!.Lop)
                 .Include(p => p.HocKy)
-                .Where(p => p.TrangThaiDanhGiaID == 2) // Chờ GVCN duyệt
+                .Where(p => p.TrangThaiDanhGiaID == 2 && p.SinhVien != null)
+                .ToList()
+                .Where(p => lopIDs.Contains(p.SinhVien!.LopID))
                 .ToList();
 
             return View(phieus);
@@ -88,7 +109,7 @@ namespace QLDiemRenLuyen.Controllers
                 NhomTieuChi = nhomTieuChis,
                 TieuChi = tieuChis,
                 ChiTietPhieu = chiTietPhieu,
-                TongDiemTuDanhGia = tongDiemSV // ✅ Gán ở đây!
+                TongDiemTuDanhGia = tongDiemSV
             };
 
             ViewBag.SinhVien = phieu.SinhVien;
@@ -153,15 +174,25 @@ namespace QLDiemRenLuyen.Controllers
             return RedirectToAction("DanhSachPhieuDanhGia");
         }
 
-
-        // Lịch sử duyệt
+        // Lịch sử phiếu đã duyệt
         public IActionResult LichSuPhieuDanhGia()
         {
+            int nhanVienID = GetNhanVienID();
+
+            var lopIDs = _context.ChuNhiem
+                .Where(cn => cn.NhanVienID == nhanVienID)
+                .Select(cn => cn.LopID)
+                .Distinct()
+                .ToList();
+
             var ds = _context.PhieuDanhGia
-                    .Include(p => p.SinhVien).ThenInclude(s => s!.Lop)
-                    .Include(p => p.HocKy)
-                    .Where(p => p.TrangThaiDanhGiaID >= 3 || p.TrangThaiDanhGiaID == 5)
-                    .ToList();
+                .Include(p => p.SinhVien).ThenInclude(s => s!.Lop)
+                .Include(p => p.HocKy)
+                .Where(p => (p.TrangThaiDanhGiaID >= 3 || p.TrangThaiDanhGiaID == 5) && p.SinhVien != null)
+                .ToList()
+                .Where(p => lopIDs.Contains(p.SinhVien!.LopID))
+                .ToList();
+
 
             return View(ds);
         }

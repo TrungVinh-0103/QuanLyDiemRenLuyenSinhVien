@@ -40,10 +40,21 @@ namespace QLDiemRenLuyen.Controllers
         // Danh sách phiếu cần duyệt
         public IActionResult DanhSachPhieu()
         {
+            int? nhanVienID = HttpContext.Session.GetInt32("NhanVienID");
+            if (nhanVienID == null)
+                return RedirectToAction("Login", "TaiKhoan");
+
+            var giaoVien = _context.NhanVien.Include(g => g.Khoa)
+                .FirstOrDefault(g => g.NhanVienID == nhanVienID);
+            if (giaoVien == null) return NotFound();
+
+            int khoaID = giaoVien.KhoaID ?? 0;
+
             var phieus = _context.PhieuDanhGia
                 .Include(p => p.SinhVien).ThenInclude(s => s!.Lop)
                 .Include(p => p.HocKy)
-                .Where(p => p.TrangThaiDanhGiaID == 3) // GVCN đã duyệt
+                .Where(p => p.TrangThaiDanhGiaID == 3 && /*GVCN đã duyệt*/
+                            p.SinhVien!.KhoaID == giaoVien!.KhoaID)
                 .ToList();
 
             return View(phieus);
@@ -52,6 +63,16 @@ namespace QLDiemRenLuyen.Controllers
         // GET: Duyệt phiếu
         public IActionResult DuyetPhieu(int id)
         {
+            int? nhanVienID = HttpContext.Session.GetInt32("NhanVienID");
+            if (nhanVienID == null)
+                return RedirectToAction("Login", "TaiKhoan");
+
+            var giaoVien = _context.NhanVien.Include(g => g.Khoa)
+                .FirstOrDefault(g => g.NhanVienID == nhanVienID);
+            if (giaoVien == null) return NotFound();
+
+            int khoaID = giaoVien.KhoaID ?? 0;
+
             var phieu = _context.PhieuDanhGia
                 .Include(p => p.SinhVien).ThenInclude(s => s!.Lop)
                 .Include(p => p.HocKy)
@@ -109,6 +130,16 @@ namespace QLDiemRenLuyen.Controllers
         [HttpPost]
         public async Task<IActionResult> DuyetPhieu(TuDanhGiaViewModel vm, Dictionary<int, int> DiemHoiDongDuyet)
         {
+            int? nhanVienID = HttpContext.Session.GetInt32("NhanVienID");
+            if (nhanVienID == null)
+                return RedirectToAction("Login", "TaiKhoan");
+
+            var giaoVien = _context.NhanVien.Include(g => g.Khoa)
+                .FirstOrDefault(g => g.NhanVienID == nhanVienID);
+            if (giaoVien == null) return NotFound();
+
+            int khoaID = giaoVien.KhoaID ?? 0;
+
             var phieu = _context.PhieuDanhGia.FirstOrDefault(p => p.PhieuDanhGiaID == vm.PhieuDanhGiaID);
             if (phieu == null) return NotFound();
 
@@ -187,10 +218,23 @@ namespace QLDiemRenLuyen.Controllers
         // Lịch sử phiếu đã duyệt
         public IActionResult LichSuPhieu()
         {
+            // Lấy danh sách phiếu đã duyệt
+            int? nhanVienID = HttpContext.Session.GetInt32("NhanVienID");
+            if (nhanVienID == null)
+                return RedirectToAction("Login", "TaiKhoan");
+
+            var giaoVien = _context.NhanVien.Include(g => g.Khoa)
+                .FirstOrDefault(g => g.NhanVienID == nhanVienID);
+            if (giaoVien == null) return NotFound();
+
+            int khoaID = giaoVien.KhoaID ?? 0;
+
             var phieus = _context.PhieuDanhGia
                 .Include(p => p.SinhVien).ThenInclude(s => s!.Lop)
                 .Include(p => p.HocKy)
-                .Where(p => p.TrangThaiDanhGiaID == 5 && p.TongDiemHoiDongDuyet > 0) 
+                .Where(p => p.TrangThaiDanhGiaID == 5 &&
+                            p.TongDiemHoiDongDuyet > 0 &&
+                            p.SinhVien!.KhoaID == khoaID) // Lọc theo khoa
                 .ToList();
 
             return View(phieus);
@@ -199,20 +243,61 @@ namespace QLDiemRenLuyen.Controllers
         //Công bố kết quả rên luyện
         public IActionResult CongBo()
         {
-            ViewBag.Lops = _context.Lop.Include(k => k.Khoa).ToList();
-            //ViewBag.HocKys = _context.HocKy.ToList();
+            int? nhanVienID = HttpContext.Session.GetInt32("NhanVienID");
+            if (nhanVienID == null)
+                return RedirectToAction("Login", "TaiKhoan");
+
+            var giaoVien = _context.NhanVien.Include(g => g.Khoa)
+                .FirstOrDefault(g => g.NhanVienID == nhanVienID);
+            if (giaoVien == null) return NotFound();
+
+            int khoaID = giaoVien.KhoaID ?? 0;
+
+
+            //ViewBag.Lops = _context.Lop
+            //    .Include(k => k.Khoa)
+            //    .Where(l => l.KhoaID == giaoVien!.KhoaID)
+            //    .ToList();
+            //ViewBag.HocKys = _context.HocKy
+            //    .Include(h => h.NienKhoa)
+            //    .Where(h => h.NienKhoa!.NienKhoaID == giaoVien!.NienKhoa!.NienKhoaID)
+            //    .ToList();
+            //ViewBag.NamHocs = _context.HocKy.Select(h => h.NamHoc).Distinct().ToList();
+            //ViewBag.SinhViens = _context.SinhVien
+            //    .Include(l => l.Lop)
+            //    .Where(sv => sv.KhoaID == giaoVien.KhoaID)
+            //    .ToList();
+            ViewBag.Lops = _context.Lop
+                .Where(l => l.KhoaID == khoaID)
+                .ToList();
+
+            ViewBag.SinhViens = _context.SinhVien
+                .Where(sv => sv.KhoaID == khoaID)
+                .Include(sv => sv.Lop)
+                .ToList();
+
             ViewBag.HocKys = _context.HocKy.Include(h => h.NienKhoa).ToList();
             ViewBag.NamHocs = _context.HocKy.Select(h => h.NamHoc).Distinct().ToList();
-            ViewBag.SinhViens = _context.SinhVien.Include(l => l.Lop).ToList();
+
             return View();
         }
         [HttpPost]
         public IActionResult XuatKetQua(string loai, int? lopId, int? hocKyId, string? namHoc, string? hoTen, string? maSinhVien, string dinhDang)
         {
+            int? nhanVienID = HttpContext.Session.GetInt32("NhanVienID");
+            if (nhanVienID == null)
+                return RedirectToAction("Login", "TaiKhoan");
+
+            var giaoVien = _context.NhanVien.Include(g => g.Khoa)
+                .FirstOrDefault(g => g.NhanVienID == nhanVienID);
+            if (giaoVien == null) return NotFound();
+
+            int khoaID = giaoVien.KhoaID ?? 0;
+
             var query = _context.PhieuDanhGia
                 .Include(p => p.SinhVien).ThenInclude(s => s!.Lop)
                 .Include(p => p.HocKy)
-                .Where(p => p.TrangThaiDanhGiaID == 5);
+                .Where(p => p.TrangThaiDanhGiaID == 5 && p.SinhVien!.KhoaID == khoaID);
 
             if (loai == "CaNhan")
             {                      
@@ -241,13 +326,26 @@ namespace QLDiemRenLuyen.Controllers
 
             return Content("⚠️ Chưa chọn định dạng.");
         }
+
         [HttpPost]
-        public JsonResult LayKetQuaAjax(string loai, int? lopId, int? hocKyId , string? hoTen, string? maSinhVien)
+        public JsonResult LayKetQuaAjax(string loai, int? lopId, int? hocKyId, string? hoTen, string? maSinhVien)
         {
+            int? nhanVienID = HttpContext.Session.GetInt32("NhanVienID");
+            if (nhanVienID == null)
+                return Json(new { error = "Không xác định nhân viên" });
+
+            var giaoVien = _context.NhanVien.Include(g => g.Khoa)
+                .FirstOrDefault(g => g.NhanVienID == nhanVienID);
+            if (giaoVien == null)
+                return Json(new { error = "Không tìm thấy nhân viên" });
+
+            int khoaID = giaoVien.KhoaID ?? 0;
+
             var query = _context.PhieuDanhGia
                 .Include(p => p.SinhVien).ThenInclude(s => s!.Lop)
                 .Include(p => p.HocKy)
-                .Where(p => p.TrangThaiDanhGiaID == 5);
+                .Where(p => p.TrangThaiDanhGiaID == 5 &&
+                            p.SinhVien!.KhoaID == khoaID);
 
             if (loai == "CaNhan")
             {
@@ -279,6 +377,7 @@ namespace QLDiemRenLuyen.Controllers
 
             return Json(ds);
         }
+
         public IActionResult KetQuaPartial(List<PhieuDanhGia> ds)
         {
             return PartialView(ds);
@@ -382,10 +481,20 @@ namespace QLDiemRenLuyen.Controllers
         public IActionResult XuatFile(string dinhDang, string khoGiay,
     string loai, int? lopId, int? hocKyId, string? namHoc, string? maSinhVien)
         {
+            int? nhanVienID = HttpContext.Session.GetInt32("NhanVienID");
+            if (nhanVienID == null)
+                return RedirectToAction("Login", "TaiKhoan");
+
+            var giaoVien = _context.NhanVien.Include(g => g.Khoa)
+                .FirstOrDefault(g => g.NhanVienID == nhanVienID);
+            if (giaoVien == null) return NotFound();
+
+            int khoaID = giaoVien.KhoaID ?? 0;
+
             var query = _context.PhieuDanhGia
                 .Include(p => p.SinhVien).ThenInclude(s => s!.Lop)
                 .Include(p => p.HocKy)
-                .Where(p => p.TrangThaiDanhGiaID == 5);
+                .Where(p => p.TrangThaiDanhGiaID == 5 && p.SinhVien!.KhoaID == khoaID);
 
             // Áp dụng lọc
             if (loai == "CaNhan")
@@ -424,6 +533,73 @@ namespace QLDiemRenLuyen.Controllers
 
             return File(fileBytes, contentType, fileName);
         }
+
+        // Thong ke chưa đánh giá 
+        [HttpGet]
+        public IActionResult ThongKeChuaDanhGiaHoiDong(int? HocKyID, int? LopID, string? Loai)
+        {
+            int? nhanVienID = HttpContext.Session.GetInt32("NhanVienID");
+            if (nhanVienID == null)
+                return RedirectToAction("Login", "TaiKhoan");
+
+            var giaoVien = _context.NhanVien.Include(g => g.Khoa)
+                .FirstOrDefault(g => g.NhanVienID == nhanVienID);
+            if (giaoVien == null) return NotFound();
+
+            int khoaID = giaoVien.KhoaID ?? 0;
+
+            ViewBag.HocKys = _context.HocKy.Include(h => h.NienKhoa).ToList();
+            ViewBag.Lops = _context.Lop
+                .Where(l => l.KhoaID == giaoVien.KhoaID)
+                .OrderBy(l => l.TenLop).ToList();
+            ViewBag.HocKyID = HocKyID;
+            ViewBag.LopID = LopID;
+            ViewBag.Loai = Loai;
+
+            // ⚠️ Kiểm tra bắt buộc chọn Học kỳ và Loại
+            if (!HocKyID.HasValue || string.IsNullOrEmpty(Loai))
+            {
+                TempData["Error"] = "Vui lòng chọn đầy đủ Học kỳ và Loại thống kê.";
+                return View("ThongKeChuaDanhGiaHoiDong", new List<SinhVien>());
+            }
+
+            // ✅ Lấy toàn bộ sinh viên thuộc khoa
+            var sinhViens = _context.SinhVien
+                .Include(sv => sv.Lop)
+                .Include(sv => sv.KetQuaRenLuyen)
+                .Where(sv => sv.KhoaID == giaoVien.KhoaID)
+                .AsQueryable();
+
+            // ✅ Nếu có chọn Lớp → lọc thêm
+            if (LopID.HasValue)
+                sinhViens = sinhViens.Where(sv => sv.LopID == LopID);
+
+            List<SinhVien> ketQua = new();
+
+            if (Loai == "ChuaDat")
+            {
+                // SV có điểm nhưng <= 49
+                ketQua = sinhViens
+                    .Where(sv => _context.KetQuaRenLuyen.Any(kq =>
+                        kq.SinhVienID == sv.SinhVienID &&
+                        kq.HocKyID == HocKyID &&
+                        kq.TongDiemHoiDongDuyet <= 49))
+                    .ToList();
+            }
+            else if (Loai == "ChuaCoDiem")
+            {
+                // SV không có kết quả nào trong học kỳ
+                ketQua = sinhViens
+                    .Where(sv => !_context.KetQuaRenLuyen.Any(kq =>
+                        kq.SinhVienID == sv.SinhVienID &&
+                        kq.HocKyID == HocKyID))
+                    .ToList();
+            }
+
+            return View("ThongKeChuaDanhGiaHoiDong", ketQua);
+        }
+
+
     }
 }
 

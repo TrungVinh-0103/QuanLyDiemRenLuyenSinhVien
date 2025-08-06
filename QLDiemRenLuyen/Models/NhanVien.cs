@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using QLDiemRenLuyen.Models.CauHinh;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace QLDiemRenLuyen.Models
@@ -17,12 +18,12 @@ namespace QLDiemRenLuyen.Models
         public string? HoTen { get; set; }
 
         public int? KhoaID { get; set; }
-        public int ChucVuID { get; set; }
+        public int VaiTroID { get; set; }
 
         [ForeignKey("KhoaID")]
         public Khoa? Khoa { get; set; }
 
-        [ForeignKey("ChucVuID")]
-        public ChucVu? ChucVu { get; set; }
+        [ForeignKey("VaiTroID")]
+        public CauHinhVaiTro? CauHinhVaiTro { get; set; }
     }
 }

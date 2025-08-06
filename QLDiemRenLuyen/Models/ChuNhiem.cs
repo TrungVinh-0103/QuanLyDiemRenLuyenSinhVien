@@ -18,7 +18,7 @@ namespace QLDiemRenLuyen.Models
 
         [Required]
         [MaxLength(500)]
-        public string? GhiChu { get; set; }
+        public string? GhiChu { get; set; } = "Không có";
 
         public NhanVien? NhanVien { get; set; }
         public Lop? Lop { get; set; }

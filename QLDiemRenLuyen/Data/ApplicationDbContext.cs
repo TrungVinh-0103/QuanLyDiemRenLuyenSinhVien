@@ -9,7 +9,7 @@ namespace QLDiemRenLuyen.Data
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
         public DbSet<NguoiDung> NguoiDung { get; set; }
-        public DbSet<ChucVu> ChucVu { get; set; }
+        //public DbSet<ChucVu> ChucVu { get; set; }
         public DbSet<ChuNhiem> ChuNhiem { get; set; }
         public DbSet<SinhVien> SinhVien { get; set; }
         public DbSet<NhanVien> NhanVien { get; set; }

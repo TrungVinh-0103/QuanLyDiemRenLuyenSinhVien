@@ -18,7 +18,7 @@ namespace QLDiemRenLuyen.Models
         [StringLength(255)]
         public string? PasswordHash { get; set; }
 
-        [ForeignKey("VaiTro")]
+        [ForeignKey("VaiTroID")]
         public int VaiTroID { get; set; }
 
         public int? SinhVienID { get; set; }

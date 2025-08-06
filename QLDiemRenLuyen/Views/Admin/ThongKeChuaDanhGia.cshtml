@@ -1,0 +1,106 @@
+﻿@model List<QLDiemRenLuyen.Models.SinhVien>
+@{
+    ViewData["Title"] = "Thống kê SV chưa đạt / chưa có điểm";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<h4 class="text-center text-uppercase text-danger mt-3">Thống kê sinh viên theo kết quả đánh giá</h4>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-warning text-center">@TempData["Error"]</div>
+}
+
+<form method="get" class="row mb-4" id="filterForm">
+    <div class="col-md-3">
+        <label>Học kỳ</label>
+        <select name="HocKyID" id="HocKyID" class="form-select">
+            <option value="">-- Tất cả --</option>
+            @foreach (var hk in ViewBag.HocKys)
+            {
+                <option value="@hk.HocKyID" selected="@(ViewBag.HocKyID == hk.HocKyID ? "selected" : null)">
+                    @hk.TenHocKy - @hk.NamHoc | @hk.NienKhoa?.TenNienKhoa
+                </option>
+            }
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label>Khoa</label>
+        <select name="KhoaID" id="KhoaID" class="form-select">
+            <option value="">-- Tất cả --</option>
+            @foreach (var khoa in ViewBag.Khoas)
+            {
+                <option value="@khoa.KhoaID" selected="@(ViewBag.KhoaID == khoa.KhoaID ? "selected" : null)">
+                    @khoa.TenKhoa
+                </option>
+            }
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label>Lớp</label>
+        <select name="LopID" id="LopID" class="form-select">
+            <option value="">-- Tất cả lớp --</option>
+            @foreach (var lop in ViewBag.Lops)
+            {
+                <option value="@lop.LopID" selected="@(ViewBag.LopID == lop.LopID ? "selected" : null)">
+                    @lop.TenLop
+                </option>
+            }
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label>Loại</label>
+        <select name="Loai" class="form-select">
+            <option value="">-- Chọn loại --</option>
+            <option value="ChuaDat" selected="@(ViewBag.Loai == "ChuaDat" ? "selected" : null)">Chưa đạt</option>
+            <option value="ChuaCoDiem" selected="@(ViewBag.Loai == "ChuaCoDiem" ? "selected" : null)">Chưa có điểm</option>
+        </select>
+    </div>
+    <div class="col-12 mt-3">
+        <button type="submit" class="btn btn-primary w-100">
+            <i class="fas fa-filter"></i> Lọc dữ liệu
+        </button>
+    </div>
+</form>
+
+@if (Model.Count == 0 && TempData["Error"] == null)
+{
+    <div class="alert alert-success text-center">✅ Không có sinh viên nào trong danh sách!</div>
+}
+else if (Model.Count > 0)
+{
+    <table class="table table-bordered table-hover">
+        <thead class="table-light text-center">
+            <tr>
+                <th>STT</th>
+                <th>Mã SV</th>
+                <th>Họ tên</th>
+                <th>Lớp</th>
+                <th>Điểm</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < Model.Count; i++)
+            {
+                var sv = Model[i];
+                var ketQua = sv.KetQuaRenLuyen?.FirstOrDefault(kq => kq.HocKyID == ViewBag.HocKyID);
+                <tr>
+                    <td class="text-center">@(@i + 1)</td>
+                    <td>@sv.MaSV</td>
+                    <td>@sv.HoTen</td>
+                    <td>@sv.Lop?.TenLop</td>
+                    <td class="text-center">
+                        @if (ketQua != null)
+                        {
+                            @ketQua.TongDiemHoiDongDuyet
+                        }
+                        else
+                        {
+                            @: Chưa có
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

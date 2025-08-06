@@ -90,10 +90,10 @@ CREATE TABLE SinhVien (
 );
 
 -- Bảng Chức vụ (Mới được thêm vào)
-CREATE TABLE ChucVu (
-    ChucVuID INT PRIMARY KEY IDENTITY(1,1),
-    TenChucVu NVARCHAR(50) NOT NULL UNIQUE,
-);
+--CREATE TABLE ChucVu (
+--    ChucVuID INT PRIMARY KEY IDENTITY(1,1),
+--    TenChucVu NVARCHAR(50) NOT NULL UNIQUE,
+--);
 
 -- Bảng Nhân viên (đã được sửa đổi để dùng ChucVuID)
 CREATE TABLE NhanVien (
@@ -101,7 +101,8 @@ CREATE TABLE NhanVien (
     MaNV NVARCHAR(20) UNIQUE NOT NULL,
     HoTen NVARCHAR(100) NOT NULL,
     KhoaID INT NULL REFERENCES Khoa(KhoaID), -- Có thể NULL nếu là nhân viên toàn trường (Admin, PĐT, Hội đồng cấp trường)
-    ChucVuID INT REFERENCES ChucVu(ChucVuID) -- Thay thế cột ChucVu NVARCHAR bằng khóa ngoại
+    --ChucVuID INT REFERENCES ChucVu(ChucVuID) -- Thay thế cột ChucVu NVARCHAR bằng khóa ngoại
+	VaiTroID INT REFERENCES CauHinhVaiTro(VaiTroID)
 );
 
 --Bảng Chủ nhiệm (Mới thêm vào)
@@ -114,7 +115,6 @@ CREATE TABLE ChuNhiem (
     CONSTRAINT UQ_ChuNhiem UNIQUE (NhanVienID, LopID, HocKyID) -- Mỗi lớp chỉ có 1 GVCN / học kỳ
 );
 
-
 -- Bảng Người dùng (tài khoản đăng nhập)
 CREATE TABLE NguoiDung (
     NguoiDungID INT PRIMARY KEY IDENTITY(1,1),
@@ -125,8 +125,6 @@ CREATE TABLE NguoiDung (
     NhanVienID INT NULL REFERENCES NhanVien(NhanVienID), -- Nếu là tài khoản nhân viên
     LastLogin DATETIME
 );
-
----
 
 -- Bảng Nhóm tiêu chí (Ví dụ: Nhận thức tư tưởng chính trị, Đạo đức lối sống...)
 CREATE TABLE NhomTieuChi (
@@ -199,7 +197,7 @@ select * from CauHinhVaiTro--
 select * from CauHinhXepLoai--  
 select * from ChiTietPhieuDanhGia --
 select * from ChuNhiem--
-select * from ChucVu--
+--select * from ChucVu--
 select * from TieuChi--
 select * from Truong --
 select * from TrangThaiSinhVien--
@@ -260,19 +258,19 @@ INSERT INTO SinhVien (MaSV, HoTen, NgaySinh, NoiSinh, GioiTinh, KhoaID, LopID, T
 (N'222918', N'Từ Công Vinh', '2004-07-26', N'An Giang', N'Nam', 1, 1, 1);
 
 -- Thêm dữ liệu vào bảng ChucVu
-INSERT INTO ChucVu (TenChucVu) VALUES
-(N'Chủ nhiệm'),
-(N'Hội đồng'),
-(N'Admin');
+--INSERT INTO ChucVu (TenChucVu) VALUES
+--(N'Chủ nhiệm'),
+--(N'Hội đồng'),
+--(N'Admin');
 
 -- Thêm dữ liệu vào bảng NhanVien (sử dụng ChucVuID)
-DECLARE @gvcnChucVuID INT = (SELECT ChucVuID FROM ChucVu WHERE TenChucVu = N'Chủ nhiệm');
-INSERT INTO NhanVien (MaNV, HoTen, KhoaID, ChucVuID) VALUES
-(N'GV001', N'Lê Thị C', 1, @gvcnChucVuID);
+DECLARE @gvcnVaiTroID INT = (SELECT VaiTroID FROM CauHinhVaiTro WHERE TenVaiTro = N'Chủ nhiệm');
+INSERT INTO NhanVien (MaNV, HoTen, KhoaID, VaiTroID) VALUES
+(N'GV001', N'Lê Thị C', 1, @gvcnVaiTroID);
 
-DECLARE @hdChucVuID INT = (SELECT ChucVuID FROM ChucVu WHERE TenChucVu = N'Hội đồng');
-INSERT INTO NhanVien (MaNV, HoTen, KhoaID, ChucVuID) VALUES
-(N'HD001', N'Phạm Văn D', 1, @hdChucVuID); -- Hội đồng có thể không thuộc khoa cụ thể
+DECLARE @hdVaiTroID INT = (SELECT ChucVuID FROM ChucVu WHERE TenVaiTro = N'Hội đồng');
+INSERT INTO NhanVien (MaNV, HoTen, KhoaID, VaiTroID) VALUES
+(N'HD001', N'Phạm Văn D', 1, @hdVaiTroID); -- Hội đồng có thể không thuộc khoa cụ thể
 
 INSERT INTO NguoiDung (Username, PasswordHash, VaiTroID, SinhVienID, NhanVienID) VALUES
 (N'Admin', N'1234', 4, NULL, NULL),

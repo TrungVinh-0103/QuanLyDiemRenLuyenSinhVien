@@ -2,7 +2,8 @@
 @{
     ViewData["Title"] = "Quản lý nhân viên";
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
-    var chucVus = ViewBag.ChucVuList as List<QLDiemRenLuyen.Models.ChucVu> ?? new List<QLDiemRenLuyen.Models.ChucVu>();
+    //var chucVus = ViewBag.ChucVuList as List<QLDiemRenLuyen.Models.ChucVu> ?? new List<QLDiemRenLuyen.Models.ChucVu>();
+    var vaiTros = ViewBag.VaiTroList as List<QLDiemRenLuyen.Models.CauHinh.CauHinhVaiTro> ?? new();
     var khoas = ViewBag.KhoaList as List<QLDiemRenLuyen.Models.Khoa> ?? new List<QLDiemRenLuyen.Models.Khoa>();
 }
 
@@ -32,7 +33,7 @@
                     <th>STT</th>
                     <th>Mã NV</th>
                     <th>Họ tên</th>
-                    <th>Chức vụ</th>
+                    <th>Vai trò</th>
                     <th>Khoa</th>
                     <th>Thao tác</th>
                 </tr>
@@ -45,7 +46,7 @@
                         <td>@(i + 1)</td>
                         <td>@nv.MaNV</td>
                         <td>@nv.HoTen</td>
-                        <td>@(nv.ChucVu?.TenChucVu ?? "Chưa có")</td>
+                        <td>@(nv.CauHinhVaiTro?.TenVaiTro ?? "Chưa có")</td>
                         <td>@(nv.Khoa?.TenKhoa ?? "Chưa có")</td>
                         <td>
                             <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#suaModal-@nv.NhanVienID">Sửa</button>
@@ -100,18 +101,18 @@
                                 </select>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Chức vụ</label>
-                                <select name="ChucVuID" class="form-select" required>
-                                    <option value="">-- Chọn chức vụ --</option>
-                                    @foreach (var cv in chucVus)
+                                <label class="form-label">Vai trò</label>
+                                <select name="VaiTroID" class="form-select" required>
+                                    <option value="">-- Chọn vai trò --</option>
+                                    @foreach (var cv in vaiTros)
                                     {
-                                        if (cv.ChucVuID == nv.ChucVuID)
+                                        if (cv.VaiTroID == nv.VaiTroID)
                                         {
-                                            <option value="@cv.ChucVuID" selected>@cv.TenChucVu</option>
+                                            <option value="@cv.VaiTroID" selected>@cv.TenVaiTro</option>
                                         }
                                         else
                                         {
-                                            <option value="@cv.ChucVuID">@cv.TenChucVu</option>
+                                            <option value="@cv.VaiTroID">@cv.TenVaiTro</option>
                                         }
                                     }
                                 </select>
@@ -156,12 +157,12 @@
                             </select>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Chức vụ</label>
-                            <select name="ChucVuID" class="form-select" required>
-                                <option value="">-- Chọn chức vụ --</option>
-                                @foreach (var cv in chucVus)
+                            <label class="form-label">Vai trò</label>
+                            <select name="VaiTroID" class="form-select" required>
+                                <option value="">-- Chọn vai trò --</option>
+                                @foreach (var cv in vaiTros)
                                 {
-                                    <option value="@cv.ChucVuID">@cv.TenChucVu</option>
+                                    <option value="@cv.VaiTroID">@cv.TenVaiTro</option>
                                 }
                             </select>
                         </div>

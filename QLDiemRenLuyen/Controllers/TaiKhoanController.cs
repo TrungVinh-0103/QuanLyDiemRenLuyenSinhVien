@@ -149,6 +149,8 @@ namespace QLDiemRenLuyen.Controllers
             HttpContext.Session.SetInt32("NguoiDungID", nguoiDung.NguoiDungID);
             HttpContext.Session.SetInt32("VaiTroID", nguoiDung.VaiTroID);
             HttpContext.Session.SetString("Username", nguoiDung.Username!);
+           // HttpContext.Session.SetInt32("NhanVienID", nhanVien.NhanVienID);
+
 
             if (nguoiDung.VaiTroID == 1)
             {

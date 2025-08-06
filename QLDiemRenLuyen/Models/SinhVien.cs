@@ -40,5 +40,8 @@ namespace QLDiemRenLuyen.Models
 
         [ForeignKey("TrangThaiID")]
         public CauHinhTrangThaiSinhVien? TrangThai { get; set; }
+        //public ICollection<PhieuDanhGia>? PhieuDanhGia { get; set; }
+        public ICollection<KetQuaRenLuyen>? KetQuaRenLuyen { get; set; }
+
     }
 }

@@ -19,7 +19,7 @@ namespace QLDiemRenLuyen.Models
         public int PhieuDanhGiaID { get; set; }
 
         [Required]
-        public int TongDiemHoiDongDuyet { get; set; }
+        public int? TongDiemHoiDongDuyet { get; set; }
         
         [Required]
         public int XepLoaiID { get; set; }

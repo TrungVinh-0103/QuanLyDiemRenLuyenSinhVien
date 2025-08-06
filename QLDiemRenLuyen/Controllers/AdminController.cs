@@ -778,77 +778,6 @@ namespace QLDiemRenLuyen.Controllers
         #endregion
         //=======================================================================================
         //------------------------------------------------------------------------------------------
-        //Quản lý Chức vụ
-        //=======================================================================================
-        // GET: Quản lý chức vụ
-        public IActionResult QuanLyChucVu()
-        {
-            var danhSach = _context.ChucVu.ToList();
-            return View(danhSach);
-        }
-
-        // POST: Thêm chức vụ
-        [HttpPost]
-        public IActionResult ThemChucVu(string TenChucVu)
-        {
-            if (_context.ChucVu.Any(x => x.TenChucVu == TenChucVu))
-            {
-                TempData["Loi"] = "Tên chức vụ đã tồn tại.";
-            }
-            else
-            {
-                var cv = new ChucVu { TenChucVu = TenChucVu};
-                _context.ChucVu.Add(cv);
-                _context.SaveChanges();
-                TempData["ThanhCong"] = "Thêm chức vụ thành công.";
-            }
-            return RedirectToAction("QuanLyChucVu");
-        }
-
-        // POST: Sửa chức vụ
-        [HttpPost]
-        public IActionResult SuaChucVu(int ChucVuID, string TenChucVu)
-        {
-            var cv = _context.ChucVu.Find(ChucVuID);
-            if (cv == null)
-            {
-                TempData["Loi"] = "Không tìm thấy chức vụ.";
-            }
-            else if (_context.ChucVu.Any(x => x.TenChucVu == TenChucVu && x.ChucVuID != ChucVuID))
-            {
-                TempData["Loi"] = "Tên chức vụ đã tồn tại.";
-            }
-            else
-            {
-                cv.TenChucVu = TenChucVu;
-                _context.SaveChanges();
-                TempData["ThanhCong"] = "Cập nhật thành công.";
-            }
-            return RedirectToAction("QuanLyChucVu");
-        }
-
-        // POST: Xóa chức vụ
-        [HttpPost]
-        public IActionResult XoaChucVu(int id)
-        {
-            var cv = _context.ChucVu.Find(id);
-            if (cv == null)
-            {
-                TempData["Loi"] = "Không tìm thấy chức vụ.";
-            }
-            else if (_context.NhanVien.Any(nv => nv.ChucVuID == id))
-            {
-                TempData["Loi"] = "Không thể xóa vì chức vụ đang được sử dụng.";
-            }
-            else
-            {
-                _context.ChucVu.Remove(cv);
-                _context.SaveChanges();
-                TempData["ThanhCong"] = "Đã xóa chức vụ.";
-            }
-            return RedirectToAction("QuanLyChucVu");
-        }
-        //=======================================================================================
         //------------------------------------------------------------------------------------------
         //Quản lý Nhân viên
         //=======================================================================================
@@ -856,11 +785,11 @@ namespace QLDiemRenLuyen.Controllers
         {
             var list = _context.NhanVien
                 .Include(n => n.Khoa)
-                .Include(n => n.ChucVu)
-                .ToList();
+                .Include(n => n.CauHinhVaiTro)
+                .ToList();                     
 
             ViewBag.KhoaList = _context.Khoa.ToList();
-            ViewBag.ChucVuList = _context.ChucVu.ToList();
+            ViewBag.VaiTroList = _context.CauHinhVaiTro.ToList();
             return View(list);
         }
 
@@ -882,7 +811,7 @@ namespace QLDiemRenLuyen.Controllers
             {
                 Username = model.MaNV,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword("0000"),
-                VaiTroID = 2, // GVCN hoặc hội đồng
+                VaiTroID = model.VaiTroID, 
                 NhanVienID = model.NhanVienID,
                 LastLogin = null
             };
@@ -896,26 +825,35 @@ namespace QLDiemRenLuyen.Controllers
 
 
         [HttpPost]
-        public IActionResult SuaNhanVien(int NhanVienID, string MaNV, string HoTen, int? KhoaID, int ChucVuID)
+        public IActionResult SuaNhanVien(int NhanVienID, string MaNV, string HoTen, int? KhoaID, int VaiTroID)
         {
             var nv = _context.NhanVien.Find(NhanVienID);
             if (nv == null)
             {
                 TempData["Loi"] = "Không tìm thấy nhân viên.";
+                return RedirectToAction("QuanLyNhanVien");
             }
-            else if (_context.NhanVien.Any(n => n.MaNV == MaNV && n.NhanVienID != NhanVienID))
+
+            if (_context.NhanVien.Any(n => n.MaNV == MaNV && n.NhanVienID != NhanVienID))
             {
                 TempData["Loi"] = "Mã nhân viên đã tồn tại.";
+                return RedirectToAction("QuanLyNhanVien");
             }
-            else
+
+            nv.MaNV = MaNV;
+            nv.HoTen = HoTen;
+            nv.KhoaID = KhoaID;
+            _context.SaveChanges();
+
+            // Cập nhật VaiTrò trong bảng người dùng
+            var nguoiDung = _context.NguoiDung.FirstOrDefault(nd => nd.NhanVienID == NhanVienID);
+            if (nguoiDung != null)
             {
-                nv.MaNV = MaNV;
-                nv.HoTen = HoTen;
-                nv.KhoaID = KhoaID;
-                nv.ChucVuID = ChucVuID;
+                nguoiDung.VaiTroID = VaiTroID;
                 _context.SaveChanges();
-                TempData["ThanhCong"] = "Cập nhật thành công.";
             }
+
+            TempData["ThanhCong"] = "Đã cập nhật nhân viên.";
             return RedirectToAction("QuanLyNhanVien");
         }
 
@@ -1534,10 +1472,209 @@ namespace QLDiemRenLuyen.Controllers
         }
 
         //=======================================================================================
+        //------------------------------------------------------------------------------------------
+        // Thống kê sinh viên chưa đánh giá
+        [HttpGet]
+        public IActionResult ThongKeChuaDanhGia(int? HocKyID, int? KhoaID, int? LopID, string? Loai)
+        {
+            // Lấy danh sách học kỳ và khoa
+            var hocKys = _context.HocKy.Include(h => h.NienKhoa).OrderBy(h => h.NamHoc).ToList();
+            var khoas = _context.Khoa.OrderBy(k => k.TenKhoa).ToList();
 
+            // Lấy toàn bộ danh sách lớp
+            var dsLop = _context.Lop
+                .OrderBy(l => l.TenLop)
+                .ToList();
 
+            // Truyền dữ liệu vào ViewBag
+            ViewBag.HocKys = hocKys;
+            ViewBag.Khoas = khoas;
+            ViewBag.Lops = dsLop;
+            ViewBag.HocKyID = HocKyID;
+            ViewBag.KhoaID = KhoaID;
+            ViewBag.LopID = LopID;
+            ViewBag.Loai = Loai;
 
+            // Kiểm tra nếu chọn Loại mà không chọn Học kỳ
+            if (!string.IsNullOrEmpty(Loai) && !HocKyID.HasValue)
+            {
+                TempData["Error"] = "Chưa chọn học kỳ!";
+                return View("ThongKeChuaDanhGia", new List<SinhVien>());
+            }
 
+            // Lấy danh sách sinh viên
+            var sinhViens = _context.SinhVien
+                .Include(sv => sv.Lop).ThenInclude(l => l!.Khoa)
+                .Include(sv => sv.KetQuaRenLuyen)
+                .AsQueryable();
+
+            // Lọc theo Khoa (nếu có)
+            if (KhoaID.HasValue)
+                sinhViens = sinhViens.Where(sv => sv.KhoaID == KhoaID);
+
+            // Lọc theo Lớp (nếu có)
+            if (LopID.HasValue)
+                sinhViens = sinhViens.Where(sv => sv.LopID == LopID);
+
+            // Lọc theo Loại và Học kỳ
+            List<SinhVien> ketQua = new();
+            if (HocKyID.HasValue)
+            {
+                if (!string.IsNullOrEmpty(Loai))
+                {
+                    if (Loai == "ChuaDat")
+                    {
+                        ketQua = sinhViens
+                            .Where(sv => sv.KetQuaRenLuyen!.Any(kq =>
+                                kq.HocKyID == HocKyID && kq.TongDiemHoiDongDuyet <= 49))
+                            .ToList();
+                    }
+                    else if (Loai == "ChuaCoDiem")
+                    {
+                        ketQua = sinhViens
+                            .Where(sv => !sv.KetQuaRenLuyen!.Any(kq => kq.HocKyID == HocKyID))
+                            .ToList();
+                    }
+                }
+                else
+                {
+                    // Nếu chỉ chọn Học kỳ (hoặc kết hợp với Khoa/Lớp), trả về tất cả sinh viên trong học kỳ đó
+                    ketQua = sinhViens
+                        .Where(sv => sv.KetQuaRenLuyen!.Any(kq => kq.HocKyID == HocKyID))
+                        .ToList();
+                }
+            }
+            else if (KhoaID.HasValue || LopID.HasValue)
+            {
+                // Nếu chỉ chọn Khoa hoặc Lớp, trả về tất cả sinh viên theo Khoa/Lớp
+                ketQua = sinhViens.ToList();
+            }
+            else
+            {
+                // Nếu không chọn gì, trả về danh sách rỗng
+                TempData["Error"] = "Vui lòng chọn ít nhất một tiêu chí lọc!";
+                ketQua = new List<SinhVien>();
+            }
+
+            return View("ThongKeChuaDanhGia", ketQua);
+        }
+        //=======================================================================================
+        //------------------------------------------------------------------------------------------
+        //=======================================================================================
+        // GET: Quản lý Chủ nhiệm
+        public IActionResult QuanLyChuNhiem()
+        {
+            var ds = _context.ChuNhiem
+                .Include(c => c.NhanVien).ThenInclude(n => n!.Khoa)
+                .Include(c => c.Lop).ThenInclude(l => l!.Khoa)
+                .Include(c => c.HocKy).ThenInclude(h => h!.NienKhoa)
+                .ToList();
+
+            ViewBag.NhanViens = _context.NhanVien.Include(n => n.Khoa).ToList();
+            ViewBag.Lops = _context.Lop.Include(l => l.Khoa).ToList();
+            ViewBag.HocKys = _context.HocKy.Include(h => h.NienKhoa).ToList();
+
+            return View(ds);
+        }
+
+        // POST: Thêm Chủ nhiệm
+        [HttpPost]
+        public IActionResult ThemChuNhiem(int NhanVienID, int LopID, int HocKyID, string? GhiChu)
+        {
+            var nhanVien = _context.NhanVien.FirstOrDefault(n => n.NhanVienID == NhanVienID);
+            var lop = _context.Lop.FirstOrDefault(l => l.LopID == LopID);
+
+            if (nhanVien == null || lop == null)
+            {
+                TempData["Error"] = "Không tìm thấy dữ liệu.";
+                return RedirectToAction("QuanLyChuNhiem");
+            }
+
+            if (nhanVien.KhoaID != lop.KhoaID)
+            {
+                TempData["Error"] = "Nhân viên và lớp không thuộc cùng khoa.";
+                return RedirectToAction("QuanLyChuNhiem");
+            }
+
+            var tonTai = _context.ChuNhiem.Any(c => c.LopID == LopID && c.HocKyID == HocKyID);
+            if (tonTai)
+            {
+                TempData["Error"] = "Lớp đã có chủ nhiệm trong học kỳ này.";
+                return RedirectToAction("QuanLyChuNhiem");
+            }
+
+            var cn = new ChuNhiem
+            {
+                NhanVienID = NhanVienID,
+                LopID = LopID,
+                HocKyID = HocKyID,
+                GhiChu = string.IsNullOrWhiteSpace(GhiChu) ? "Không có" : GhiChu
+            };
+
+            _context.ChuNhiem.Add(cn);
+            _context.SaveChanges();
+
+            TempData["Success"] = "Đã thêm chủ nhiệm thành công.";
+            return RedirectToAction("QuanLyChuNhiem");
+        }
+
+        // POST: Sửa Chủ nhiệm
+        [HttpPost]
+        public IActionResult SuaChuNhiem(int ChuNhiemID, int NhanVienID, int LopID, int HocKyID, string? GhiChu)
+        {
+            var cn = _context.ChuNhiem.FirstOrDefault(c => c.ChuNhiemID == ChuNhiemID);
+            var nhanVien = _context.NhanVien.FirstOrDefault(n => n.NhanVienID == NhanVienID);
+            var lop = _context.Lop.FirstOrDefault(l => l.LopID == LopID);
+
+            if (cn == null || nhanVien == null || lop == null)
+            {
+                TempData["Error"] = "Dữ liệu không hợp lệ.";
+                return RedirectToAction("QuanLyChuNhiem");
+            }
+
+            if (nhanVien.KhoaID != lop.KhoaID)
+            {
+                TempData["Error"] = "Nhân viên và lớp không thuộc cùng khoa.";
+                return RedirectToAction("QuanLyChuNhiem");
+            }
+
+            // Kiểm tra trùng (trừ chính nó)
+            bool daTonTai = _context.ChuNhiem.Any(c =>
+                c.LopID == LopID &&
+                c.HocKyID == HocKyID &&
+                c.ChuNhiemID != ChuNhiemID);
+
+            if (daTonTai)
+            {
+                TempData["Error"] = "Lớp này đã có chủ nhiệm trong học kỳ được chọn.";
+                return RedirectToAction("QuanLyChuNhiem");
+            }
+
+            // Cập nhật
+            cn.NhanVienID = NhanVienID;
+            cn.LopID = LopID;
+            cn.HocKyID = HocKyID;
+            cn.GhiChu = string.IsNullOrWhiteSpace(GhiChu) ? "Không có" : GhiChu;
+
+            _context.SaveChanges();
+
+            TempData["Success"] = "Cập nhật chủ nhiệm thành công.";
+            return RedirectToAction("QuanLyChuNhiem");
+        }
+
+        // POST: Xóa chủ nhiệm
+        [HttpPost]
+        public IActionResult XoaChuNhiem(int id)
+        {
+            var cn = _context.ChuNhiem.Find(id);
+            if (cn != null)
+            {
+                _context.ChuNhiem.Remove(cn);
+                _context.SaveChanges();
+                TempData["Success"] = "Đã xóa thành công.";
+            }
+            return RedirectToAction("QuanLyChuNhiem");
+        }
 
 
     }

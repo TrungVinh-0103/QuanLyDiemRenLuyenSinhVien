@@ -5,89 +5,176 @@
     var vaiTros = ViewBag.VaiTros as List<QLDiemRenLuyen.Models.CauHinh.CauHinhVaiTro> ?? new List<QLDiemRenLuyen.Models.CauHinh.CauHinhVaiTro>();
 }
 
-<div class="container mt-3">
-    <h4 class="text-danger">Quản lý người dùng</h4>
+<link rel="stylesheet" href="/css/QuanLyNguoiDung.css" />
 
-    @if (TempData["Loi"] != null)
-    {
-        <div class="alert alert-danger">@TempData["Loi"]</div>
-    }
-    @if (TempData["ThanhCong"] != null)
-    {
-        <div class="alert alert-success">@TempData["ThanhCong"]</div>
-    }
+<div class="admin-container">
+    <div class="container-fluid">
+        <div class="content-card">
+            <h1 class="page-title">Quản Lý Người Dùng</h1>
 
-    <button class="btn btn-primary mb-2" data-bs-toggle="modal" data-bs-target="#themModal">+ Thêm người dùng</button>
+            <!-- Stats Cards -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="stats-number">@(Model?.Count ?? 0)</div>
+                        <div class="text-muted">Tổng người dùng</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="stats-number">@(vaiTros?.Count ?? 0)</div>
+                        <div class="text-muted">Vai trò</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="stats-number">@(Model?.Count(x => x.VaiTro?.TenVaiTro == "Admin") ?? 0)</div>
+                        <div class="text-muted">Quản trị viên</div>
+                    </div>
+                </div>
+            </div>
 
-    <table class="table table-bordered">
-        <thead>
-            <tr class="table-warning">
-                <th>STT</th>
-                <th>Username</th>
-                <th>Mật khẩu</th>
-                <th>Vai trò</th>
-                <th>Thao tác</th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (Model != null && Model.Count > 0)
+            @if (TempData["Loi"] != null)
             {
-                int stt = 1;
-                foreach (var nd in Model)
-                {
-                    <tr>
-                        <td>@(stt++)</td>
-                        <td>@nd.Username</td>
-                        <td>@nd.PasswordHash</td>
-                        <td>@nd.VaiTro?.TenVaiTro</td>
-                        <td>
-                            <!-- Sửa mật khẩu -->
-                            <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modalSua_@nd.NguoiDungID">Sửa</button>
-                            <!-- Xóa -->
-                            <form asp-action="XoaNguoiDung" method="post" class="d-inline">
-                                <input type="hidden" name="id" value="@nd.NguoiDungID" />
-                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Xác nhận xóa?')">Xóa</button>
-                            </form>
-                        </td>
-                    </tr>
-                }
+                <div class="alert alert-danger-modern alert-modern">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    @TempData["Loi"]
+                </div>
             }
-        </tbody>
-    </table>
+            @if (TempData["ThanhCong"] != null)
+            {
+                <div class="alert alert-success-modern alert-modern">
+                    <i class="fas fa-check-circle me-2"></i>
+                    @TempData["ThanhCong"]
+                </div>
+            }
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <button class="modern-btn btn-add" data-bs-toggle="modal" data-bs-target="#themModal">
+                    <i class="fas fa-plus me-2"></i>Thêm Người Dùng
+                </button>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table modern-table">
+                    <thead>
+                        <tr>
+                            <th><i class="fas fa-hashtag me-2"></i>STT</th>
+                            <th><i class="fas fa-user me-2"></i>Username</th>
+                            <th><i class="fas fa-key me-2"></i>Mật khẩu</th>
+                            <th><i class="fas fa-user-tag me-2"></i>Vai trò</th>
+                            <th><i class="fas fa-cogs me-2"></i>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model != null && Model.Count > 0)
+                        {
+                            int stt = 1;
+                            foreach (var nd in Model)
+                            {
+                                <tr>
+                                    <td><span class="badge bg-primary rounded-pill">@(stt++)</span></td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-circle me-3">
+                                                <i class="fas fa-user"></i>
+                                            </div>
+                                            <strong>@nd.Username</strong>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted password-container">
+                                            <span class="password-text" data-password="@nd.PasswordHash">••••••••</span>
+                                            <i class="fas fa-eye-slash password-toggle"></i>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; padding: 8px 15px; border-radius: 20px;">
+                                            @nd.VaiTro?.TenVaiTro
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="modern-btn btn-edit btn-sm" data-bs-toggle="modal" data-bs-target="#modalSua_@nd.NguoiDungID" title="Sửa người dùng">
+                                                <i class="fas fa-edit me-1"></i>
+                                            </button>
+                                            <form asp-action="XoaNguoiDung" method="post" class="d-inline">
+                                                <input type="hidden" name="id" value="@nd.NguoiDungID" />
+                                                <button type="submit" class="modern-btn btn-delete btn-sm" onclick="return confirm('Xác nhận xóa người dùng này?')" title="Xóa người dùng">
+                                                    <i class="fas fa-trash me-1"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center py-5">
+                                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted">Chưa có người dùng nào</p>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Modal thêm người dùng -->
-<div class="modal fade" id="themModal" tabindex="-1" aria-labelledby="themLabel" aria-hidden="true">
-    <div class="modal-dialog">
+<div class="modal fade modern-modal" id="themModal" tabindex="-1" aria-labelledby="themLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <form asp-action="ThemNguoiDung" method="post">
                 <div class="modal-header">
-                    <h5 class="modal-title">Thêm người dùng</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <h5 class="modal-title">
+                        <i class="fas fa-user-plus me-2"></i>Thêm Người Dùng Mới
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-2">
-                        <label>Tên đăng nhập</label>
-                        <input type="text" name="Username" class="form-control" required />
-                    </div>
-                    <div class="mb-2">
-                        <label>Mật khẩu</label>
-                        <input type="password" name="Password" class="form-control" required />
-                    </div>
-                    <div class="mb-2">
-                        <label>Vai trò</label>
-                        <select name="VaiTroID" class="form-select" required>
-                            <option value="">-- Chọn vai trò --</option>
-                            @foreach (var v in vaiTros)
-                            {
-                                <option value="@v.VaiTroID">@v.TenVaiTro</option>
-                            }
-                        </select>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="modern-form-group">
+                                <label><i class="fas fa-user me-2"></i>Tên đăng nhập</label>
+                                <input type="text" name="Username" class="form-control modern-form-control" required placeholder="Nhập tên đăng nhập" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="modern-form-group password-container">
+                                <label><i class="fas fa-key me-2"></i>Mật khẩu</label>
+                                <input type="password" name="Password" class="form-control modern-form-control password-input" required placeholder="Nhập mật khẩu" />
+                                <i class="fas fa-eye-slash password-toggle"></i>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="modern-form-group">
+                                <label><i class="fas fa-user-tag me-2"></i>Vai trò</label>
+                                <select name="VaiTroID" class="form-select modern-form-control" required>
+                                    <option value="">-- Chọn vai trò --</option>
+                                    @if (vaiTros != null)
+                                    {
+                                        @foreach (var v in vaiTros)
+                                        {
+                                            <option value="@v.VaiTroID">@v.TenVaiTro</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-success">Thêm</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <div class="modal-footer" style="background: #f8f9fa; border: none; padding: 20px 30px;">
+                    <button type="submit" class="modern-btn btn-add">
+                        <i class="fas fa-save me-2"></i>Thêm Người Dùng
+                    </button>
+                    <button type="button" class="modern-btn" style="background: #6c757d; color: white;" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Hủy
+                    </button>
                 </div>
             </form>
         </div>
@@ -99,24 +186,31 @@
 {
     @foreach (var nd in Model)
     {
-        <div class="modal fade" id="modalSua_@nd.NguoiDungID" tabindex="-1" aria-labelledby="modalSuaLabel_@nd.NguoiDungID" aria-hidden="true">
+        <div class="modal fade modern-modal" id="modalSua_@nd.NguoiDungID" tabindex="-1" aria-labelledby="modalSuaLabel_@nd.NguoiDungID" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <form asp-action="CapNhatMatKhau" method="post">
-                        <div class="modal-header bg-warning">
-                            <h5 class="modal-title">Đổi mật khẩu: @nd.Username</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        <div class="modal-header" style="background: linear-gradient(135deg, #FF9800, #F57C00);">
+                            <h5 class="modal-title">
+                                <i class="fas fa-edit me-2"></i>Đổi mật khẩu: @nd.Username
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
                             <input type="hidden" name="id" value="@nd.NguoiDungID" />
-                            <div class="mb-2">
-                                <label>Mật khẩu mới</label>
-                                <input type="password" name="Password" class="form-control" required />
+                            <div class="modern-form-group password-container">
+                                <label><i class="fas fa-key me-2"></i>Mật khẩu mới</label>
+                                <input type="password" name="Password" class="form-control modern-form-control password-input" required placeholder="Nhập mật khẩu mới" />
+                                <i class="fas fa-eye-slash password-toggle"></i>
                             </div>
                         </div>
-                        <div class="modal-footer">
-                            <button type="submit" class="btn btn-primary">Lưu</button>
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <div class="modal-footer" style="background: #f8f9fa; border: none; padding: 20px 30px;">
+                            <button type="submit" class="modern-btn btn-edit">
+                                <i class="fas fa-save me-2"></i>Cập Nhật
+                            </button>
+                            <button type="button" class="modern-btn" style="background: #6c757d; color: white;" data-bs-dismiss="modal">
+                                <i class="fas fa-times me-2"></i>Hủy
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -125,6 +219,9 @@
     }
 }
 
+
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    <script src="https://kit.fontawesome.com/your-fontawesome-kit.js"></script>
+    <script src="~/js/QuanLyNguoiDung.js"></script>
 }

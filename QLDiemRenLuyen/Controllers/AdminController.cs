@@ -738,17 +738,39 @@ namespace QLDiemRenLuyen.Controllers
         [HttpPost]
         public async Task<IActionResult> SuaSinhVien(SinhVien model)
         {
-            bool trungMa = _context.SinhVien.Any(s => s.MaSV == model.MaSV && s.SinhVienID != model.SinhVienID);
-            if (trungMa)
-                TempData["Loi"] = "Mã sinh viên bị trùng!";
-            else
+            var svCu = await _context.SinhVien.AsNoTracking().FirstOrDefaultAsync(s => s.SinhVienID == model.SinhVienID);
+            if (svCu == null)
             {
-                model.NgayCapNhatTrangThai = DateTime.Now;
-                _context.Update(model);
-                await _context.SaveChangesAsync();
-                TempData["ThanhCong"] = "Cập nhật sinh viên thành công!";
+                TempData["Loi"] = "Không tìm thấy sinh viên.";
+                return RedirectToAction("QuanLySinhVien");
             }
 
+            // Kiểm tra trùng mã sinh viên
+            bool trungMa = _context.SinhVien.Any(s => s.MaSV == model.MaSV && s.SinhVienID != model.SinhVienID);
+            if (trungMa)
+            {
+                TempData["Loi"] = "Mã sinh viên bị trùng!";
+                return RedirectToAction("QuanLySinhVien");
+            }
+
+            model.NgayCapNhatTrangThai = DateTime.Now;
+            _context.Update(model);
+            await _context.SaveChangesAsync();
+
+            // Nếu trạng thái thay đổi, thêm vào bảng lịch sử
+            if (svCu.TrangThaiID != model.TrangThaiID)
+            {
+                var lichSu = new TrangThaiSinhVien
+                {
+                    SinhVienID = model.SinhVienID,
+                    TrangThaiID = model.TrangThaiID,
+                    NgayCapNhat = DateTime.Now
+                };
+                _context.TrangThaiSinhVien.Add(lichSu);
+                await _context.SaveChangesAsync();
+            }
+
+            TempData["ThanhCong"] = "Cập nhật sinh viên thành công!";
             return RedirectToAction("QuanLySinhVien");
         }
 
@@ -1355,16 +1377,30 @@ namespace QLDiemRenLuyen.Controllers
         //Quản lý lịch sử trạng thái SV
         //=======================================================================================
         // GET: Danh sách lịch sử trạng thái SV
-        public IActionResult QuanLyTrangThaiSinhVien()
+        public IActionResult QuanLyTrangThaiSinhVien(string? maSV, int? trangThaiLoc)
         {
-            var data = _context.TrangThaiSinhVien
-                .Include(ls => ls.SinhVien)
-                .Include(ls => ls.TrangThai)
-                //.Include(ls => ls.NgayCapNhat)
-                .ToList();
+            var danhSach = _context.TrangThaiSinhVien
+                .Include(t => t.SinhVien)
+                .Include(t => t.TrangThai)
+                .AsQueryable();
 
-            return View("QuanLyTrangThaiSinhVien", data);
+            if (!string.IsNullOrEmpty(maSV))
+            {
+                danhSach = danhSach.Where(t => t.SinhVien!.MaSV.Contains(maSV));
+            }
+
+            if (trangThaiLoc != null && trangThaiLoc > 0)
+            {
+                danhSach = danhSach.Where(t => t.TrangThaiID == trangThaiLoc);
+            }
+
+            ViewBag.trangthai = _context.CauHinhTrangThaiSinhVien.ToList();
+            ViewBag.MaSV = maSV;
+            ViewBag.TrangThaiLoc = trangThaiLoc;
+
+            return View("QuanLyTrangThaiSinhVien", danhSach.ToList());
         }
+
 
         [HttpPost]
         public IActionResult SuaLichSuTrangThai(int LichSuID, int TrangThaiID)

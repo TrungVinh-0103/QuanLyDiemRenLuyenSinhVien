@@ -35,10 +35,18 @@ namespace QLDiemRenLuyen.Controllers
             if (sinhVienID == null) return RedirectToAction("Index");
 
             var sinhVien = _context.SinhVien
+                .Include(s => s.TrangThai)
                 .Include(s => s.Lop).ThenInclude(l => l!.NienKhoa)
                 .FirstOrDefault(s => s.SinhVienID == sinhVienID);
 
             if (sinhVien == null) return RedirectToAction("Index");
+
+            // ✅ Nếu trạng thái là "Đã nghỉ" hoặc "Bảo lưu" → chặn
+            if (sinhVien.TrangThai?.TenTrangThai == "Đã nghỉ" || sinhVien.TrangThai?.TenTrangThai == "Bảo lưu")
+            {
+                TempData["Loi"] = "Bạn không thể làm bài đánh giá rèn luyện.";
+                return RedirectToAction("Index");
+            }
 
             // Lấy danh sách học kỳ phù hợp với sinh viên (theo NienKhoa)
             var hocKys = _context.HocKy

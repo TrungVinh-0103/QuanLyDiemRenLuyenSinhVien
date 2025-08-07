@@ -3,15 +3,38 @@
     ViewData["Title"] = "Quản lý trạng thái sinh viên";
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
     var trangthai = ViewBag.trangthai as List<QLDiemRenLuyen.Models.CauHinh.CauHinhTrangThaiSinhVien> ?? new List<QLDiemRenLuyen.Models.CauHinh.CauHinhTrangThaiSinhVien>();
-    var thongtin = ViewBag.thongtin_TT as List<QLDiemRenLuyen.Models.TrangThaiSinhVien> ?? new List<QLDiemRenLuyen.Models.TrangThaiSinhVien>();
+    //var thongtin = ViewBag.thongtin_TT as List<QLDiemRenLuyen.Models.TrangThaiSinhVien> ?? new List<QLDiemRenLuyen.Models.TrangThaiSinhVien>();
+    var thongtin = Model ?? new List<TrangThaiSinhVien>();
 }
 
-<h3 class="text-center text-uppercase mb-3">TRẠNG THÁI SINH VIÊN</h3>
+<h3 class="text-center text-uppercase mb-3">LỊCH SỬ TRẠNG THÁI SINH VIÊN</h3>
+
+<form method="get" asp-action="QuanLyTrangThaiSinhVien" class="row g-2 mb-3">
+    <div class="col-md-4">
+        <input type="text" name="maSV" value="@ViewBag.MaSV" class="form-control" placeholder="Nhập mã sinh viên..." />
+    </div>
+    <div class="col-md-4">
+        <select name="trangThaiLoc" class="form-select">
+            <option value="">-- Tất cả trạng thái --</option>
+            @foreach (var tt in trangthai)
+            {
+                <option value="@tt.TrangThaiID" selected="@(ViewBag.TrangThaiLoc != null && ViewBag.TrangThaiLoc == tt.TrangThaiID ? "selected" : "")">
+                    @tt.TenTrangThai
+                </option>
+            }
+        </select>
+    </div>
+    <div class="col-md-4">
+        <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Lọc</button>
+        <a href="@Url.Action("QuanLyTrangThaiSinhVien", "Admin")" class="btn btn-secondary ms-2">Đặt lại</a>
+    </div>
+</form>
 
 <table class="table table-bordered table-striped">
     <thead class="table-primary text-center">
         <tr>
-            <th>Sinh viên</th>
+            <th>Mã SV</th>
+            <th>Họ tên</th>
             <th>Trạng thái</th>
             <th>Ngày cập nhật</th>
             <th></th>
@@ -21,12 +44,13 @@
         @foreach (var thongTin in thongtin)
         {
             <tr>
+                <td>@thongTin.SinhVien?.MaSV</td>
                 <td>@thongTin.SinhVien?.HoTen</td>
                 <td>
-                    @trangthai.FirstOrDefault(t => t.TrangThaiID == thongTin.TrangThaiID)?.TenTrangThai
+                    @thongTin.TrangThai?.TenTrangThai
                 </td>
 
-                <td class="text-center">@thongTin.NgayCapNhat.ToString("dd/MM/yyyy")</td>
+                @*<td class="text-center">@thongTin.NgayCapNhat.ToString("dd/MM/yyyy")</td>*@
                 <td>@thongTin.NgayCapNhat</td>
                 <td class="text-center">
                     <!-- Nút Sửa mở modal -->

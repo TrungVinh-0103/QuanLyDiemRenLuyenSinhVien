@@ -1,21 +1,12 @@
-﻿@* @{
+﻿@{
     ViewData["Title"] = "Trang chính";
     Layout = "~/Views/Shared/_LayoutSinhVien.cshtml";
     var sv = ViewBag.SinhVien as QLDiemRenLuyen.Models.SinhVien;
-}
+    @if (TempData["Loi"] != null)
+    {
+        <div class="alert alert-danger text-center">@TempData["Loi"]</div>
+    }
 
-<h3 class="text-uppercase text-center">Chào mừng bạn: @sv?.HoTen</h3>
-<hr />
-<p><strong>Mã số sinh viên:</strong> @sv?.MaSV</p>
-<p><strong>Lớp:</strong> @sv?.Lop?.TenLop</p>
-<p><strong>Khoa:</strong> @sv?.Khoa?.TenKhoa</p>
-<p><strong>Trạng thái học tập:</strong> @sv?.TrangThai?.TenTrangThai</p> *@
-
-
-@{
-    ViewData["Title"] = "Trang chính";
-    Layout = "~/Views/Shared/_LayoutSinhVien.cshtml";
-    var sv = ViewBag.SinhVien as QLDiemRenLuyen.Models.SinhVien;
 }
 <link rel="stylesheet" href="~/css/Index_SV.css" />
 
@@ -71,7 +62,7 @@
             <div class="info-item">
                 <strong style="color: #495057;">
                     <i class="fas fa-check-circle me-2 text-warning"></i>
-                    Trạng thái học tập:
+                    Trạng thái hiện tại:
                 </strong>
                 <span class="ms-2 badge bg-success">@sv?.TrangThai!.TenTrangThai</span>
             </div>

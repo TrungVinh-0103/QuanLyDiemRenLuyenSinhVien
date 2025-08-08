@@ -1129,10 +1129,10 @@ namespace QLDiemRenLuyen.Controllers
 
         //=======================================================================================
         //------------------------------------------------------------------------------------------
-        //Quản lý Phiếu đánh giá
         //=======================================================================================
+        // Quản lý Phiếu đánh giá
         [HttpGet]
-        public async Task<IActionResult> QuanLyPhieuDanhGia(int? NienKhoaID, int? KhoaID, int? HocKyID, int? LopID, string MaSV)
+        public async Task<IActionResult> QuanLyPhieuDanhGia(int? NienKhoaID, int? KhoaID, int? HocKyID, int? LopID, string MaSV, string NamHoc)
         {
             // Lấy danh sách cho dropdown
             var nienKhoas = await _context.NienKhoa.OrderBy(nk => nk.TenNienKhoa).ToListAsync();
@@ -1140,6 +1140,9 @@ namespace QLDiemRenLuyen.Controllers
             var hocKys = await _context.HocKy.Include(hk => hk.NienKhoa).OrderBy(hk => hk.NamHoc).ToListAsync();
             var lops = await _context.Lop.Include(l => l.Khoa).OrderBy(l => l.TenLop).ToListAsync();
             var trangThai = await _context.CauHinhTrangThaiSinhVien.ToListAsync();
+
+            // Lấy danh sách năm học duy nhất
+            var uniqueNamHocs = hocKys.Select(hk => hk.NamHoc).Distinct().OrderBy(nh => nh).ToList();
 
             // Kiểm tra dữ liệu dropdown
             if (nienKhoas.Count == 0)
@@ -1153,7 +1156,7 @@ namespace QLDiemRenLuyen.Controllers
 
             ViewBag.NienKhoas = nienKhoas;
             ViewBag.Khoas = khoas;
-            ViewBag.HocKys = hocKys;
+            ViewBag.HocKys = hocKys; // Giữ để hiển thị chi tiết trong bảng
             ViewBag.Lops = lops;
             ViewBag.TrangThai = trangThai;
             ViewBag.MaSV = MaSV; // Lưu MaSV để hiển thị lại trong ô input
@@ -1161,6 +1164,7 @@ namespace QLDiemRenLuyen.Controllers
             ViewBag.KhoaID = KhoaID;
             ViewBag.HocKyID = HocKyID;
             ViewBag.LopID = LopID;
+            ViewBag.NamHoc = NamHoc; // Lưu giá trị năm học đã chọn
 
             // Xây dựng query cho phiếu đánh giá
             var query = _context.PhieuDanhGia
@@ -1169,18 +1173,12 @@ namespace QLDiemRenLuyen.Controllers
                 .Include(p => p.TrangThaiDanhGia)
                 .AsQueryable();
 
-            // Áp dụng bộ lọc nếu có
+            // Áp dụng bộ lọc cơ bản (không dùng Contains cho NamHoc)
             bool hasFilter = false;
 
             if (!string.IsNullOrEmpty(MaSV))
             {
                 query = query.Where(p => p.SinhVien!.MaSV.Contains(MaSV.Trim()));
-                hasFilter = true;
-            }
-
-            if (NienKhoaID.HasValue)
-            {
-                query = query.Where(p => p.HocKy!.NienKhoaID == NienKhoaID.Value);
                 hasFilter = true;
             }
 
@@ -1202,15 +1200,32 @@ namespace QLDiemRenLuyen.Controllers
                 hasFilter = true;
             }
 
-            var result = await query.OrderBy(p => p.NgayLapPhieu).ToListAsync();
+            // Lấy tất cả dữ liệu trước
+            var allPhieuDanhGia = await query.OrderBy(p => p.NgayLapPhieu).ToListAsync();
+
+            // Lọc thủ công dựa trên NamHoc
+            if (!string.IsNullOrEmpty(NamHoc))
+            {
+                var validHocKyIds = hocKys.Where(hk => hk.NamHoc == NamHoc).Select(hk => hk.HocKyID).ToList();
+                if (validHocKyIds.Any())
+                {
+                    allPhieuDanhGia = allPhieuDanhGia.Where(p => validHocKyIds.Contains(p.HocKyID)).ToList();
+                    hasFilter = true;
+                }
+                else
+                {
+                    allPhieuDanhGia = new List<PhieuDanhGia>(); // Trả về rỗng nếu không có học kỳ
+                    hasFilter = true;
+                }
+            }
 
             // Hiển thị thông báo nếu không tìm thấy dữ liệu
-            if (hasFilter && result.Count == 0)
+            if (hasFilter && !allPhieuDanhGia.Any())
             {
                 ViewBag.KhongTimThay = "Không tìm thấy phiếu đánh giá phù hợp với tiêu chí đã chọn.";
             }
 
-            return View(result);
+            return View(allPhieuDanhGia);
         }
 
         [HttpPost]
@@ -1338,19 +1353,38 @@ namespace QLDiemRenLuyen.Controllers
         //Quản lý Kết quả rèn luyện
         //=======================================================================================
         // GET: Danh sách kết quả rèn luyện
-        public IActionResult QuanLyKetQuaRenLuyen()
+        public IActionResult QuanLyKetQuaRenLuyen(string? maSV, int? lopID, int? hocKyID, string? namHoc, int? xepLoaiID)
         {
-            var data = _context.KetQuaRenLuyen
-                .Include(k => k.SinhVien)
-                .Include(k => k.HocKy)
+            var query = _context.KetQuaRenLuyen
+                .Include(k => k.SinhVien).ThenInclude(sv => sv!.Lop)
+                .Include(k => k.HocKy).ThenInclude(hk => hk!.NienKhoa)
                 .Include(k => k.XepLoai)
                 .Include(k => k.PhieuDanhGia)
-                .ToList();
+                .AsQueryable();
 
-            return View("QuanLyKetQuaRenLuyen", data);
+            if (!string.IsNullOrEmpty(maSV))
+                query = query.Where(k => k.SinhVien!.MaSV.Contains(maSV));
+
+            if (lopID.HasValue && lopID > 0) // Chỉ lọc khi lopID hợp lệ
+                query = query.Where(k => k.SinhVien!.LopID == lopID);
+
+            if (hocKyID.HasValue && hocKyID > 0) // Chỉ lọc khi hocKyID hợp lệ
+                query = query.Where(k => k.HocKyID == hocKyID);
+
+            if (!string.IsNullOrEmpty(namHoc)) // Chỉ lọc khi namHoc được chọn
+                query = query.Where(k => k.HocKy!.NamHoc == namHoc);
+
+            if (xepLoaiID.HasValue && xepLoaiID > 0) // Chỉ lọc khi xepLoaiID hợp lệ
+                query = query.Where(k => k.XepLoaiID == xepLoaiID);
+
+            ViewBag.LopList = _context.Lop.ToList();
+            ViewBag.HocKyList = _context.HocKy.Include(hk => hk.NienKhoa).ToList(); // Bao gồm NienKhoa
+            ViewBag.NamHocList = _context.HocKy.Select(h => h.NamHoc).Distinct().ToList();
+            ViewBag.XepLoaiList = _context.CauHinhXepLoai.ToList();
+
+            return View("QuanLyKetQuaRenLuyen", query.ToList());
         }
 
-        // GET: Xóa kết quả
         public async Task<IActionResult> XoaKetQuaRenLuyen(int id)
         {
             var item = await _context.KetQuaRenLuyen.FindAsync(id);
@@ -1391,7 +1425,7 @@ namespace QLDiemRenLuyen.Controllers
 
             if (trangThaiLoc != null && trangThaiLoc > 0)
             {
-                danhSach = danhSach.Where(t => t.TrangThaiID == trangThaiLoc);
+                danhSach = danhSach.Where(t => t.TrangThaiID == trangThaiLoc.Value);
             }
 
             ViewBag.trangthai = _context.CauHinhTrangThaiSinhVien.ToList();

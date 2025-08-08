@@ -5,153 +5,279 @@
     ViewData["Title"] = "Quản lý chi tiết phiếu đánh giá";
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
     var bangthongtin = ViewBag.BangThongTin as List<QLDiemRenLuyen.Models.ChiTietPhieuDanhGia> ?? new List<QLDiemRenLuyen.Models.ChiTietPhieuDanhGia>();
-    var query = Context.Request.Query; 
+    var query = Context.Request.Query;
 }
 
-<h3 class="text-center text-uppercase mb-4">CHI TIẾT PHIẾU ĐÁNH GIÁ</h3>
-<form asp-action="QuanLyChiTietPhieuDanhGia" method="get" class="row mb-4">
-    <div class="col-md-2">
-        <label>Năm học</label>
-        <select name="namHoc" class="form-select">
-            <option value="">-- Tất cả --</option>
-            @if (ViewBag.NamHocs is List<string> namHocs)
+<link rel="stylesheet" href="~/css/QuanLyChiTietPhieuDanhGia.css" />
+
+<div class="admin-container">
+    <div class="container-fluid">
+        <div class="content-card">
+            <h1 class="page-title">
+                <i class="fas fa-clipboard-list me-2"></i>
+                Chi Tiết Phiếu Đánh Giá
+            </h1>
+
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="stats-number">@(bangthongtin?.Count ?? 0)</div>
+                        <div class="text-muted">Tổng chi tiết</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="stats-number">@(bangthongtin?.Count(x => x.DiemTuDanhGia > 0) ?? 0)</div>
+                        <div class="text-muted">Đã tự đánh giá</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="stats-number">@(bangthongtin?.Count(x => x.DiemHoiDongDuyet > 0) ?? 0)</div>
+                        <div class="text-muted">Đã duyệt</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="filter-card">
+                <form asp-action="QuanLyChiTietPhieuDanhGia" method="get" class="row g-3">
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold text-primary">
+                            <i class="fas fa-calendar-alt me-2"></i>
+                            Năm học
+                        </label>
+                        <select name="namHoc" class="form-select modern-form-control">
+                            <option value="">-- Tất cả --</option>
+                            @if (ViewBag.NamHocs is List<string> namHocs)
+                            {
+                                foreach (var nam in namHocs)
+                                {
+                                    <option value="@nam" selected="@(query["namHoc"] == nam ? "selected" : null)">@nam</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold text-primary">
+                            <i class="fas fa-book me-2"></i>
+                            Học kỳ
+                        </label>
+                        <select name="hocKy" class="form-select modern-form-control">
+                            <option value="">-- Tất cả --</option>
+                            @if (ViewBag.HocKys is List<string> hocKys)
+                            {
+                                foreach (var hk in hocKys)
+                                {
+                                    <option value="@hk" selected="@(query["hocKy"] == hk ? "selected" : null)">@hk</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold text-primary">
+                            <i class="fas fa-university me-2"></i>
+                            Khoa
+                        </label>
+                        <select name="khoaId" class="form-select modern-form-control">
+                            <option value="">-- Tất cả --</option>
+                            @if (ViewBag.Khoas is List<Khoa> khoas)
+                            {
+                                foreach (var khoa in khoas)
+                                {
+                                    <option value="@khoa.KhoaID" selected="@(query["khoaId"] == khoa.KhoaID.ToString() ? "selected" : null)">@khoa.TenKhoa</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold text-primary">
+                            <i class="fas fa-users me-2"></i>
+                            Lớp
+                        </label>
+                        <select name="lopId" class="form-select modern-form-control">
+                            <option value="">-- Tất cả --</option>
+                            @if (ViewBag.Lops is List<Lop> lops)
+                            {
+                                foreach (var lop in lops)
+                                {
+                                    <option value="@lop.LopID" selected="@(query["lopId"] == lop.LopID.ToString() ? "selected" : null)">@lop.TenLop</option>
+                                }
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold text-primary">
+                            <i class="fas fa-id-card me-2"></i>
+                            Mã SV
+                        </label>
+                        <input type="text" name="maSV" class="form-control modern-form-control" value="@query["maSV"]" placeholder="Nhập mã SV" />
+                    </div>
+
+                    <div class="col-md-2 align-self-end">
+                        <button type="submit" class="btn modern-btn btn-filter w-100">
+                            <i class="fas fa-search me-2"></i>
+                            Lọc
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            @if (TempData["Error"] != null)
             {
-                foreach (var nam in namHocs)
-                {
-                    <option value="@nam" selected="@(query["namHoc"] == nam ? "selected" : null)">@nam</option>
-                }
+                <div class="alert alert-danger-modern alert-modern">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    @TempData["Error"]
+                </div>
             }
-        </select>
-    </div>
-
-    <div class="col-md-2">
-        <label>Học kỳ</label>
-        <select name="hocKy" class="form-select">
-            <option value="">-- Tất cả --</option>
-            @if (ViewBag.HocKys is List<string> hocKys)
+            @if (TempData["Success"] != null)
             {
-                foreach (var hk in hocKys)
-                {
-                    <option value="@hk" selected="@(query["hocKy"] == hk ? "selected" : null)">@hk</option>
-                }
+                <div class="alert alert-success-modern alert-modern">
+                    <i class="fas fa-check-circle me-2"></i>
+                    @TempData["Success"]
+                </div>
             }
-        </select>
-    </div>
 
-    <div class="col-md-2">
-        <label>Khoa</label>
-        <select name="khoaId" class="form-select">
-            <option value="">-- Tất cả --</option>
-            @if (ViewBag.Khoas is List<Khoa> khoas)
-            {
-                foreach (var khoa in khoas)
-                {
-                    <option value="@khoa.KhoaID" selected="@(query["khoaId"] == khoa.KhoaID.ToString() ? "selected" : null)">@khoa.TenKhoa</option>
-                }
-            }
-        </select>
-    </div>
+            <div class="card" style="border: none; border-radius: 15px; box-shadow: 0 3px 15px rgba(0,0,0,0.1);">
+                <form asp-action="XoaNhieuChiTietPhieu" method="post" onsubmit="return confirm('Xác nhận xóa các mục đã chọn?');">
+                    <div class="card-header" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 15px 15px 0 0;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">
+                                <i class="fas fa-list me-2"></i>
+                                Danh sách chi tiết phiếu
+                            </h6>
+                            <div>
+                                <button type="submit" class="modern-btn btn-danger-modern me-2">
+                                    <i class="fas fa-trash me-2"></i>
+                                    Xóa đã chọn
+                                </button>
+                                <button type="button" id="chonTatCaBtn" class="modern-btn btn-secondary-modern">
+                                    <i class="fas fa-check-square me-2"></i>
+                                    Chọn tất cả
+                                </button>
+                            </div>
+                        </div>
+                    </div>
 
-    <div class="col-md-2">
-        <label>Lớp</label>
-        <select name="lopId" class="form-select">
-            <option value="">-- Tất cả --</option>
-            @if (ViewBag.Lops is List<Lop> lops)
-            {
-                foreach (var lop in lops)
-                {
-                    <option value="@lop.LopID" selected="@(query["lopId"] == lop.LopID.ToString() ? "selected" : null)">@lop.TenLop</option>
-                }
-            }
-        </select>
-    </div>
-
-    <div class="col-md-2">
-        <label>Mã sinh viên</label>
-        <input type="text" name="maSV" class="form-control" value="@query["maSV"]" placeholder="Nhập mã SV" />
-    </div>
-
-    <div class="col-md-2 align-self-end">
-        <button type="submit" class="btn btn-primary">Lọc</button>
-    </div>
-</form>
-
-<form asp-action="XoaNhieuChiTietPhieu" method="post" onsubmit="return confirm('Xác nhận xóa các mục đã chọn?');">
-    <div class="d-flex justify-content-between mb-2">
-        <div>
-            <button type="submit" class="btn btn-danger btn-sm me-2">Xóa các mục đã chọn</button>
-            <button type="button" id="chonTatCaBtn" class="btn btn-secondary btn-sm">Chọn tất cả</button>
+                    <div class="card-body p-0">
+                        @if (bangthongtin == null || !bangthongtin.Any())
+                        {
+                            <div class="text-center p-5">
+                                <i class="fas fa-clipboard-list fa-3x mb-3 text-muted"></i>
+                                <h5>Không có chi tiết phiếu nào</h5>
+                                <p>Không tìm thấy dữ liệu phù hợp với bộ lọc</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="table-responsive">
+                                <table class="table modern-table mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center">
+                                                <input type="checkbox" id="checkAll" class="checkbox-modern" />
+                                            </th>
+                                            <th><i class="fas fa-user me-2"></i>Họ tên SV</th>
+                                            <th class="text-center"><i class="fas fa-file-alt me-2"></i>Mã phiếu</th>
+                                            <th class="text-center"><i class="fas fa-eye me-2"></i>Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var bangtt in bangthongtin)
+                                        {
+                                            <tr>
+                                                <td class="text-center">
+                                                    <input type="checkbox" name="selectedIds" value="@bangtt.ChiTietPhieuDanhGiaID" class="check-item checkbox-modern" />
+                                                </td>
+                                                <td>
+                                                    <span class="student-name">@bangtt.PhieuDanhGia?.SinhVien?.HoTen</span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <span class="form-id">@bangtt.PhieuDanhGia?.PhieuDanhGiaID</span>
+                                                </td>
+                                                <td class="text-center">
+                                                    <button type="button" class="modern-btn btn-info-modern"
+                                                            data-bs-toggle="modal"
+                                                            data-bs-target="#modalChiTietTieuChi_@bangtt.ChiTietPhieuDanhGiaID"
+                                                            title="Xem chi tiết">
+                                                        <i class="fas fa-eye me-1"></i>
+                                                        Xem
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-
-    <table class="table table-bordered table-hover">
-        <thead class="table-warning text-center">
-            <tr>
-                <th><input type="checkbox" id="checkAll" /></th>
-                <th>Họ tên SV</th>
-                <th>Mã phiếu</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var bangtt in bangthongtin)
-            {
-                <tr>
-                    <td class="text-center">
-                        <input type="checkbox" name="selectedIds" value="@bangtt.ChiTietPhieuDanhGiaID" class="check-item" />
-                    </td>
-                    <td>@bangtt.PhieuDanhGia?.SinhVien?.HoTen</td>
-                    <td>@bangtt.PhieuDanhGia?.PhieuDanhGiaID</td>
-                    <td class="text-center">
-                        <button type="button" class="btn btn-info btn-sm"
-                                data-bs-toggle="modal"
-                                data-bs-target="#modalChiTietTieuChi_@bangtt.ChiTietPhieuDanhGiaID">
-                            Xem
-                        </button>
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-</form>
-
+</div>
 
 @for (var i = 0; i < Model.Count; i++)
 {
     var item = Model[i];
-
-    <!-- Modal xem chi tiết tiêu chí -->
-    <div class="modal fade" id="modalChiTietTieuChi_@item.ChiTietPhieuDanhGiaID" tabindex="-1">
+    <div class="modal fade modern-modal" id="modalChiTietTieuChi_@item.ChiTietPhieuDanhGiaID" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
-                <div class="modal-header bg-info text-white">
-                    <h5 class="modal-title">Chi tiết tiêu chí: @item.TieuChi!.TenTieuChi</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Chi tiết tiêu chí: @item.TieuChi!.TenTieuChi
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p><strong>Điểm SV:</strong> @item.DiemTuDanhGia</p>
-                    <p><strong>Điểm GV:</strong> @item.DiemGiaoVienDeXuat</p>
-                    <p><strong>Điểm Hội đồng:</strong> @item.DiemHoiDongDuyet</p>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="stats-card" style="background: linear-gradient(135deg, #74b9ff, #0984e3); color: white;">
+                                <i class="fas fa-user-edit fa-2x mb-2"></i>
+                                <h6>Điểm SV tự đánh giá</h6>
+                                <h4 class="mb-0" style="color: white;">@item.DiemTuDanhGia</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="stats-card" style="background: linear-gradient(135deg, #fdcb6e, #e17055); color: white;">
+                                <i class="fas fa-chalkboard-teacher fa-2x mb-2"></i>
+                                <h6>Điểm GV đề xuất</h6>
+                                <h4 class="mb-0" style="color: white;">@item.DiemGiaoVienDeXuat</h4>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="stats-card" style="background: linear-gradient(135deg, #00b894, #00cec9); color: white;">
+                                <i class="fas fa-gavel fa-2x mb-2"></i>
+                                <h6>Điểm Hội đồng duyệt</h6>
+                                <h4 class="mb-0" style="color: white;">@item.DiemHoiDongDuyet</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border: none; padding: 1.5rem;">
+                    <button type="button" class="modern-btn btn-secondary-modern" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>
+                        Đóng
+                    </button>
                 </div>
             </div>
         </div>
     </div>
-
 }
 
-
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger">@TempData["Error"]</div>
-}
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success">@TempData["Success"]</div>
-}
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-
     <script>
+        // Auto hide alerts after 5 seconds
+        setTimeout(function() {
+            $('.alert-modern').fadeOut();
+        }, 5000);
+
+        // Checkbox functionality
         document.getElementById("checkAll").addEventListener("change", function () {
             const checkboxes = document.querySelectorAll(".check-item");
             checkboxes.forEach(cb => cb.checked = this.checked);
@@ -160,7 +286,21 @@
         document.getElementById("chonTatCaBtn").addEventListener("click", function () {
             const checkboxes = document.querySelectorAll(".check-item");
             checkboxes.forEach(cb => cb.checked = true);
+            document.getElementById("checkAll").checked = true;
+        });
+
+        // Animation for table rows
+        document.addEventListener('DOMContentLoaded', function() {
+            const rows = document.querySelectorAll('.modern-table tbody tr');
+            rows.forEach((row, index) => {
+                row.style.animationDelay = `${index * 0.1}s`;
+                row.style.animation = 'fadeInUp 0.6s ease forwards';
+            });
+        });
+
+        // Add loading animation to buttons
+        $('form').on('submit', function() {
+            $(this).find('button[type="submit"]').html('<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...');
         });
     </script>
 }
-

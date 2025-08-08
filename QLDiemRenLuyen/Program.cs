@@ -1,3 +1,4 @@
+﻿using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using Microsoft.EntityFrameworkCore;
 using NuGet.Packaging;
 using QLDiemRenLuyen.Data;
@@ -9,6 +10,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer("DefaultConnection")
+           .LogTo(Console.WriteLine, LogLevel.Information)); // Hoặc dùng logger khác
 
 // Add session services
 builder.Services.AddDistributedMemoryCache();

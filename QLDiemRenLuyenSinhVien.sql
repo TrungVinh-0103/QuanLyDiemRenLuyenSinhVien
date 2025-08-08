@@ -197,7 +197,6 @@ select * from CauHinhVaiTro--
 select * from CauHinhXepLoai--  
 select * from ChiTietPhieuDanhGia --
 select * from ChuNhiem--
---select * from ChucVu--
 select * from TieuChi--
 select * from Truong --
 select * from TrangThaiSinhVien--

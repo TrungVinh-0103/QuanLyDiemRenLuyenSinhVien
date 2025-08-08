@@ -3,62 +3,243 @@
     ViewData["Title"] = "Quản lý Nhóm Tiêu chí";
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
 }
+<link rel="stylesheet" href="/css/QuanLyNhomTieuChi.css" />
 
-<h4 class="text-danger">QUẢN LÝ NHÓM TIÊU CHÍ</h4>
+<div class="admin-container">
+    <div class="container-fluid">
+        <div class="content-card">
+            <h1 class="page-title">
+                <i class="fas fa-layer-group me-2"></i>
+                Quản Lý Nhóm Tiêu Chí
+            </h1>
 
-<!-- Thêm nhóm tiêu chí -->
-<form method="post" asp-action="ThemNhomTieuChi" class="row g-2 mb-3">
-    <div class="col-md-4"><input name="TenNhom" class="form-control" placeholder="Tên nhóm tiêu chí" required /></div>
-    <div class="col-md-2"><input name="DiemToiDa" type="number" class="form-control" placeholder="Điểm tối đa" required /></div>
-    <div class="col-md-2"><button class="btn btn-primary w-100">Thêm</button></div>
-</form>
-
-<table class="table table-bordered">
-    <thead class="table-warning">
-        <tr>
-            <th>Tên nhóm</th>
-            <th>Điểm tối đa</th>
-            <th>Thao tác</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var n in Model)
-        {
-            <tr>
-                <td>@n.TenNhom</td>
-                <td>@n.DiemToiDa</td>
-                <td>
-                    <button type="button" class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modalSua_@n.NhomTieuChiID">
-                        Sửa
-                    </button>
-                    <a href="/Admin/XoaNhomTieuChi/@n.NhomTieuChiID" class="btn btn-sm btn-danger" onclick="return confirm('Xác nhận xóa?')">Xóa</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
-
-<!-- Modal sửa -->
-@foreach (var n in Model)
-{
-    <div class="modal fade" id="modalSua_@n.NhomTieuChiID" tabindex="-1">
-        <div class="modal-dialog">
-            <form method="post" asp-action="SuaNhomTieuChi" class="modal-content">
-                <input type="hidden" name="NhomTieuChiID" value="@n.NhomTieuChiID" />
-                <div class="modal-header bg-primary text-white"><h5 class="modal-title">Sửa nhóm tiêu chí</h5></div>
-                <div class="modal-body">
-                    <input name="TenNhom" value="@n.TenNhom" class="form-control mb-2" placeholder="Tên nhóm" required />
-                    <input name="DiemToiDa" type="number" value="@n.DiemToiDa" class="form-control mb-2" placeholder="Điểm tối đa" required />
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="stats-number">@(Model?.Count ?? 0)</div>
+                        <div class="text-muted">Tổng nhóm tiêu chí</div>
+                    </div>
                 </div>
-                <div class="modal-footer">
-                    <button class="btn btn-success">Cập nhật</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="stats-number">@(Model?.Sum(x => x.DiemToiDa) ?? 0)</div>
+                        <div class="text-muted">Tổng điểm tối đa</div>
+                    </div>
                 </div>
-            </form>
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="stats-number">@(Model?.Any() == true ? Math.Round(Model.Average(x => x.DiemToiDa), 1) : 0)</div>
+                        <div class="text-muted">Điểm TB/nhóm</div>
+                    </div>
+                </div>
+            </div>
+
+            @if (TempData["Loi"] != null)
+            {
+                <div class="alert alert-danger-modern alert-modern">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    @TempData["Loi"]
+                </div>
+            }
+            @if (TempData["ThanhCong"] != null)
+            {
+                <div class="alert alert-success-modern alert-modern">
+                    <i class="fas fa-check-circle me-2"></i>
+                    @TempData["ThanhCong"]
+                </div>
+            }
+
+            @* Form Thêm *@
+            <div class="card mb-4" style="border: none; border-radius: 15px; box-shadow: 0 3px 15px rgba(0,0,0,0.1);">
+                <div class="card-header" style="background: linear-gradient(135deg, #4CAF50, #45a049); color: white; border: none; border-radius: 15px 15px 0 0;">
+                    <h6 class="mb-0">
+                        <i class="fas fa-plus me-2"></i>
+                        Thêm Nhóm Tiêu Chí Mới
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="post" asp-action="ThemNhomTieuChi" class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-tag me-2"></i>
+                                Tên nhóm tiêu chí
+                            </label>
+                            <input name="TenNhom" class="form-control modern-form-control" placeholder="Nhập tên nhóm tiêu chí" required />
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-star me-2"></i>
+                                Điểm tối đa
+                            </label>
+                            <input name="DiemToiDa" type="number" class="form-control modern-form-control" placeholder="Điểm tối đa" required />
+                        </div>
+                        <div class="col-md-2 align-self-end">
+                            <button class="btn modern-btn btn-add w-100">
+                                <i class="fas fa-plus me-2"></i>
+                                Thêm
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            @if (Model == null || !Model.Any())
+            {
+                <div class="alert alert-warning text-center" style="border-radius: 15px; padding: 2rem;">
+                    <i class="fas fa-layer-group fa-3x mb-3 text-muted"></i>
+                    <h5>Chưa có nhóm tiêu chí nào</h5>
+                    <p>Hãy thêm nhóm tiêu chí đầu tiên bằng form bên trên</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table modern-table">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <i class="fas fa-hashtag me-2"></i>
+                                    STT
+                                </th>
+                                <th>
+                                    <i class="fas fa-tag me-2"></i>
+                                    Tên nhóm
+                                </th>
+                                <th>
+                                    <i class="fas fa-star me-2"></i>
+                                    Điểm tối đa
+                                </th>
+                                <th>
+                                    <i class="fas fa-cogs me-2"></i>
+                                    Thao tác
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (int i = 0; i < Model.Count; i++)
+                            {
+                                var n = Model[i];
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-primary rounded-pill">@(i + 1)</span>
+                                    </td>
+                                    <td>
+                                        <strong>@n.TenNhom</strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge-score">@n.DiemToiDa điểm</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="modern-btn btn-edit"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#modalSua_@n.NhomTieuChiID"
+                                                    title="Sửa">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <a href="/Admin/XoaNhomTieuChi/@n.NhomTieuChiID"
+                                               class="modern-btn btn-delete"
+                                               onclick="return confirm('Xác nhận xóa nhóm tiêu chí này?')"
+                                               title="Xóa">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
         </div>
     </div>
+</div>
+
+ @* Modal sửa *@
+@if (Model != null)
+{
+    @foreach (var n in Model)
+    {
+        <div class="modal fade modern-modal" id="modalSua_@n.NhomTieuChiID" tabindex="-1">
+            <div class="modal-dialog">
+                <form method="post" asp-action="SuaNhomTieuChi" class="modal-content">
+                    <input type="hidden" name="NhomTieuChiID" value="@n.NhomTieuChiID" />
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-edit me-2"></i>
+                            Sửa nhóm tiêu chí
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-tag me-2"></i>
+                                Tên nhóm
+                            </label>
+                            <input name="TenNhom" value="@n.TenNhom" class="form-control modern-form-control" placeholder="Tên nhóm" required />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-star me-2"></i>
+                                Điểm tối đa
+                            </label>
+                            <input name="DiemToiDa" type="number" value="@n.DiemToiDa" class="form-control modern-form-control" placeholder="Điểm tối đa" required />
+                        </div>
+                    </div>
+                    <div class="modal-footer" style="border: none; padding: 1.5rem;">
+                        <button class="modern-btn btn-add">
+                            <i class="fas fa-save me-2"></i>
+                            Cập nhật
+                        </button>
+                        <button type="button" class="modern-btn" style="background: #6c757d; color: white;" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>
+                            Đóng
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    }
 }
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Auto hide alerts after 5 seconds
+        setTimeout(function() {
+            $('.alert-modern').fadeOut();
+        }, 5000);
+
+        // Form validation
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                const requiredFields = form.querySelectorAll('[required]');
+                let isValid = true;
+
+                requiredFields.forEach(field => {
+                    if (!field.value.trim()) {
+                        field.style.borderColor = '#dc3545';
+                        isValid = false;
+                    } else {
+                        field.style.borderColor = '#667eea';
+                    }
+                });
+
+                if (!isValid) {
+                    e.preventDefault();
+                    alert('Vui lòng điền đầy đủ thông tin bắt buộc!');
+                }
+            });
+        });
+
+        // Animation for table rows
+        document.addEventListener('DOMContentLoaded', function() {
+            const rows = document.querySelectorAll('.modern-table tbody tr');
+            rows.forEach((row, index) => {
+                row.style.animationDelay = `${index * 0.1}s`;
+                row.style.animation = 'fadeInUp 0.6s ease forwards';
+            });
+        });
+    </script>
 }

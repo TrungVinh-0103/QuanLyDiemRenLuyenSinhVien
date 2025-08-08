@@ -6,50 +6,254 @@
     var phieu = ViewBag.Phieu as List<QLDiemRenLuyen.Models.PhieuDanhGia> ?? new List<QLDiemRenLuyen.Models.PhieuDanhGia>();
 }
 
-<h3 class="text-center text-uppercase mb-4">KẾT QUẢ RÈN LUYỆN</h3>
+<link rel="stylesheet" href="~/css/QuanLyKetQuaRenLuyen.css" />
 
-<table class="table table-bordered table-striped">
-    <thead class="table-info text-center">
-        <tr>
-            <th>Sinh viên</th>
-            <th>MSSV</th>
-            <th>Lớp</th>
-            <th>Học kỳ</th>
-            <th>Phiếu đánh giá</th>
-            <th>Kết quả</th>
-            <th>Xếp loại</th>
-            <th>Ngày cập nhật</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var kq in ketQua)
-        {
-            <tr>
-                <td>@kq.SinhVien?.HoTen</td>
-                <td>@kq.SinhVien?.MaSV</td>
-                <td>@kq.SinhVien?.Lop?.TenLop</td>
-                <td>@kq.HocKy?.TenHocKy - @kq.HocKy?.NamHoc</td>
-                <td class="text-center">@kq.PhieuDanhGia!.PhieuDanhGiaID</td>
-                @foreach (var p in phieu)
-                {
-                    <td class="text-center">@p.TongDiemHoiDongDuyet</td>
+<div class="admin-container">
+    <div class="container-fluid">
+        <div class="content-card">
+            <h1 class="page-title">Quản Lý Kết Quả Rèn Luyện</h1>
+
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="stats-number">@(Model?.Count ?? 0)</div>
+                        <div class="text-muted">Tổng kết quả</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="stats-number">@(Model?.Where(x => x.XepLoai?.TenXepLoai == "Xuất sắc").Count() ?? 0)</div>
+                        <div class="text-muted">Xuất sắc</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="stats-number">@(Model?.Where(x => x.XepLoai?.TenXepLoai == "Giỏi").Count() ?? 0)</div>
+                        <div class="text-muted">Giỏi</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="stats-number">@(Model?.Where(x => x.XepLoai?.TenXepLoai == "Khá").Count() ?? 0)</div>
+                        <div class="text-muted">Khá</div>
+                    </div>
+                </div>
+            </div>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success-modern alert-modern">
+                    <i class="fas fa-check-circle me-2"></i>
+                    @TempData["Success"]
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger-modern alert-modern">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    @TempData["Error"]
+                </div>
+            }
+
+            <div class="filter-form">
+                <form method="get" asp-action="QuanLyKetQuaRenLuyen" class="row g-3">
+                    <div class="col-md-2">
+                        <label class="form-label"><i class="fas fa-id-card me-1"></i>Mã SV</label>
+                        <input type="text" name="maSV" value="@Context.Request.Query["maSV"]" class="form-control modern-form-control" placeholder="Mã sinh viên" />
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label"><i class="fas fa-users me-1"></i>Lớp</label>
+                        <select name="lopID" class="form-select modern-form-control">
+                            <option value="">-- Tất cả lớp --</option>
+                            @if (ViewBag.LopList != null)
+                            {
+                                @foreach (var lop in ViewBag.LopList)
+                                {
+                                    <option value="@lop.LopID" selected="@(Context.Request.Query["lopID"] == lop.LopID.ToString() ? "selected" : null)">
+                                        @lop.TenLop
+                                    </option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label"><i class="fas fa-calendar me-1"></i>Học kỳ</label>
+                        <select name="hocKyID" class="form-select modern-form-control">
+                            <option value="">-- Tất cả học kỳ --</option>
+                            @if (ViewBag.HocKyList != null)
+                            {
+                                @foreach (var hk in ViewBag.HocKyList)
+                                {
+                                    <option value="@hk.HocKyID" selected="@(Context.Request.Query["hocKyID"] == hk.HocKyID.ToString() ? "selected" : null)">
+                                        @($"{hk.TenHocKy} - {hk.NamHoc} | NK: {hk.NienKhoa?.TenNienKhoa}")
+                                    </option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label"><i class="fas fa-graduation-cap me-1"></i>Năm học</label>
+                        <select name="namHoc" class="form-select modern-form-control">
+                            <option value="">-- Tất cả năm --</option>
+                            @if (ViewBag.NamHocList != null)
+                            {
+                                @foreach (var nh in ViewBag.NamHocList)
+                                {
+                                    <option value="@nh" selected="@(Context.Request.Query["namHoc"] == nh ? "selected" : null)">
+                                        @nh
+                                    </option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label"><i class="fas fa-medal me-1"></i>Xếp loại</label>
+                        <select name="xepLoaiID" class="form-select modern-form-control">
+                            <option value="">-- Tất cả xếp loại --</option>
+                            @if (ViewBag.XepLoaiList != null)
+                            {
+                                @foreach (var xl in ViewBag.XepLoaiList)
+                                {
+                                    <option value="@xl.XepLoaiID" selected="@(Context.Request.Query["xepLoaiID"] == xl.XepLoaiID.ToString() ? "selected" : null)">
+                                        @xl.TenXepLoai
+                                    </option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label">&nbsp;</label>
+                        <button type="submit" class="btn btn-filter w-100">
+                            <i class="fas fa-filter me-1"></i> Lọc
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-12">
+                    <input type="text" class="form-control search-box" placeholder="Tìm kiếm kết quả rèn luyện..." id="searchInput">
+                </div>
+            </div>
+
+            @if (Model == null || !Model.Any())
+            {
+                <div class="alert alert-warning-modern alert-modern text-center">
+                    <i class="fas fa-chart-line fa-3x mb-3"></i>
+                    <h5>Không có kết quả rèn luyện nào để hiển thị</h5>
+                    <p>Dữ liệu sẽ được cập nhật khi có phiếu đánh giá được duyệt</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-container">
+                    <table class="table modern-table" id="resultsTable">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-user me-1"></i>Sinh viên</th>
+                                <th><i class="fas fa-id-card me-1"></i>MSSV</th>
+                                <th><i class="fas fa-users me-1"></i>Lớp</th>
+                                <th><i class="fas fa-calendar me-1"></i>Học kỳ</th>
+                                <th><i class="fas fa-file-alt me-1"></i>Phiếu</th>
+                                <th><i class="fas fa-star me-1"></i>Điểm</th>
+                                <th><i class="fas fa-medal me-1"></i>Xếp loại</th>
+                                <th><i class="fas fa-clock me-1"></i>Ngày cập nhật</th>
+                                <th><i class="fas fa-cogs me-1"></i>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var kq in Model)
+                            {
+                                <tr>
+                                    <td title="@kq.SinhVien?.HoTen">
+                                        <div class="text-ellipsis">
+                                            <strong>@kq.SinhVien?.HoTen</strong>
+                                        </div>
+                                    </td>
+                                    <td title="@kq.SinhVien?.MaSV">
+                                        <span class="badge bg-primary rounded-pill">@kq.SinhVien?.MaSV</span>
+                                    </td>
+                                    <td title="@kq.SinhVien?.Lop?.TenLop">
+                                        <span class="badge badge-lop">@kq.SinhVien?.Lop?.TenLop</span>
+                                    </td>
+                                    <td title="@kq.HocKy?.TenHocKy - @kq.HocKy?.NamHoc">
+                                        <span class="badge badge-hocky">@kq.HocKy?.TenHocKy - @kq.HocKy?.NamHoc</span>
+                                    </td>
+                                    <td title="Phiếu @kq.PhieuDanhGia?.PhieuDanhGiaID">
+                                        <span class="badge badge-phieu">@kq.PhieuDanhGia?.PhieuDanhGiaID</span>
+                                    </td>
+                                    <td title="Điểm: @kq.TongDiemHoiDongDuyet">
+                                        <span class="badge badge-diem">@kq.TongDiemHoiDongDuyet</span>
+                                    </td>
+                                    <td title="@kq.XepLoai?.TenXepLoai">
+                                        <span class="badge badge-xeploai">@kq.XepLoai?.TenXepLoai</span>
+                                    </td>
+                                    <td title="@kq.NgayCapNhat.ToString("dd/MM/yyyy")">
+                                        @kq.NgayCapNhat.ToString("dd/MM/yyyy")
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <form asp-action="XoaKetQuaRenLuyen" asp-route-id="@kq.KetQuaID" method="post" style="display:inline;" onsubmit="return confirm('Xác nhận xóa kết quả này?');">
+                                                <button type="submit" class="modern-btn btn-delete" title="Xóa">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            const tableRows = document.querySelectorAll('#resultsTable tbody tr');
+
+            tableRows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                    row.style.animation = 'fadeIn 0.3s ease';
+                } else {
+                    row.style.display = 'none';
                 }
-                <td>@kq.XepLoai?.TenXepLoai</td>
-                <td class="text-center">@kq.NgayCapNhat.ToString("dd/MM/yyyy")</td>
-                <td class="text-center">
-                    <a asp-action="XoaKetQuaRenLuyen" asp-route-id="@kq.KetQuaID" class="btn btn-sm btn-danger" onclick="return confirm('Xác nhận xóa?')">Xóa</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+            });
+        });
 
-@if (TempData["Success"] != null)
-{
-    <div class="alert alert-success">@TempData["Success"]</div>
-}
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger">@TempData["Error"]</div>
+        // Animation for table rows
+        document.addEventListener('DOMContentLoaded', function() {
+            const rows = document.querySelectorAll('.modern-table tbody tr');
+            rows.forEach((row, index) => {
+                row.style.animationDelay = `${index * 0.1}s`;
+                row.classList.add('animate__animated', 'animate__fadeInUp');
+            });
+        });
+
+        // Enhanced form interactions
+        document.querySelectorAll('.modern-form-control').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.style.transform = 'scale(1.02)';
+            });
+
+            input.addEventListener('blur', function() {
+                this.style.transform = 'scale(1)';
+            });
+        });
+
+        // Filter form enhancement
+        document.querySelector('form').addEventListener('submit', function() {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Đang lọc...';
+            submitBtn.disabled = true;
+        });
+    </script>
 }

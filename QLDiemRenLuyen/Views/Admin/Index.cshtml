@@ -11,7 +11,7 @@
             <div class="col-md-8">
                 <h2 class="dashboard-title">
                     <i class="fas fa-tachometer-alt me-3"></i>
-                    Dashboard Quản Trị
+                    Trang chủ
                 </h2>
                 <p class="dashboard-subtitle">Tổng quan hệ thống quản lý điểm rèn luyện</p>
             </div>
@@ -101,29 +101,52 @@
 
     <!-- Quick Actions -->
     <div class="row g-4 mb-5">
-        <div class="col-md-6">
+        <div class="col-md-12 mx-auto">
+            <!-- Tăng chiều rộng bằng cách dùng col-md-8 -->
             <div class="quick-actions-card">
                 <h4 class="card-title">
                     <i class="fas fa-bolt me-2"></i>
                     Thao tác nhanh
                 </h4>
                 <div class="quick-actions-grid">
-                    <a href="/Admin/QuanLySinhVien" class="quick-action-item">
-                        <i class="fas fa-user-graduate"></i>
-                        <span>Quản lý sinh viên</span>
-                    </a>
-                    <a href="/Admin/QuanLyNhanVien" class="quick-action-item">
-                        <i class="fas fa-user-tie"></i>
-                        <span>Quản lý nhân viên</span>
-                    </a>
-                    <a href="/Admin/QuanLyPhieuDanhGia" class="quick-action-item">
-                        <i class="fas fa-file-alt"></i>
-                        <span>Phiếu đánh giá</span>
-                    </a>
-                    <a href="/Admin/QuanLyKetQuaRenLuyen" class="quick-action-item">
-                        <i class="fas fa-trophy"></i>
-                        <span>Kết quả rèn luyện</span>
-                    </a>
+                    <div class="quick-actions-row">
+                        <!-- Hàng 1: 4 thẻ trên -->
+                        <a href="/Admin/QuanLyNguoiDung" class="quick-action-item">
+                            <i class="fas fa-users"></i>
+                            <span>Quản lý người dùng</span>
+                        </a>
+                        <a href="/Admin/QuanLySinhVien" class="quick-action-item">
+                            <i class="fas fa-user-graduate"></i>
+                            <span>Quản lý sinh viên</span>
+                        </a>
+                        <a href="/Admin/QuanLyChuNhiem" class="quick-action-item">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                            <span>Quản lý chủ nhiệm</span>
+                        </a>
+                        <a href="/Admin/QuanLyNhanVien" class="quick-action-item">
+                            <i class="fas fa-user-tie"></i>
+                            <span>Quản lý nhân viên</span>
+                        </a>
+                    </div>
+                    <div class="quick-actions-row">
+                        <!-- Hàng 2: 4 thẻ dưới -->
+                        <a href="/Admin/QuanLyPhieuDanhGia" class="quick-action-item">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Phiếu đánh giá</span>
+                        </a>
+                        <a href="/Admin/QuanLyKetQuaRenLuyen" class="quick-action-item">
+                            <i class="fas fa-trophy"></i>
+                            <span>Kết quả rèn luyện</span>
+                        </a>
+                        <a href="/Admin/QuanLyTrangThaiSinhVien" class="quick-action-item">
+                            <i class="fas fa-user-check"></i>
+                            <span>Lịch sử trạng thái</span>
+                        </a>
+                        <a href="/Admin/ThongKeChuaDanhGia" class="quick-action-item">
+                            <i class="fas fa-chart-column"></i>
+                            <span>Thống kê</span>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

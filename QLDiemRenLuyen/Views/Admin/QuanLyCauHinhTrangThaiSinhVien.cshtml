@@ -4,153 +4,234 @@
     ViewData["Title"] = "Quản lý cấu hình trạng thái sinh viên";
 }
 
-<link rel="stylesheet" href="~/css/CauHinhTrangThaiSinhVien.css" />
+<link rel="stylesheet" href="/css/QuanLyCauHinhTrangThaiSinhVien.css" />
 
-<div class="modern-container">
-    <div class="container">
+<div class="admin-container">
+    <div class="container-fluid">
         <div class="content-card">
-            <h4 class="page-title">👨‍🎓 QUẢN LÝ CẤU HÌNH TRẠNG THÁI SINH VIÊN</h4>
+            <h1 class="page-title">👨‍🎓 Quản Lý Trạng Thái Sinh Viên</h1>
 
-            @if (TempData["Loi"] != null)
-            {
-                <div class="alert alert-danger modern-alert">
-                    <i class="fas fa-exclamation-triangle me-2"></i>@TempData["Loi"]
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="stats-number">@(Model?.Count ?? 0)</div>
+                        <div class="text-muted">Tổng trạng thái</div>
+                    </div>
                 </div>
-            }
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="stats-number">@(Model?.Where(x => x.TenTrangThai!.Contains("Hoạt động")).Count() ?? 0)</div>
+                        <div class="text-muted">Hoạt động</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="stats-card">
+                        <div class="stats-number">@(Model?.Where(x => x.TenTrangThai!.Contains("Tạm dừng")).Count() ?? 0)</div>
+                        <div class="text-muted">Tạm dừng</div>
+                    </div>
+                </div>
+            </div>
+
             @if (TempData["ThanhCong"] != null)
             {
-                <div class="alert alert-success modern-alert">
-                    <i class="fas fa-check-circle me-2"></i>@TempData["ThanhCong"]
+                <div class="alert alert-success-modern alert-modern">
+                    <i class="fas fa-check-circle me-2"></i>
+                    @TempData["ThanhCong"]
+                </div>
+            }
+            @if (TempData["Loi"] != null)
+            {
+                <div class="alert alert-danger-modern alert-modern">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    @TempData["Loi"]
                 </div>
             }
 
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <button class="modern-btn" data-bs-toggle="modal" data-bs-target="#modalThem">
-                    <i class="fas fa-plus me-2"></i>Thêm mới
-                </button>
-                <div class="text-muted">
-                    <i class="fas fa-users me-2"></i>Tổng: <strong>@Model.Count</strong> trạng thái
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <input type="text" class="form-control search-box" placeholder="Tìm kiếm trạng thái..." id="searchInput">
+                </div>
+                <div class="col-md-6 text-end">
+                    <button class="modern-btn btn-add" data-bs-toggle="modal" data-bs-target="#modalThem">
+                        <i class="fas fa-plus me-2"></i>Thêm Trạng Thái
+                    </button>
                 </div>
             </div>
 
-            <div class="table-responsive">
-                <table class="table modern-table">
-                    <thead>
-                        <tr>
-                            <th><i class="fas fa-hashtag me-2"></i>#</th>
-                            <th><i class="fas fa-user-tag me-2"></i>Tên trạng thái</th>
-                            <th><i class="fas fa-cogs me-2"></i>Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @for (int i = 0; i < Model.Count; i++)
-                        {
+            @if (Model == null || !Model.Any())
+            {
+                <div class="alert alert-warning-modern alert-modern text-center">
+                    <i class="fas fa-info-circle fa-3x mb-3"></i>
+                    <h5>Không có trạng thái nào để hiển thị</h5>
+                    <p>Hãy thêm trạng thái đầu tiên bằng cách nhấn nút "Thêm Trạng Thái"</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table modern-table" id="statusTable">
+                        <thead>
                             <tr>
-                                <td class="text-center"><strong>@(i + 1)</strong></td>
-                                <td>
-                                    <div class="student-status-badge">
-                                        <i class="fas fa-circle me-2" style="font-size: 0.5rem;"></i>
-                                        @Model[i].TenTrangThai
-                                    </div>
-                                </td>
-                                <td class="text-center">
-                                    <button class="action-btn btn-edit" data-bs-toggle="modal" data-bs-target="#modalSua_@Model[i].TrangThaiID" title="Chỉnh sửa">
-                                        <i class="fas fa-edit me-1"></i>
-                                    </button>
-                                    <form method="post" asp-action="XoaTrangThaiSinhVien" asp-controller="Admin" style="display:inline;">
-                                        <input type="hidden" name="id" value="@Model[i].TrangThaiID" />
-                                        <button type="submit" class="action-btn btn-delete" onclick="return confirm('⚠️ Xác nhận xóa trạng thái này?')" title="Xóa">
-                                            <i class="fas fa-trash me-1"></i>
-                                        </button>
-                                    </form>
-                                </td>
+                                <th width="10%"><i class="fas fa-hashtag me-1"></i>STT</th>
+                                <th width="60%"><i class="fas fa-user-tag me-1"></i>Tên trạng thái</th>
+                                <th width="30%"><i class="fas fa-cogs me-1"></i>Thao tác</th>
                             </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody>
+                            @for (int i = 0; i < Model.Count; i++)
+                            {
+                                <tr>
+                                    <td>
+                                        <span class="fw-bold">@(i + 1)</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge-status">
+                                            <i class="fas fa-circle me-1" style="font-size: 0.5rem;"></i>
+                                            @Model[i].TenTrangThai
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="modern-btn btn-edit" data-bs-toggle="modal" data-bs-target="#modalSua_@Model[i].TrangThaiID" title="Sửa">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <form asp-action="XoaTrangThaiSinhVien" asp-controller="Admin" method="post" style="display:inline;" onsubmit="return confirm('Xác nhận xóa trạng thái này?');">
+                                                <input type="hidden" name="id" value="@Model[i].TrangThaiID" />
+                                                <button type="submit" class="modern-btn btn-delete" title="Xóa">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
         </div>
     </div>
 </div>
 
-<!-- Modals -->
-@for (int i = 0; i < Model.Count; i++)
-{
-    <div class="modal fade modern-modal" id="modalSua_@Model[i].TrangThaiID" tabindex="-1">
-        <div class="modal-dialog">
-            <form method="post" asp-action="SuaTrangThaiSinhVien" asp-controller="Admin">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">
-                            <i class="fas fa-edit me-2"></i>Sửa trạng thái sinh viên
-                        </h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+<div class="modal fade modern-modal" id="modalThem" tabindex="-1" aria-labelledby="modalThemLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form asp-action="ThemTrangThaiSinhVien" asp-controller="Admin" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="modalThemLabel">
+                        <i class="fas fa-plus me-2"></i>Thêm Trạng Thái Sinh Viên
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">
+                            <i class="fas fa-user-tag me-2"></i>Tên trạng thái
+                        </label>
+                        <input name="TenTrangThai" class="form-control modern-form-control" required placeholder="Nhập tên trạng thái..." />
                     </div>
-                    <div class="modal-body">
-                        <input type="hidden" name="TrangThaiID" value="@Model[i].TrangThaiID" />
-                        <div class="mb-3">
-                            <label class="form-label">
-                                <i class="fas fa-user-tag me-2"></i>Tên trạng thái
-                            </label>
-                            <input name="TenTrangThai" class="form-control" value="@Model[i].TenTrangThai" required placeholder="Nhập tên trạng thái..." />
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                            <i class="fas fa-times me-2"></i>Hủy
-                        </button>
-                        <button type="submit" class="modern-btn">
-                            <i class="fas fa-save me-2"></i>Cập nhật
-                        </button>
-                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="submit" class="modern-btn btn-add">
+                        <i class="fas fa-save me-2"></i>Thêm
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Hủy
+                    </button>
                 </div>
             </form>
         </div>
     </div>
-}
+</div>
 
-<div class="modal fade modern-modal" id="modalThem" tabindex="-1">
-    <div class="modal-dialog">
-        <form method="post" asp-action="ThemTrangThaiSinhVien" asp-controller="Admin">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="fas fa-plus me-2"></i>Thêm trạng thái sinh viên
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">
-                            <i class="fas fa-user-tag me-2"></i>Tên trạng thái
-                        </label>
-                        <input name="TenTrangThai" class="form-control" required placeholder="Nhập tên trạng thái..." />
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="fas fa-times me-2"></i>Hủy
-                    </button>
-                    <button type="submit" class="modern-btn">
-                        <i class="fas fa-plus me-2"></i>Thêm
-                    </button>
+@if (Model != null)
+{
+    @for (int i = 0; i < Model.Count; i++)
+    {
+        <div class="modal fade modern-modal" id="modalSua_@Model[i].TrangThaiID" tabindex="-1" aria-labelledby="modalSuaLabel_@Model[i].TrangThaiID" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form asp-action="SuaTrangThaiSinhVien" asp-controller="Admin" method="post">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="modalSuaLabel_@Model[i].TrangThaiID">
+                                <i class="fas fa-edit me-2"></i>Sửa Trạng Thái
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <input type="hidden" name="TrangThaiID" value="@Model[i].TrangThaiID" />
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-user-tag me-2"></i>Tên trạng thái
+                                </label>
+                                <input name="TenTrangThai" class="form-control modern-form-control" value="@Model[i].TenTrangThai" required />
+                            </div>
+                        </div>
+                        <div class="modal-footer border-0">
+                            <button type="submit" class="modern-btn btn-edit">
+                                <i class="fas fa-save me-2"></i>Cập Nhật
+                            </button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="fas fa-times me-2"></i>Hủy
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
-        </form>
-    </div>
-</div>
+        </div>
+    }
+}
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            const tableRows = document.querySelectorAll('#statusTable tbody tr');
+
+            tableRows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                    row.style.animation = 'fadeIn 0.3s ease';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
         // Auto hide alerts after 5 seconds
         document.addEventListener('DOMContentLoaded', function() {
-            const alerts = document.querySelectorAll('.modern-alert');
+            const alerts = document.querySelectorAll('.alert-modern');
             alerts.forEach(alert => {
                 setTimeout(() => {
-                    alert.style.animation = 'slideInDown 0.5s ease reverse';
-                    setTimeout(() => alert.remove(), 500);
+                    alert.style.opacity = '0';
+                    alert.style.transform = 'translateY(-20px)';
+                    setTimeout(() => alert.remove(), 300);
                 }, 5000);
+            });
+        });
+
+        // Form validation
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                const requiredFields = form.querySelectorAll('[required]');
+                let isValid = true;
+
+                requiredFields.forEach(field => {
+                    if (!field.value.trim()) {
+                        field.style.borderColor = '#dc3545';
+                        isValid = false;
+                    } else {
+                        field.style.borderColor = '#f093fb';
+                    }
+                });
+
+                if (!isValid) {
+                    e.preventDefault();
+                    alert('Vui lòng điền đầy đủ thông tin bắt buộc!');
+                }
             });
         });
     </script>

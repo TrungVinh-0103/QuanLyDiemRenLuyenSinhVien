@@ -13,29 +13,11 @@
         <div class="content-card">
             <h1 class="page-title">Quản Lý Kết Quả Rèn Luyện</h1>
 
-            <div class="row mb-4">
-                <div class="col-md-3">
+            <div class="row mb-3">
+                <div class="col-md-12">
                     <div class="stats-card">
                         <div class="stats-number">@(Model?.Count ?? 0)</div>
                         <div class="text-muted">Tổng kết quả</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stats-card">
-                        <div class="stats-number">@(Model?.Where(x => x.XepLoai?.TenXepLoai == "Xuất sắc").Count() ?? 0)</div>
-                        <div class="text-muted">Xuất sắc</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stats-card">
-                        <div class="stats-number">@(Model?.Where(x => x.XepLoai?.TenXepLoai == "Giỏi").Count() ?? 0)</div>
-                        <div class="text-muted">Giỏi</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stats-card">
-                        <div class="stats-number">@(Model?.Where(x => x.XepLoai?.TenXepLoai == "Khá").Count() ?? 0)</div>
-                        <div class="text-muted">Khá</div>
                     </div>
                 </div>
             </div>

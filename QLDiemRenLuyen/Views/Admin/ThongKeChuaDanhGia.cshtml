@@ -11,30 +11,11 @@
         <div class="content-card">
             <h1 class="page-title">Thống Kê Sinh Viên Theo Kết Quả Đánh Giá</h1>
 
-            Stats Cards
-            <div class="row mb-4">
-                <div class="col-md-3">
+            <div class="row mb-3">
+                <div class="col-md-12">
                     <div class="stats-card">
                         <div class="stats-number">@(Model?.Count ?? 0)</div>
                         <div class="text-muted">Tổng sinh viên</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stats-card">
-                        <div class="stats-number">@(ViewBag.HocKys?.Count ?? 0)</div>
-                        <div class="text-muted">Học kỳ</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stats-card">
-                        <div class="stats-number">@(ViewBag.Khoas?.Count ?? 0)</div>
-                        <div class="text-muted">Khoa</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stats-card">
-                        <div class="stats-number">@(ViewBag.Lops?.Count ?? 0)</div>
-                        <div class="text-muted">Lớp</div>
                     </div>
                 </div>
             </div>
@@ -47,7 +28,6 @@
                 </div>
             }
 
-            Filter Form
             <div class="filter-form">
                 <form method="get" class="row mb-4" id="filterForm">
                     <div class="col-md-3">

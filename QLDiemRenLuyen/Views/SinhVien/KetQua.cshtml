@@ -5,36 +5,123 @@
     var sv = ViewBag.SinhVien as QLDiemRenLuyen.Models.SinhVien;
 }
 
-<h4 class="text-center text-uppercase">KẾT QUẢ RÈN LUYỆN</h4>
+<link rel="stylesheet" href="/css/KetQua_SV.css">
 
-<table class="table table-bordered table-hover mt-3">
-    <thead class="table-success text-center">
-        <tr>
-            <th>Học kỳ</th>
-            <th>Tổng điểm</th>
-            <th>Xếp loại</th>
-            <th>Ngày cập nhật</th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (Model != null && Model.Any())
-        {
-            @foreach (var k in Model)
+<div class="student-container">
+    <div class="container">
+        <div class="content-card">
+            <h1 class="page-title">
+                <i class="fas fa-trophy me-3"></i>
+                KẾT QUẢ RÈN LUYỆN
+            </h1>
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <input type="text" class="form-control search-box" placeholder="Tìm kiếm theo học kỳ, điểm..." id="searchInput">
+                </div>
+            </div>
+            @if (Model != null && Model.Any())
             {
-                <tr>
-                    <td>@k.HocKy?.TenHocKy - @k.HocKy?.NamHoc</td>
-                    <td class="text-center">@k.TongDiemHoiDongDuyet</td>
-                    <td>@k.XepLoai?.TenXepLoai</td>
-                    <td>@k.NgayCapNhat.ToString("dd/MM/yyyy")</td>
-                </tr>
+                <!-- Results Table -->
+                <div class="table-responsive">
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <i class="fas fa-calendar-alt me-2"></i>
+                                    Học kỳ
+                                </th>
+                                <th>
+                                    <i class="fas fa-star me-2"></i>
+                                    Tổng điểm
+                                </th>
+                                <th>
+                                    <i class="fas fa-medal me-2"></i>
+                                    Xếp loại
+                                </th>
+                                <th>
+                                    <i class="fas fa-clock me-2"></i>
+                                    Ngày cập nhật
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var k in Model)
+                            {
+                                <tr style="animation: fadeInUp 0.6s ease; animation-delay: @(Model.IndexOf(k) * 0.1)s;">
+                                    <td>
+                                        <span class="semester-badge">
+                                            @k.HocKy?.TenHocKy - @k.HocKy?.NamHoc
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="score-badge">
+                                            @k.TongDiemHoiDongDuyet điểm
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @{
+                                            string classificationClass = "classification-average";
+                                            if (k.XepLoai?.TenXepLoai?.Contains("Xuất sắc") == true)
+                                                classificationClass = "classification-excellent";
+                                            else if (k.XepLoai?.TenXepLoai?.Contains("Tốt") == true)
+                                                classificationClass = "classification-good";
+                                            else if (k.XepLoai?.TenXepLoai?.Contains("Yếu") == true || k.XepLoai?.TenXepLoai?.Contains("Kém") == true)
+                                                classificationClass = "classification-weak";
+                                        }
+                                        <span class="classification-badge @classificationClass">
+                                            @k.XepLoai?.TenXepLoai
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="date-text">
+                                            <i class="fas fa-calendar me-1"></i>
+                                            @k.NgayCapNhat.ToString("dd/MM/yyyy")
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             }
-        }
-        else
-        {
-            <tr><td colspan="4" class="text-center text-danger">Chưa cập nhật kết quả rên luyện</td></tr>
-        }
-        
-    </tbody>
-</table>
+            else
+            {
+                <div class="empty-state">
+                    <i class="fas fa-chart-line"></i>
+                    <h5>Chưa có kết quả rèn luyện</h5>
+                    <p>Kết quả rèn luyện sẽ được cập nhật sau khi hoàn thành quá trình đánh giá.</p>
+                </div>
+            }
 
-<a href="/SinhVien/Index" class="btn btn-secondary mt-3">Quay lại</a>
+            <div class="text-center">
+                <a href="/SinhVien/Index" class="back-btn">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Quay lại trang chủ
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @* <script src="/js/KetQua_SV.js"></script> *@
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const searchInput = document.getElementById("searchInput");
+            const tableRows = document.querySelectorAll(".modern-table tbody tr");
+            searchInput.addEventListener("input", function () {
+                const filter = searchInput.value.toLowerCase();
+                tableRows.forEach(row => {
+                    const cells = row.querySelectorAll("td");
+                    let match = false;
+                    cells.forEach(cell => {
+                        if (cell.textContent.toLowerCase().includes(filter)) {
+                            match = true;
+                        }
+                    });
+                    row.style.display = match ? "" : "none";
+                });
+            });
+        });
+    </script>
+}

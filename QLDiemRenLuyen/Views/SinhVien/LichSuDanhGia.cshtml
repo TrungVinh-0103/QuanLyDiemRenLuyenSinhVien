@@ -3,49 +3,135 @@
     ViewData["Title"] = "Lịch sử đánh giá";
     Layout = "~/Views/Shared/_LayoutSinhVien.cshtml";
 }
+<link rel="stylesheet" href="~/css/LichSuDanhGia_SV.css" />
 
-<h4 class="text-center text-uppercase">Lịch sử phiếu tự đánh giá</h4>
+<div class="student-container">
+    <div class="container-fluid">
+        <div class="content-card">
+            <h1 class="page-title">📚 Lịch Sử Đánh Giá</h1>
 
-<table class="table table-bordered table-striped mt-3">
-    <thead class="table-secondary text-center">
-        <tr>
-            <th>Học kỳ</th>
-            <th>Trạng thái</th>
-            <th>Tổng điểm tự đánh giá</th>
-            <th>Tổng điểm GVCN duyệt</th>
-            <th>Tổng điểm Hội đồng duyệt</th>
-            <th>Ngày gửi</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var p in Model)
-        {
-            string trangThai = p.TrangThaiDanhGia?.TenTrangThai ?? "Chưa rõ";
+            <div class="row stats-row">
+                    <div class="stat-card">
+                        <div class="stat-number">@(Model?.Count ?? 0)</div>
+                        <div class="stat-label">Tổng phiếu đánh giá</div>
+                    </div>
+            </div>
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <input type="text" class="form-control search-box" placeholder="Tìm kiếm theo học kỳ, trạng thái..." id="searchInput">
+                </div>
+            </div>
 
-            // Cập nhật lại trạng thái nếu đã duyệt
-            if (p.TrangThaiDanhGiaID == 3) // GVCN đã duyệt
+            @if (Model == null || !Model.Any())
             {
-                trangThai = "GVCN đã duyệt";
+                <div class="empty-state">
+                    <i class="fas fa-clipboard-list"></i>
+                    <h5>Chưa có lịch sử đánh giá</h5>
+                    <p>Bạn chưa có phiếu đánh giá nào. Hãy thực hiện đánh giá đầu tiên!</p>
+                </div>
             }
-            else if (p.TrangThaiDanhGiaID == 5) // Hội đồng đã duyệt
+            else
             {
-                trangThai = "Hội đồng đã duyệt";
+                <div class="table-container">
+                    <table class="modern-table" id="historyTable">
+                        <thead>
+                            <tr>
+                                <th><i class="fas fa-calendar-alt me-2"></i>Học kỳ</th>
+                                <th><i class="fas fa-info-circle me-2"></i>Trạng thái</th>
+                                <th><i class="fas fa-star me-2"></i>Điểm tự đánh giá</th>
+                                <th><i class="fas fa-user-check me-2"></i>Điểm GVCN duyệt</th>
+                                <th><i class="fas fa-users me-2"></i>Điểm HĐ duyệt</th>
+                                <th><i class="fas fa-clock me-2"></i>Ngày gửi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in Model)
+                            {
+                                string trangThai = p.TrangThaiDanhGia?.TenTrangThai ?? "Chưa rõ";
+                                string statusClass = "status-pending";
+
+                                if (p.TrangThaiDanhGiaID == 3) // GVCN đã duyệt
+                                {
+                                    trangThai = "GVCN đã duyệt";
+                                    statusClass = "status-teacher-approved";
+                                }
+                                else if (p.TrangThaiDanhGiaID == 5) // Hội đồng đã duyệt
+                                {
+                                    trangThai = "Hội đồng đã duyệt";
+                                    statusClass = "status-council-approved";
+                                }
+                                else if (p.TrangThaiDanhGiaID == 2)
+                                {
+                                    trangThai = "Đã gửi đánh giá";
+                                    statusClass = "status-submitted";
+                                }
+
+                                <tr>
+                                    <td>
+                                        <span class="semester-badge">
+                                            @p.HocKy?.TenHocKy - @p.HocKy?.NamHoc
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="status-badge @statusClass">
+                                            @trangThai
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="score-display">@p.TongDiemTuDanhGia</div>
+                                    </td>
+                                    <td>
+                                        @if (p.TongDiemGiaoVienDeXuat > 0)
+                                        {
+                                            <div class="score-display">@p.TongDiemGiaoVienDeXuat</div>
+                                        }
+                                        else
+                                        {
+                                            <span class="not-graded">Chưa duyệt</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (p.TongDiemHoiDongDuyet > 0)
+                                        {
+                                            <div class="score-display">@p.TongDiemHoiDongDuyet</div>
+                                        }
+                                        else
+                                        {
+                                            <span class="not-graded">Chưa duyệt</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <strong>@p.NgayLapPhieu.ToString("dd/MM/yyyy")</strong>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
             }
+        </div>
+    </div>
+</div>
 
-            <tr>
-                <td>@p.HocKy?.TenHocKy - @p.HocKy?.NamHoc</td>
-                <td>@trangThai</td>
-                <td class="text-center">@p.TongDiemTuDanhGia</td>
+@section Scripts {
+    <script>
+        // Search functionality
+        searchInput.addEventListener('keyup', function() {
+            const filter = this.value.toLowerCase();
+            const rows = historyTable.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(filter) ? '' : 'none';
+            });
+                });
 
-                <td class="text-center">
-                    @(p.TongDiemGiaoVienDeXuat > 0 ? p.TongDiemGiaoVienDeXuat.ToString() : "Chưa duyệt")
-                </td>
-                <td class="text-center">
-                    @(p.TongDiemHoiDongDuyet > 0 ? p.TongDiemHoiDongDuyet.ToString() : "Chưa duyệt")
-                </td>
-
-                <td>@p.NgayLapPhieu.ToString("dd/MM/yyyy")</td>
-            </tr>
-        }
-    </tbody>
-</table>
+        // Animation for table rows
+        document.addEventListener('DOMContentLoaded', function() {
+            const rows = document.querySelectorAll('.modern-table tbody tr');
+            rows.forEach((row, index) => {
+                row.style.animationDelay = `${index * 0.1}s`;
+                row.classList.add('animate__animated', 'animate__fadeInUp');
+            });
+        });
+    </script>
+}

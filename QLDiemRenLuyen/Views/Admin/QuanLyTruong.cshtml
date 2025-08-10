@@ -10,7 +10,6 @@
         <div class="content-card">
             <h1 class="page-title">Quản Lý Trường</h1>
 
-            <!-- Stats Card -->
             <div class="row mb-3">
                 <div class="col-md-12">
                     <div class="stats-card">
@@ -35,14 +34,13 @@
                 </div>
             }
 
-            <!-- Actions -->
-            <div class="row mb-3">
+            @* <div class="row mb-3">
                 <div class="col-md-12 text-end">
                     <button class="modern-btn btn-add" data-bs-toggle="modal" data-bs-target="#modalThem">
                         <i class="fas fa-plus me-1"></i>Thêm Trường
                     </button>
                 </div>
-            </div>
+            </div> *@
 
             <div class="table-container">
                 <table class="table modern-table">
@@ -97,12 +95,12 @@
                                             <button class="modern-btn btn-edit" data-bs-toggle="modal" data-bs-target="#modalSua_@Model[i].TruongID" title="Sửa">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <form method="post" asp-action="XoaTruong" style="display:inline;" onsubmit="return confirm('Xác nhận xóa trường này?')">
+                                            @* <form method="post" asp-action="XoaTruong" style="display:inline;" onsubmit="return confirm('Xác nhận xóa trường này?')">
                                                 <input type="hidden" name="id" value="@Model[i].TruongID" />
                                                 <button type="submit" class="modern-btn btn-delete" title="Xóa">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
-                                            </form>
+                                            </form> *@
                                         </div>
                                     </td>
                                 </tr>
@@ -115,7 +113,6 @@
     </div>
 </div>
 
-<!-- Modal Thêm -->
 <div class="modal fade modern-modal" id="modalThem" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <form method="post" asp-action="ThemTruong">
@@ -161,7 +158,6 @@
     </div>
 </div>
 
-<!-- Modal Sửa -->
 @if (Model != null)
 {
     @for (int i = 0; i < Model.Count; i++)

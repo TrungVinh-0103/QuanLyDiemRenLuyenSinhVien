@@ -12,23 +12,11 @@
         <div class="content-card">
             <h1 class="page-title">Quản Lý Học Kỳ</h1>
 
-            <div class="row mb-4">
-                <div class="col-md-4">
+            <div class="row mb-3">
+                <div class="col-md-12">
                     <div class="stats-card">
                         <div class="stats-number">@(Model?.Count ?? 0)</div>
                         <div class="text-muted">Tổng học kỳ</div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="stats-card">
-                        <div class="stats-number">@(nienKhoas?.Count ?? 0)</div>
-                        <div class="text-muted">Niên khóa</div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="stats-card">
-                        <div class="stats-number">@(Model?.Where(x => x.NamHoc!.Contains(DateTime.Now.Year.ToString())).Count() ?? 0)</div>
-                        <div class="text-muted">Năm hiện tại</div>
                     </div>
                 </div>
             </div>
@@ -108,7 +96,6 @@
     </div>
 </div>
 
- // Modal Thêm
 <div class="modal fade modern-modal" id="modalThem" tabindex="-1" aria-labelledby="modalThemLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -154,7 +141,6 @@
 </div>
 @if (Model != null)
 {
-     // Modal Sửa
     @for (int i = 0; i < Model.Count; i++)
     {
         var hk = Model[i];

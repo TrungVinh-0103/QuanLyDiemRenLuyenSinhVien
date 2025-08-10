@@ -12,7 +12,6 @@
         <div class="content-card">
             <h1 class="page-title">Quản Lý Sinh Viên</h1>
 
-            <!-- Stats Cards -->
             <div class="row mb-4">
                 <div class="col-md-3">
                     <div class="stats-card">
@@ -40,11 +39,18 @@
                 </div>
             </div>
 
-            @if (TempData["ThanhCong"] != null)
+            @if (TempData["Success"] != null)
             {
                 <div class="alert alert-success-modern alert-modern">
                     <i class="fas fa-check-circle me-2"></i>
-                    @TempData["ThanhCong"]
+                    @TempData["Success"]
+                </div>
+            }
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger-modern alert-modern">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    @TempData["Error"]
                 </div>
             }
             @if (TempData["Loi"] != null)
@@ -55,7 +61,6 @@
                 </div>
             }
 
-            <!-- Search and Actions -->
             <div class="row mb-4">
                 <div class="col-md-6">
                     <input type="text" class="form-control search-box" placeholder="Tìm kiếm sinh viên..." id="searchInput">
@@ -147,7 +152,6 @@
     </div>
 </div>
 
-<!-- Modal Thêm -->
 <div class="modal fade modern-modal" id="modalThem" tabindex="-1" aria-labelledby="modalThemLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
@@ -248,7 +252,6 @@
     </div>
 </div>
 
-<!-- Modal Sửa -->
 @if (Model != null)
 {
     @foreach (var sv in Model)

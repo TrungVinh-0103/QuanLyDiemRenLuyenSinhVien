@@ -724,6 +724,7 @@ namespace QLDiemRenLuyen.Controllers
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword("1111"),
                 VaiTroID = _context.CauHinhVaiTro.FirstOrDefault(v => v.TenVaiTro == "SinhVien")?.VaiTroID ?? 1,
                 SinhVienID = model.SinhVienID,
+                NhanVienID = null, // Đảm bảo không có NhanVienID nếu là SinhVien
                 LastLogin = null
             };
 
@@ -770,6 +771,17 @@ namespace QLDiemRenLuyen.Controllers
                 await _context.SaveChangesAsync();
             }
 
+            // Cập nhật Username cho tài khoản người dùng nếu MaSV thay đổi
+            if (svCu.MaSV != model.MaSV)
+            {
+                var nguoiDung = await _context.NguoiDung.FirstOrDefaultAsync(nd => nd.SinhVienID == model.SinhVienID);
+                if (nguoiDung != null)
+                {
+                    nguoiDung.Username = model.MaSV;
+                    await _context.SaveChangesAsync();
+                }
+            }
+
             TempData["ThanhCong"] = "Cập nhật sinh viên thành công!";
             return RedirectToAction("QuanLySinhVien");
         }
@@ -779,36 +791,47 @@ namespace QLDiemRenLuyen.Controllers
         {
             var sv = await _context.SinhVien.FindAsync(id);
             if (sv == null)
+            {
                 TempData["Loi"] = "Không tìm thấy sinh viên!";
+            }
+            // Kiểm tra các ràng buộc khác
             else if (
                 _context.PhieuDanhGia.Any(p => p.SinhVienID == id) ||
                 _context.KetQuaRenLuyen.Any(k => k.SinhVienID == id) ||
-                _context.NguoiDung.Any(n => n.SinhVienID == id) ||
-                _context.TrangThaiSinhVien.Any(l => l.SinhVienID == id)
+                _context.TrangThaiSinhVien.Any(l => l.SinhVienID == id) // Lưu ý: Đã bỏ ràng buộc NguoiDung.Any(n => n.SinhVienID == id) ở đây
             )
-                TempData["Loi"] = "Không thể xóa sinh viên vì có dữ liệu liên quan!";
+            {
+                TempData["Loi"] = "Không thể xóa sinh viên vì có dữ liệu liên quan (phiếu đánh giá, kết quả rèn luyện, lịch sử trạng thái)!";
+            }
             else
             {
+                // Tìm và xóa tài khoản người dùng liên quan
+                var nguoiDung = await _context.NguoiDung.FirstOrDefaultAsync(nd => nd.SinhVienID == id);
+                if (nguoiDung != null)
+                {
+                    _context.NguoiDung.Remove(nguoiDung);
+                }
+
                 _context.SinhVien.Remove(sv);
                 await _context.SaveChangesAsync();
-                TempData["ThanhCong"] = "Xóa sinh viên thành công!";
+                TempData["ThanhCong"] = "Xóa sinh viên và tài khoản liên quan thành công!";
             }
 
             return RedirectToAction("QuanLySinhVien");
         }
-
         #endregion
         //=======================================================================================
         //------------------------------------------------------------------------------------------
         //------------------------------------------------------------------------------------------
         //Quản lý Nhân viên
         //=======================================================================================
+        #region QuanLyNhanVien
         public IActionResult QuanLyNhanVien()
         {
             var list = _context.NhanVien
                 .Include(n => n.Khoa)
                 .Include(n => n.CauHinhVaiTro)
-                .ToList();                     
+                .ToList();
 
             ViewBag.KhoaList = _context.Khoa.ToList();
             ViewBag.VaiTroList = _context.CauHinhVaiTro.ToList();
@@ -833,7 +856,7 @@ namespace QLDiemRenLuyen.Controllers
             {
                 Username = model.MaNV,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword("0000"),
-                VaiTroID = model.VaiTroID, 
+                VaiTroID = model.VaiTroID,
                 NhanVienID = model.NhanVienID,
                 LastLogin = null
             };
@@ -856,6 +879,9 @@ namespace QLDiemRenLuyen.Controllers
                 return RedirectToAction("QuanLyNhanVien");
             }
 
+            // Lấy mã nhân viên cũ để so sánh
+            var maNVCu = nv.MaNV;
+
             if (_context.NhanVien.Any(n => n.MaNV == MaNV && n.NhanVienID != NhanVienID))
             {
                 TempData["Loi"] = "Mã nhân viên đã tồn tại.";
@@ -865,13 +891,20 @@ namespace QLDiemRenLuyen.Controllers
             nv.MaNV = MaNV;
             nv.HoTen = HoTen;
             nv.KhoaID = KhoaID;
+            nv.VaiTroID = VaiTroID; // Cập nhật vai trò cho nhân viên (nếu có trường này trong model NhanVien)
             _context.SaveChanges();
 
-            // Cập nhật VaiTrò trong bảng người dùng
+            // Cập nhật VaiTrò và Username trong bảng người dùng
             var nguoiDung = _context.NguoiDung.FirstOrDefault(nd => nd.NhanVienID == NhanVienID);
             if (nguoiDung != null)
             {
                 nguoiDung.VaiTroID = VaiTroID;
+
+                // Cập nhật Username nếu Mã NV thay đổi
+                if (maNVCu != MaNV)
+                {
+                    nguoiDung.Username = MaNV;
+                }
                 _context.SaveChanges();
             }
 
@@ -880,30 +913,40 @@ namespace QLDiemRenLuyen.Controllers
         }
 
         [HttpPost]
-        public IActionResult XoaNhanVien(int id)
+        public async Task<IActionResult> XoaNhanVien(int id)
         {
-            var nv = _context.NhanVien.Find(id);
+            var nv = await _context.NhanVien.FindAsync(id);
             if (nv == null)
             {
                 TempData["Loi"] = "Không tìm thấy nhân viên.";
             }
-            else if (_context.ChuNhiem.Any(cn => cn.NhanVienID == id) || _context.NguoiDung.Any(nd => nd.NhanVienID == id))
+            // Kiểm tra các ràng buộc khác (nếu nhân viên này đang được sử dụng ở nơi khác)
+            else if (_context.ChuNhiem.Any(cn => cn.NhanVienID == id))
             {
-                TempData["Loi"] = "Không thể xóa vì nhân viên này đang được sử dụng.";
+                TempData["Loi"] = "Không thể xóa vì nhân viên này đang làm chủ nhiệm của một lớp học.";
             }
             else
             {
+                // Tìm và xóa tài khoản người dùng liên quan
+                var nguoiDung = await _context.NguoiDung.FirstOrDefaultAsync(nd => nd.NhanVienID == id);
+                if (nguoiDung != null)
+                {
+                    _context.NguoiDung.Remove(nguoiDung);
+                }
+
                 _context.NhanVien.Remove(nv);
-                _context.SaveChanges();
-                TempData["ThanhCong"] = "Đã xóa nhân viên.";
+                await _context.SaveChangesAsync();
+                TempData["ThanhCong"] = "Đã xóa nhân viên và tài khoản liên quan thành công!";
             }
             return RedirectToAction("QuanLyNhanVien");
         }
+        #endregion
         //=======================================================================================
         //------------------------------------------------------------------------------------------
         //Quản lý Người dùng
         //=======================================================================================
         // GET: Quản lý người dùng
+        #region QuanLyNguoiDung
         public IActionResult QuanLyNguoiDung()
         {
             var list = _context.NguoiDung
@@ -919,7 +962,7 @@ namespace QLDiemRenLuyen.Controllers
             return View(list);
         }
 
-        // POST: Thêm
+        // POST: Thêm (Giữ nguyên vì chức năng thêm sinh viên/nhân viên đã tự động tạo tài khoản)
         [HttpPost]
         public IActionResult ThemNguoiDung(string Username, string Password, int VaiTroID, int? SinhVienID, int? NhanVienID)
         {
@@ -928,6 +971,31 @@ namespace QLDiemRenLuyen.Controllers
                 TempData["Loi"] = "Tên đăng nhập đã tồn tại.";
                 return RedirectToAction("QuanLyNguoiDung");
             }
+
+            // Thêm kiểm tra ràng buộc: không cho phép tạo tài khoản người dùng thủ công nếu đã có SV/NV liên kết
+            if (SinhVienID.HasValue && _context.NguoiDung.Any(nd => nd.SinhVienID == SinhVienID.Value))
+            {
+                TempData["Loi"] = "Sinh viên này đã có tài khoản người dùng.";
+                return RedirectToAction("QuanLyNguoiDung");
+            }
+            if (NhanVienID.HasValue && _context.NguoiDung.Any(nd => nd.NhanVienID == NhanVienID.Value))
+            {
+                TempData["Loi"] = "Nhân viên này đã có tài khoản người dùng.";
+                return RedirectToAction("QuanLyNguoiDung");
+            }
+
+            // Đảm bảo chỉ có một trong hai ID (SinhVienID hoặc NhanVienID) được gán
+            if (SinhVienID.HasValue && NhanVienID.HasValue)
+            {
+                TempData["Loi"] = "Một tài khoản người dùng chỉ có thể liên kết với Sinh viên HOẶC Nhân viên, không phải cả hai.";
+                return RedirectToAction("QuanLyNguoiDung");
+            }
+            if (!SinhVienID.HasValue && !NhanVienID.HasValue)
+            {
+                TempData["Loi"] = "Tài khoản người dùng phải được liên kết với một Sinh viên hoặc Nhân viên.";
+                return RedirectToAction("QuanLyNguoiDung");
+            }
+
 
             var nd = new NguoiDung
             {
@@ -945,7 +1013,8 @@ namespace QLDiemRenLuyen.Controllers
             TempData["ThanhCong"] = "Đã thêm người dùng.";
             return RedirectToAction("QuanLyNguoiDung");
         }
-        // POST: Sửa
+
+        // POST: Sửa (Chỉ cập nhật mật khẩu, giữ nguyên)
         [HttpPost]
         public IActionResult CapNhatMatKhau(int id, string Password)
         {
@@ -964,29 +1033,43 @@ namespace QLDiemRenLuyen.Controllers
             return RedirectToAction("QuanLyNguoiDung");
         }
 
-        // POST: Xóa
+        // POST: Xóa người dùng (có ràng buộc)
         [HttpPost]
-        public IActionResult XoaNguoiDung(int id)
+        public async Task<IActionResult> XoaNguoiDung(int id)
         {
-            var nd = _context.NguoiDung.Find(id);
+            var nd = await _context.NguoiDung.FindAsync(id);
             if (nd == null)
             {
                 TempData["Loi"] = "Không tìm thấy người dùng.";
                 return RedirectToAction("QuanLyNguoiDung");
             }
 
-            // TODO: Kiểm tra ràng buộc nếu cần
+            // Kiểm tra ràng buộc: Nếu tài khoản người dùng này liên kết với một SinhVien hoặc NhanVien
+            // và SinhVien/NhanVien đó còn tồn tại thì không cho phép xóa tài khoản.
+            if (nd.SinhVienID.HasValue && _context.SinhVien.Any(sv => sv.SinhVienID == nd.SinhVienID.Value))
+            {
+                TempData["Loi"] = "Không thể xóa tài khoản này vì nó đang liên kết với một Sinh viên hiện có. Vui lòng xóa sinh viên trước.";
+                return RedirectToAction("QuanLyNguoiDung");
+            }
+
+            if (nd.NhanVienID.HasValue && _context.NhanVien.Any(nv => nv.NhanVienID == nd.NhanVienID.Value))
+            {
+                TempData["Loi"] = "Không thể xóa tài khoản này vì nó đang liên kết với một Nhân viên hiện có. Vui lòng xóa nhân viên trước.";
+                return RedirectToAction("QuanLyNguoiDung");
+            }
 
             _context.NguoiDung.Remove(nd);
-            _context.SaveChanges();
-            TempData["ThanhCong"] = "Đã xóa người dùng.";
+            await _context.SaveChangesAsync();
+            TempData["ThanhCong"] = "Đã xóa người dùng thành công!";
             return RedirectToAction("QuanLyNguoiDung");
         }
+        #endregion
         //=======================================================================================
         //------------------------------------------------------------------------------------------
         //Quản lý Nhóm tiêu chí
         //=======================================================================================
         // === QUẢN LÝ NHÓM TIÊU CHÍ ===
+        #region QuanLyNhomTieuChi
         public IActionResult QuanLyNhomTieuChi()
         {
             var ds = _context.NhomTieuChi.OrderBy(x => x.NhomTieuChiID).ToList();
@@ -1019,10 +1102,17 @@ namespace QLDiemRenLuyen.Controllers
                 var old = _context.NhomTieuChi.Find(model.NhomTieuChiID);
                 if (old == null)
                 {
-                    TempData["Error"] = "Không tìm thấy nhóm.";
+                    TempData["Error"] = "Không tìm thấy nhóm tiêu chí.";
                 }
                 else
                 {
+                    // Kiểm tra xem tên nhóm mới có trùng với tên nhóm khác (không phải chính nó) không
+                    if (_context.NhomTieuChi.Any(x => x.TenNhom == model.TenNhom && x.NhomTieuChiID != model.NhomTieuChiID))
+                    {
+                        TempData["Error"] = "Tên nhóm tiêu chí đã tồn tại. Vui lòng chọn tên khác.";
+                        return RedirectToAction("QuanLyNhomTieuChi"); // Quan trọng: Redirect ngay nếu có lỗi
+                    }
+
                     old.TenNhom = model.TenNhom;
                     old.DiemToiDa = model.DiemToiDa;
                     _context.SaveChanges();
@@ -1041,7 +1131,7 @@ namespace QLDiemRenLuyen.Controllers
             }
             else if (nhom.TieuChi != null && nhom.TieuChi.Any())
             {
-                TempData["Error"] = "Không thể xóa nhóm đã có tiêu chí.";
+                TempData["Error"] = "Không thể xóa nhóm đã có tiêu chí. Vui lòng xóa các tiêu chí con trước.";
             }
             else
             {
@@ -1051,12 +1141,12 @@ namespace QLDiemRenLuyen.Controllers
             }
             return RedirectToAction("QuanLyNhomTieuChi");
         }
+        #endregion
         //=======================================================================================
         //------------------------------------------------------------------------------------------
         //Quản lý Tiêu chí
         //=======================================================================================
-        // Trong AdminController.cs
-
+        #region QuanLyTieuChi
         // === QUẢN LÝ TIÊU CHÍ ===
         public IActionResult QuanLyTieuChi()
         {
@@ -1072,7 +1162,7 @@ namespace QLDiemRenLuyen.Controllers
             {
                 if (_context.TieuChi.Any(x => x.TenTieuChi == model.TenTieuChi && x.NhomTieuChiID == model.NhomTieuChiID))
                 {
-                    TempData["Error"] = "Tiêu chí đã tồn tại trong nhóm.";
+                    TempData["Error"] = "Tiêu chí đã tồn tại trong nhóm này.";
                 }
                 else
                 {
@@ -1087,18 +1177,29 @@ namespace QLDiemRenLuyen.Controllers
         [HttpPost]
         public IActionResult SuaTieuChi(TieuChi model)
         {
-            var tc = _context.TieuChi.Find(model.TieuChiID);
-            if (tc == null)
+            if (ModelState.IsValid)
             {
-                TempData["Error"] = "Không tìm thấy tiêu chí.";
-            }
-            else
-            {
-                tc.NhomTieuChiID = model.NhomTieuChiID;
-                tc.TenTieuChi = model.TenTieuChi;
-                tc.DiemToiDa = model.DiemToiDa;
-                _context.SaveChanges();
-                TempData["Success"] = "Đã cập nhật tiêu chí.";
+                var tc = _context.TieuChi.Find(model.TieuChiID);
+                if (tc == null)
+                {
+                    TempData["Error"] = "Không tìm thấy tiêu chí.";
+                }
+                else
+                {
+                    // Kiểm tra xem tên tiêu chí mới có trùng với tiêu chí khác (không phải chính nó)
+                    // trong cùng một nhóm tiêu chí không
+                    if (_context.TieuChi.Any(x => x.TenTieuChi == model.TenTieuChi && x.NhomTieuChiID == model.NhomTieuChiID && x.TieuChiID != model.TieuChiID))
+                    {
+                        TempData["Error"] = "Tiêu chí đã tồn tại trong nhóm này. Vui lòng chọn tên hoặc nhóm khác.";
+                        return RedirectToAction("QuanLyTieuChi"); // Quan trọng: Redirect ngay nếu có lỗi
+                    }
+
+                    tc.NhomTieuChiID = model.NhomTieuChiID;
+                    tc.TenTieuChi = model.TenTieuChi;
+                    tc.DiemToiDa = model.DiemToiDa;
+                    _context.SaveChanges();
+                    TempData["Success"] = "Đã cập nhật tiêu chí.";
+                }
             }
             return RedirectToAction("QuanLyTieuChi");
         }
@@ -1115,7 +1216,7 @@ namespace QLDiemRenLuyen.Controllers
                 var isUsed = _context.ChiTietPhieuDanhGia.Any(ct => ct.TieuChiID == id);
                 if (isUsed)
                 {
-                    TempData["Error"] = "Không thể xóa tiêu chí đã được sử dụng.";
+                    TempData["Error"] = "Không thể xóa tiêu chí đã được sử dụng trong các phiếu đánh giá.";
                 }
                 else
                 {
@@ -1126,11 +1227,12 @@ namespace QLDiemRenLuyen.Controllers
             }
             return RedirectToAction("QuanLyTieuChi");
         }
-
+        #endregion
         //=======================================================================================
         //------------------------------------------------------------------------------------------
         //=======================================================================================
         // Quản lý Phiếu đánh giá
+        #region QuanLyPhieuDanhGia
         [HttpGet]
         public async Task<IActionResult> QuanLyPhieuDanhGia(int? NienKhoaID, int? KhoaID, int? HocKyID, int? LopID, string MaSV, string NamHoc)
         {
@@ -1263,12 +1365,15 @@ namespace QLDiemRenLuyen.Controllers
             TempData["Loi"] = "Vui lòng sử dụng nút 'Chi tiết' trên bảng để xem thông tin.";
             return RedirectToAction("QuanLyPhieuDanhGia");
         }
+
+        #endregion
         //=======================================================================================
         //ĐANG LỦNG CỦNG PHẦN NÀY, ĐỌC LẠI
         //------------------------------------------------------------------------------------------
         //Quản lý Chi tiết phiếu đánh giá
         //=======================================================================================
         // GET: Chi tiết phiếu đánh giá
+        #region QuanLyChiTietPhieuDanhGia
         public IActionResult QuanLyChiTietPhieuDanhGia(string? namHoc, string? hocKy, int? khoaId, int? lopId, string? maSV)
         {
             var query = _context.ChiTietPhieuDanhGia
@@ -1348,10 +1453,12 @@ namespace QLDiemRenLuyen.Controllers
 
             return RedirectToAction("QuanLyChiTietPhieuDanhGia");
         }
+        #endregion
         //=======================================================================================
         //------------------------------------------------------------------------------------------
         //Quản lý Kết quả rèn luyện
         //=======================================================================================
+        #region QuanLyKetQuaRenLuyen
         // GET: Danh sách kết quả rèn luyện
         public IActionResult QuanLyKetQuaRenLuyen(string? maSV, int? lopID, int? hocKyID, string? namHoc, int? xepLoaiID)
         {
@@ -1406,10 +1513,12 @@ namespace QLDiemRenLuyen.Controllers
 
             return RedirectToAction("QuanLyKetQuaRenLuyen");
         }
+        #endregion
         //=======================================================================================
         //------------------------------------------------------------------------------------------
         //Quản lý lịch sử trạng thái SV
         //=======================================================================================
+        #region QuanLyTrangThaiSinhVien
         // GET: Danh sách lịch sử trạng thái SV
         public IActionResult QuanLyTrangThaiSinhVien(string? maSV, int? trangThaiLoc)
         {
@@ -1435,24 +1544,25 @@ namespace QLDiemRenLuyen.Controllers
             return View("QuanLyTrangThaiSinhVien", danhSach.ToList());
         }
 
+        //KHÔNG CẦN HÀM SỬA VÌ NÓ SẼ LỖI RÀNG BUỘC DỮ LIỆU VỚI CỘT TRẠNG THÁI CÚA SINH VIÊN
+        //CHỈ SỬA TRẠNG THÁI Ở SINH VIÊN RỒI CẬP NHẬT TẠI ĐÂY 
+        //[HttpPost]
+        //public IActionResult SuaLichSuTrangThai(int LichSuID, int TrangThaiID)
+        //{
+        //    var ls = _context.TrangThaiSinhVien.FirstOrDefault(x => x.LichSuID == LichSuID);
+        //    if (ls == null)
+        //    {
+        //        TempData["Error"] = "Không tìm thấy lịch sử cần sửa.";
+        //        return RedirectToAction("QuanLyTrangThaiSinhVien");
+        //    }
 
-        [HttpPost]
-        public IActionResult SuaLichSuTrangThai(int LichSuID, int TrangThaiID)
-        {
-            var ls = _context.TrangThaiSinhVien.FirstOrDefault(x => x.LichSuID == LichSuID);
-            if (ls == null)
-            {
-                TempData["Error"] = "Không tìm thấy lịch sử cần sửa.";
-                return RedirectToAction("QuanLyTrangThaiSinhVien");
-            }
+        //    ls.TrangThaiID = TrangThaiID;
+        //    ls.NgayCapNhat = DateTime.Now;
+        //    _context.SaveChanges();
 
-            ls.TrangThaiID = TrangThaiID;
-            ls.NgayCapNhat = DateTime.Now;
-            _context.SaveChanges();
-
-            TempData["Success"] = "Cập nhật trạng thái thành công.";
-            return RedirectToAction("QuanLyTrangThaiSinhVien");
-        }
+        //    TempData["Success"] = "Cập nhật trạng thái thành công.";
+        //    return RedirectToAction("QuanLyTrangThaiSinhVien");
+        //}
 
 
         // GET: Xóa
@@ -1474,10 +1584,12 @@ namespace QLDiemRenLuyen.Controllers
 
             return RedirectToAction("QuanLyTrangThaiSinhVien");
         }
-
+        #endregion
         //=======================================================================================
-
-        // Replace the obsolete 'HtmlToPdf' usage with 'ChromePdfRenderer' as per the diagnostic message.
+        //------------------------------------------------------------------------------------------
+        //=======================================================================================
+        #region XuatDanhSachDiem
+        // Xuất danh sách điểm rèn luyện
         public IActionResult XuatDanhSachDiem(int? LopID, int? HocKyID, string type)
         {
             var query = _context.KetQuaRenLuyen
@@ -1540,9 +1652,10 @@ namespace QLDiemRenLuyen.Controllers
 
             return RedirectToAction("QuanLyThongBao");
         }
-
+        #endregion
         //=======================================================================================
         //------------------------------------------------------------------------------------------
+        #region ThongKeChuaDanhGia
         // Thống kê sinh viên chưa đánh giá
         [HttpGet]
         public IActionResult ThongKeChuaDanhGia(int? HocKyID, int? KhoaID, int? LopID, string? Loai)
@@ -1628,9 +1741,11 @@ namespace QLDiemRenLuyen.Controllers
 
             return View("ThongKeChuaDanhGia", ketQua);
         }
+        #endregion
         //=======================================================================================
         //------------------------------------------------------------------------------------------
         //=======================================================================================
+        #region QuanLyChuNhiem
         // GET: Quản lý Chủ nhiệm
         public IActionResult QuanLyChuNhiem()
         {
@@ -1745,7 +1860,7 @@ namespace QLDiemRenLuyen.Controllers
             }
             return RedirectToAction("QuanLyChuNhiem");
         }
-
+        #endregion
 
     }
 }

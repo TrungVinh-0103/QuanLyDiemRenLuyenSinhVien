@@ -1,0 +1,201 @@
+﻿.council-results-container {
+    animation: fadeInUp 0.6s ease;
+}
+
+.modern-results-table {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.85rem;
+    overflow: hidden;
+    margin-top: 20px;
+}
+
+    .modern-results-table thead {
+        background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+        color: white;
+    }
+
+        .modern-results-table thead th {
+            border: none;
+            padding: 15px 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+
+    .modern-results-table tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #f0f0f0;
+    }
+
+        .modern-results-table tbody tr:hover {
+            background: linear-gradient(135deg, rgba(162, 155, 254, 0.1) 0%, rgba(108, 92, 231, 0.1) 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .modern-results-table tbody tr:nth-child(even) {
+            background-color: rgba(162, 155, 254, 0.05);
+        }
+
+            .modern-results-table tbody tr:nth-child(even):hover {
+                background: linear-gradient(135deg, rgba(162, 155, 254, 0.15) 0%, rgba(108, 92, 231, 0.15) 100%);
+            }
+
+    .modern-results-table tbody td {
+        padding: 12px 10px;
+        border: none;
+        vertical-align: middle;
+        text-align: center;
+    }
+
+.student-info {
+    text-align: left;
+}
+
+.student-name {
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 2px;
+}
+
+.student-id {
+    background: linear-gradient(135deg, #74b9ff, #0984e3);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.class-badge {
+    background: linear-gradient(135deg, #fd79a8, #e84393);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.semester-info {
+    background: linear-gradient(135deg, #00b894, #00a085);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    display: inline-block;
+}
+
+.score-final {
+    font-weight: 700;
+    font-size: 1.1rem;
+    padding: 8px 12px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(162, 155, 254, 0.2), rgba(108, 92, 231, 0.2));
+    color: #6c5ce7;
+    border: 2px solid rgba(108, 92, 231, 0.3);
+}
+
+.row-number {
+    background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+    color: #d63031;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.8rem;
+}
+
+.empty-results {
+    text-align: center;
+    padding: 60px 20px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7));
+    border-radius: 15px;
+    margin: 20px 0;
+    border: 2px dashed #a29bfe;
+}
+
+    .empty-results i {
+        font-size: 4rem;
+        color: #a29bfe;
+        margin-bottom: 20px;
+    }
+
+    .empty-results h5 {
+        color: #333;
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+
+    .empty-results p {
+        color: #666;
+        margin-bottom: 0;
+    }
+
+.results-summary {
+    background: linear-gradient(135deg, rgba(162, 155, 254, 0.1), rgba(108, 92, 231, 0.1));
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(162, 155, 254, 0.3);
+}
+
+.summary-item {
+    text-align: center;
+    padding: 10px;
+}
+
+.summary-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(45deg, #a29bfe, #6c5ce7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.summary-label {
+    color: #666;
+    font-size: 0.9rem;
+    margin-top: 5px;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.table-row {
+    animation: slideInRight 0.6s ease;
+    animation-fill-mode: both;
+}

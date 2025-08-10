@@ -11,29 +11,11 @@
         <div class="content-card">
             <h1 class="page-title">🏆 Quản Lý Xếp Loại Rèn Luyện</h1>
 
-            <div class="row mb-4">
-                <div class="col-md-3">
+            <div class="row mb-3">
+                <div class="col-md-12">
                     <div class="stats-card">
                         <div class="stats-number">@(Model?.Count ?? 0)</div>
                         <div class="text-muted">Tổng xếp loại</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stats-card">
-                        <div class="stats-number">@(Model?.Where(x => x.TenXepLoai!.Contains("Xuất sắc")).Count() ?? 0)</div>
-                        <div class="text-muted">Xuất sắc</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stats-card">
-                        <div class="stats-number">@(Model?.Where(x => x.TenXepLoai!.Contains("Giỏi")).Count() ?? 0)</div>
-                        <div class="text-muted">Giỏi</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stats-card">
-                        <div class="stats-number">@(Model?.Where(x => x.TenXepLoai!.Contains("Khá")).Count() ?? 0)</div>
-                        <div class="text-muted">Khá</div>
                     </div>
                 </div>
             </div>
@@ -57,11 +39,11 @@
                 <div class="col-md-6">
                     <input type="text" class="form-control search-box" placeholder="Tìm kiếm xếp loại..." id="searchInput">
                 </div>
-                <div class="col-md-6 text-end">
+                @* <div class="col-md-6 text-end">
                     <button class="modern-btn btn-add" data-bs-toggle="modal" data-bs-target="#modalThem">
                         <i class="fas fa-plus me-2"></i>Thêm Xếp Loại
                     </button>
-                </div>
+                </div> *@
             </div>
 
             @if (Model == null || !Model.Any())
@@ -113,12 +95,12 @@
                                             <button class="modern-btn btn-edit" data-bs-toggle="modal" data-bs-target="#modalSua_@Model[i].XepLoaiID" title="Sửa">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <form asp-action="XoaXepLoai" method="post" style="display:inline;" onsubmit="return confirm('Xác nhận xóa xếp loại này?');">
+                                            @* <form asp-action="XoaXepLoai" method="post" style="display:inline;" onsubmit="return confirm('Xác nhận xóa xếp loại này?');">
                                                 <input type="hidden" name="id" value="@Model[i].XepLoaiID" />
                                                 <button type="submit" class="modern-btn btn-delete" title="Xóa">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
-                                            </form>
+                                            </form> *@
                                         </div>
                                     </td>
                                 </tr>
@@ -152,7 +134,7 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label fw-bold">
-                                    <i class="fas fa-arrow-up me-2"></i>Điểm tối thiểu
+                                    <i class="fas fa-arrow-down me-2"></i>Điểm tối thiểu
                                 </label>
                                 <input type="number" name="DiemToiThieu" class="form-control modern-form-control" required placeholder="0" />
                             </div>
@@ -160,7 +142,7 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label fw-bold">
-                                    <i class="fas fa-arrow-down me-2"></i>Điểm tối đa
+                                    <i class="fas fa-arrow-up me-2"></i>Điểm tối đa
                                 </label>
                                 <input type="number" name="DiemToiDa" class="form-control modern-form-control" required placeholder="100" />
                             </div>

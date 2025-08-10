@@ -1,5 +1,5 @@
-﻿.council-container {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+﻿.teacher-container {
+    background: linear-gradient(135deg, #26d0ce 0%, #1a2980 100%);
     min-height: 100vh;
     padding: 2rem 0;
 }
@@ -15,7 +15,7 @@
 }
 
 .page-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #26d0ce 0%, #1a2980 100%);
     border-radius: 15px;
     padding: 25px;
     color: white;
@@ -33,15 +33,16 @@
     }
 
 .stats-row {
-    display: flex;
-    gap: 20px;
     margin-bottom: 30px;
-    flex-wrap: wrap;
+    width: 100%; /* Đảm bảo chiều rộng 100% của content-card */
+    display: flex;
+    justify-content: center; /* Căn giữa các cột nếu cần */
+    /*flex-wrap: wrap;*/ /* Cho phép cột xuống dòng nếu cần */
 }
 
 .stat-card {
     flex: 1;
-    min-width: 180px;
+    min-width: 200px;
     background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7));
     border-radius: 15px;
     padding: 20px;
@@ -52,12 +53,13 @@
 
     .stat-card:hover {
         transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
     }
 
 .stat-number {
     font-size: 2rem;
     font-weight: 700;
-    background: linear-gradient(45deg, #667eea, #764ba2);
+    background: linear-gradient(45deg, #26d0ce, #1a2980);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -86,8 +88,8 @@
 }
 
     .search-box:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        border-color: #26d0ce;
+        box-shadow: 0 0 0 0.2rem rgba(38, 208, 206, 0.25);
         outline: none;
     }
 
@@ -101,7 +103,7 @@
 }
 
     .modern-table thead {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #26d0ce 0%, #1a2980 100%);
         color: white;
     }
 
@@ -121,7 +123,7 @@
     }
 
         .modern-table tbody tr:hover {
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            background: linear-gradient(135deg, rgba(38, 208, 206, 0.1) 0%, rgba(26, 41, 128, 0.1) 100%);
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }

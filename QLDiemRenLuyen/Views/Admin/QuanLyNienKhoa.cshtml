@@ -11,23 +11,11 @@
         <div class="content-card">
             <h1 class="page-title">Quản Lý Niên Khóa</h1>
 
-            <div class="row mb-4">
-                <div class="col-md-4">
+            <div class="row mb-3">
+                <div class="col-md-12">
                     <div class="stats-card">
                         <div class="stats-number">@(Model?.Count ?? 0)</div>
                         <div class="text-muted">Tổng niên khóa</div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="stats-card">
-                        <div class="stats-number">@(Model?.Where(x => x.NamKetThuc >= DateTime.Now.Year).Count() ?? 0)</div>
-                        <div class="text-muted">Đang hoạt động</div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="stats-card">
-                        <div class="stats-number">@(Model?.Where(x => x.NamKetThuc < DateTime.Now.Year).Count() ?? 0)</div>
-                        <div class="text-muted">Đã kết thúc</div>
                     </div>
                 </div>
             </div>

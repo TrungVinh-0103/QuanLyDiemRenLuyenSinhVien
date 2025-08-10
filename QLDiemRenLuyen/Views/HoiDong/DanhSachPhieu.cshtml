@@ -3,75 +3,158 @@
     Layout = "~/Views/Shared/_LayoutHoiDong.cshtml";
     ViewData["Title"] = "Danh sách phiếu chờ duyệt";
 }
-<link href="~/css/dsPhieu_HD.css" rel="stylesheet" />
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="page-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 15px; padding: 20px; color: white; text-align: center; animation: slideInDown 0.6s ease;">
-            <h4 class="text-uppercase mb-0">
-                <i class="fas fa-clipboard-list me-2"></i>
-                DANH SÁCH PHIẾU CHỜ DUYỆT
-            </h4>
+<link href="~/css/DanhSachPhieu_HD.css" rel="stylesheet" />
+
+<div class="council-container">
+    @* Changed from teacher-container to council-container *@
+    <div class="container">
+        @* Changed from container-fluid to container for consistency with DanhSachPhieuDanhGia.cshtml *@
+        <div class="content-card">
+            <div class="page-header">
+                <h4>
+                    <i class="fas fa-clipboard-list me-3"></i>
+                    DANH SÁCH PHIẾU CHỜ DUYỆT HỘI ĐỒNG
+                </h4>
+            </div>
+
+            @if (Model.Any())
+            {
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-content">
+                            <h4>@Model.Count()</h4>
+                            <p>Tổng phiếu chờ</p>
+                        </div>
+                    </div>
+                </div>
+
+                <input type="text" class="form-control search-box" placeholder="Tìm kiếm theo tên sinh viên, mã sinh viên, lớp..." id="searchInput">
+
+                <div class="table-responsive">
+                    <table class="modern-table" id="evaluationTable">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <i class="fas fa-user me-2"></i>
+                                    Sinh viên
+                                </th>
+                                <th>
+                                    <i class="fas fa-users me-2"></i>
+                                    Lớp
+                                </th>
+                                <th>
+                                    <i class="fas fa-calendar me-2"></i>
+                                    Học kỳ
+                                </th>
+                                <th>
+                                    <i class="fas fa-calendar-alt me-2"></i>
+                                    Ngày gửi
+                                </th>
+                                <th>
+                                    <i class="fas fa-cogs me-2"></i>
+                                    Thao tác
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in Model.Select((item, index) => new { item, index }))
+                            {
+                                <tr style="animation: fadeInUp 0.6s ease; animation-delay: @(p.index * 0.1)s;">
+                                    <td>
+                                        <div class="student-info">
+                                            <div class="student-avatar">
+                                                @{
+                                                    string lastInitial = "N/A";
+                                                    var hoTenParts = p.item.SinhVien?.HoTen?.Split(' ');
+                                                    if (hoTenParts != null && hoTenParts.Length > 0 && !string.IsNullOrEmpty(hoTenParts.LastOrDefault()))
+                                                    {
+                                                        lastInitial = hoTenParts.LastOrDefault()!.Substring(0, 1).ToUpper();
+                                                    }
+                                                }
+                                                @lastInitial
+                                            </div>
+                                            <div>
+                                                <strong>@p.item.SinhVien?.HoTen</strong>
+                                                <br>
+                                                <small class="text-muted">@p.item.SinhVien?.MaSV</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="class-badge">@p.item.SinhVien?.Lop?.TenLop</span>
+                                    </td>
+                                    <td>
+                                        <div class="semester-info">
+                                            @p.item.HocKy?.TenHocKy - @p.item.HocKy?.NamHoc
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="date-info">
+                                            <i class="fas fa-calendar-check me-1 text-primary"></i>
+                                            <span class="fw-medium">@p.item.NgayLapPhieu.ToString("dd/MM/yyyy")</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <a asp-action="DuyetPhieu" asp-route-id="@p.item.PhieuDanhGiaID"
+                                           class="approve-btn">
+                                            <i class="fas fa-check me-2"></i>
+                                            Duyệt phiếu
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fas fa-clipboard-check"></i>
+                    <h5>Không có phiếu nào cần duyệt</h5>
+                    <p>Tất cả phiếu đánh giá đã được hội đồng xử lý hoặc chưa có phiếu mới từ giáo viên.</p>
+                </div>
+            }
         </div>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-12">
-        <div class="table-responsive">
-            <table class="table table-custom table-hover">
-                <thead>
-                    <tr class="text-center">
-                        <th><i class="fas fa-user me-2"></i>Sinh viên</th>
-                        <th><i class="fas fa-users me-2"></i>Lớp</th>
-                        <th><i class="fas fa-calendar me-2"></i>Học kỳ</th>
-                        <th><i class="fas fa-calendar-alt me-2"></i>Ngày gửi</th>
-                        <th><i class="fas fa-cogs me-2"></i>Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model.Any())
-                    {
-                        @foreach (var p in Model)
-                        {
-                            <tr style="animation: fadeInUp 0.6s ease; animation-delay: @(Model.IndexOf(p) * 0.1)s;">
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <i class="fas fa-user-circle text-primary me-2"></i>
-                                        @p.SinhVien?.HoTen
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="badge bg-info">@p.SinhVien?.Lop?.TenLop</span>
-                                </td>
-                                <td>@p.HocKy?.TenHocKy - @p.HocKy?.NamHoc</td>
-                                <td class="text-center">
-                                    <small class="text-muted">
-                                        <i class="fas fa-clock me-1"></i>
-                                        @p.NgayLapPhieu.ToString("dd/MM/yyyy")
-                                    </small>
-                                </td>
-                                <td class="text-center">
-                                    <a asp-action="DuyetPhieu" asp-route-id="@p.PhieuDanhGiaID"
-                                       class="btn btn-custom-success btn-sm text-white">
-                                        <i class="fas fa-check me-1"></i>Duyệt
-                                    </a>
-                                </td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="5" class="text-center py-4">
-                                <div style="color: #6c757d;">
-                                    <i class="fas fa-inbox fa-3x mb-3"></i>
-                                    <p class="mb-0">Không có phiếu nào cần duyệt</p>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            const tableRows = document.querySelectorAll('#evaluationTable tbody tr');
+
+            tableRows.forEach(row => {
+                const studentName = row.querySelector('.student-info strong').textContent.toLowerCase();
+                const studentId = row.querySelector('.student-info small').textContent.toLowerCase();
+                const studentClass = row.querySelector('.class-badge').textContent.toLowerCase();
+
+                if (studentName.includes(searchTerm) || studentId.includes(searchTerm) || studentClass.includes(searchTerm)) {
+                    row.style.display = '';
+                    row.style.animation = 'fadeInUp 0.3s ease'; // Use fadeInUp for consistency
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+        // Add loading effect to approve buttons
+        document.querySelectorAll('.approve-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
+                this.style.pointerEvents = 'none';
+            });
+        });
+
+        // Animation for table rows (already present in the original DanhSachPhieuDanhGia.cshtml)
+        document.addEventListener('DOMContentLoaded', function() {
+            const rows = document.querySelectorAll('.modern-table tbody tr');
+            rows.forEach((row, index) => {
+                row.style.animationDelay = `${index * 0.1}s`;
+            });
+        });
+    </script>
+}

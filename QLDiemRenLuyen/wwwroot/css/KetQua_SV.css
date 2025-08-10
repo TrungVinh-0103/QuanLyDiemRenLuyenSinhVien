@@ -1,4 +1,4 @@
-﻿.council-container {
+﻿.student-container {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
     padding: 2rem 0;
@@ -10,27 +10,21 @@
     padding: 2rem;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.3);
+    border: 1px solid rgba(255, 255, 255, 0.3);
     animation: fadeInUp 0.6s ease;
 }
 
-.page-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 15px;
-    padding: 25px;
-    color: white;
+.page-title {
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 2.2rem;
+    font-weight: 700;
     text-align: center;
     margin-bottom: 30px;
-    animation: slideInDown 0.6s ease;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
-
-    .page-header h4 {
-        margin: 0;
-        font-weight: 700;
-        font-size: 1.5rem;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
 
 .stats-row {
     display: flex;
@@ -41,7 +35,7 @@
 
 .stat-card {
     flex: 1;
-    min-width: 180px;
+    min-width: 200px;
     background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7));
     border-radius: 15px;
     padding: 20px;
@@ -69,25 +63,19 @@
     margin-top: 5px;
 }
 
-.filter-section {
-    background: white;
-    border-radius: 15px;
-    padding: 20px;
-    margin-bottom: 25px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-}
-
 .search-box {
-    border: 2px solid #e0e0e0;
+    background: white;
     border-radius: 25px;
     padding: 12px 20px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    border: 2px solid #e0e0e0;
     transition: all 0.3s ease;
-    background: white;
+    margin-bottom: 20px;
 }
 
     .search-box:focus {
         border-color: #667eea;
-        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
         outline: none;
     }
 
@@ -107,12 +95,11 @@
 
         .modern-table thead th {
             border: none;
-            padding: 15px 10px;
+            padding: 15px;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             text-align: center;
-            font-size: 0.85rem;
         }
 
     .modern-table tbody tr {
@@ -127,80 +114,64 @@
         }
 
     .modern-table tbody td {
-        padding: 12px 8px;
+        padding: 15px;
         border: none;
         vertical-align: middle;
         text-align: center;
-        font-size: 0.9rem;
     }
 
-.student-info {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.student-avatar {
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.semester-badge {
+    background: linear-gradient(135deg, #fd79a8, #e84393);
     color: white;
-    font-weight: 600;
-    margin-right: 8px;
-    font-size: 0.8rem;
-}
-
-.class-badge {
-    background: linear-gradient(135deg, #74b9ff, #0984e3);
-    color: white;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 0.8rem;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 0.9rem;
     font-weight: 500;
-}
-
-.semester-info {
-    color: #666;
-    font-weight: 500;
-    font-size: 0.85rem;
+    display: inline-block;
 }
 
 .score-badge {
-    padding: 6px 12px;
-    border-radius: 15px;
-    font-size: 0.8rem;
+    background: linear-gradient(135deg, #74b9ff, #0984e3);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 1.1rem;
     font-weight: 600;
     display: inline-block;
-    min-width: 60px;
+    min-width: 80px;
 }
 
-.score-student {
-    background: linear-gradient(135deg, #a29bfe, #6c5ce7);
-    color: white;
+.classification-badge {
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: inline-block;
 }
 
-.score-teacher {
-    background: linear-gradient(135deg, #fdcb6e, #e17055);
-    color: white;
-}
-
-.score-council {
+.classification-excellent {
     background: linear-gradient(135deg, #00b894, #00a085);
     color: white;
 }
 
-.score-pending {
+.classification-good {
+    background: linear-gradient(135deg, #fdcb6e, #e17055);
+    color: white;
+}
+
+.classification-average {
+    background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+    color: white;
+}
+
+.classification-weak {
     background: linear-gradient(135deg, #fd79a8, #e84393);
     color: white;
 }
 
-.date-info {
+.date-text {
     color: #666;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
 }
 
 .empty-state {
@@ -215,22 +186,30 @@
         color: #ddd;
     }
 
+.back-btn {
+    background: linear-gradient(135deg, #6c757d, #495057);
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 12px 30px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+}
+
+    .back-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(108, 117, 125, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+
 @keyframes fadeInUp {
     from {
         opacity: 0;
         transform: translateY(30px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes slideInDown {
-    from {
-        opacity: 0;
-        transform: translateY(-30px);
     }
 
     to {
@@ -248,19 +227,7 @@
         min-width: auto;
     }
 
-    .student-info {
-        flex-direction: column;
-        text-align: center;
-    }
-
-    .student-avatar {
-        margin-right: 0;
-        margin-bottom: 5px;
-    }
-
-    .modern-table thead th,
-    .modern-table tbody td {
-        padding: 8px 4px;
-        font-size: 0.8rem;
+    .page-title {
+        font-size: 1.8rem;
     }
 }

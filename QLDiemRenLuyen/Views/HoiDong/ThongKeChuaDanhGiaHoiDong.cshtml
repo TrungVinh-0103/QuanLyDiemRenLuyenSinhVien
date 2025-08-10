@@ -3,88 +3,186 @@
     ViewData["Title"] = "Thống kê SV chưa đạt / chưa có điểm";
     Layout = "~/Views/Shared/_LayoutHoiDong.cshtml";
 }
-
-<h4 class="text-uppercase text-center text-danger mt-3">Thống kê SV theo kết quả Hội đồng</h4>
-
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-warning text-center">@TempData["Error"]</div>
-}
-
-<form method="get" class="row mb-4">
-    <div class="col-md-4">
-        <label>Học kỳ</label>
-        <select class="form-select" name="HocKyID">
-            <option value="">-- Chọn học kỳ --</option>
-            @foreach (var hk in ViewBag.HocKys)
-            {
-                <option value="@hk.HocKyID" selected="@(ViewBag.HocKyID == hk.HocKyID ? "selected" : null)">
-                    @hk.TenHocKy - @hk.NamHoc | @hk.NienKhoa?.TenNienKhoa
-                </option>
-            }
-        </select>
+<link href="~/css/ThongKeChuaDanhGiaHoiDong.css" />
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="page-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px; padding: 30px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3); animation: slideInDown 0.8s ease;">
+                <h3 class="text-uppercase mb-2 fw-bold">
+                    <i class="fas fa-chart-line me-3"></i>
+                    THỐNG KÊ SINH VIÊN THEO KẾT QUẢ HỘI ĐỒNG
+                </h3>
+                <p class="mb-0 opacity-90">Theo dõi sinh viên chưa đạt yêu cầu hoặc chưa có điểm đánh giá</p>
+            </div>
+        </div>
     </div>
-    <div class="col-md-4">
-        <label>Lớp (không bắt buộc)</label>
-        <select class="form-select" name="LopID">
-            <option value="">-- Tất cả lớp --</option>
-            @foreach (var lop in ViewBag.Lops)
-            {
-                <option value="@lop.LopID" selected="@(ViewBag.LopID == lop.LopID ? "selected" : null)">
-                    @lop.TenLop
-                </option>
-            }
-        </select>
-    </div>
-    <div class="col-md-4">
-        <label>Loại thống kê</label>
-        <select class="form-select" name="Loai">
-            <option value="">-- Chọn loại --</option>
-            <option value="ChuaDat" selected="@(ViewBag.Loai == "ChuaDat" ? "selected" : null)">Chưa đạt</option>
-            <option value="ChuaCoDiem" selected="@(ViewBag.Loai == "ChuaCoDiem" ? "selected" : null)">Chưa có điểm</option>
-        </select>
-    </div>
-    <div class="col-md-12 mt-3">
-        <button type="submit" class="btn btn-primary w-100">
-            <i class="fas fa-filter"></i> Lọc dữ liệu
-        </button>
-    </div>
-</form>
 
-@if (Model.Count > 0)
-{
-    <table class="table table-bordered table-hover">
-        <thead class="table-light text-center">
-            <tr>
-                <th>STT</th>
-                <th>Mã SV</th>
-                <th>Họ tên</th>
-                <th>Lớp</th>
-                <th>Điểm</th>
-            </tr>
-        </thead>
-        <tbody>
-            @for (int i = 0; i < Model.Count; i++)
-            {
-                var sv = Model[i];
-                var ketQua = sv.KetQuaRenLuyen?.FirstOrDefault(kq => kq.HocKyID == ViewBag.HocKyID);
-                <tr>
-                    <td class="text-center">@(@i + 1)</td>
-                    <td>@sv.MaSV</td>
-                    <td>@sv.HoTen</td>
-                    <td>@sv.Lop?.TenLop</td>
-                    <td class="text-center">
-                        @if (ketQua != null && ketQua.TongDiemHoiDongDuyet.HasValue)
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-warning alert-modern" style="animation: shake 0.5s ease;">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            @TempData["Error"]
+        </div>
+    }
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="modern-card" style="animation: fadeInUp 0.6s ease 0.1s both;">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-filter me-2"></i>
+                        Bộ lọc thống kê
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" class="filter-form">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-calendar me-2"></i>Học kỳ:
+                                </label>
+                                <select class="form-select filter-select" name="HocKyID">
+                                    <option value="">-- Chọn học kỳ --</option>
+                                    @foreach (var hk in ViewBag.HocKys)
+                                    {
+                                        <option value="@hk.HocKyID" selected="@(ViewBag.HocKyID == hk.HocKyID ? "selected" : null)">
+                                            @hk.TenHocKy - @hk.NamHoc | @hk.NienKhoa?.TenNienKhoa
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-users me-2"></i>Lớp (không bắt buộc):
+                                </label>
+                                <select class="form-select filter-select" name="LopID">
+                                    <option value="">-- Tất cả lớp --</option>
+                                    @foreach (var lop in ViewBag.Lops)
+                                    {
+                                        <option value="@lop.LopID" selected="@(ViewBag.LopID == lop.LopID ? "selected" : null)">
+                                            @lop.TenLop
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-list me-2"></i>Loại thống kê:
+                                </label>
+                                <select class="form-select filter-select" name="Loai">
+                                    <option value="">-- Chọn loại --</option>
+                                    <option value="ChuaDat" selected="@(ViewBag.Loai == "ChuaDat" ? "selected" : null)">Chưa đạt</option>
+                                    <option value="ChuaCoDiem" selected="@(ViewBag.Loai == "ChuaCoDiem" ? "selected" : null)">Chưa có điểm</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 text-center">
+                                <button type="submit" class="btn btn-primary btn-lg filter-btn">
+                                    <i class="fas fa-search me-2"></i>Lọc dữ liệu
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="modern-card" style="animation: fadeInUp 0.8s ease 0.3s both;">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>
+                        Danh sách sinh viên
+                        @if (Model.Count > 0)
                         {
-                            @ketQua!.TongDiemHoiDongDuyet
+                            <span class="badge bg-primary ms-2">@Model.Count</span>
                         }
-                        else
-                        {
-                            @: Chưa có
-                        }
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.Count > 0)
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-header">
+                                    <tr>
+                                        <th class="text-center">
+                                            <i class="fas fa-hashtag me-2"></i>STT
+                                        </th>
+                                        <th>
+                                            <i class="fas fa-id-card me-2"></i>Mã SV
+                                        </th>
+                                        <th>
+                                            <i class="fas fa-user me-2"></i>Họ tên
+                                        </th>
+                                        <th class="text-center">
+                                            <i class="fas fa-users me-2"></i>Lớp
+                                        </th>
+                                        <th class="text-center">
+                                            <i class="fas fa-star me-2"></i>Điểm
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @for (int i = 0; i < Model.Count; i++)
+                                    {
+                                        var sv = Model[i];
+                                        var ketQua = sv.KetQuaRenLuyen?.FirstOrDefault(kq => kq.HocKyID == ViewBag.HocKyID);
+
+                                        <tr style="animation: slideInLeft 0.6s ease @((i * 0.05))s both;">
+                                            <td class="text-center fw-bold">@(i + 1)</td>
+                                            <td>
+                                                <span class="badge bg-secondary student-id">@sv.MaSV</span>
+                                            </td>
+                                            <td>
+                                                <div class="student-info">
+                                                    <div class="student-avatar">
+                                                        @(sv.HoTen?.Split(' ', StringSplitOptions.RemoveEmptyEntries).LastOrDefault() is string lastPart && lastPart.Length > 0 ? lastPart.Substring(0, 1).ToUpper() : "")
+                                                    </div>
+                                                    <div class="student-details">
+                                                        <div class="student-name">@sv.HoTen</div>
+                                                        <small class="text-muted">@sv.MaSV</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge bg-info class-badge">@sv.Lop?.TenLop</span>
+                                            </td>
+                                            <td class="text-center">
+                                                @if (ketQua != null && ketQua.TongDiemHoiDongDuyet.HasValue)
+                                                {
+                                                    var diem = ketQua.TongDiemHoiDongDuyet.Value;
+                                                    var scoreClass = diem >= 90 ? "bg-success" : diem >= 80 ? "bg-primary" : diem >= 65 ? "bg-warning" : "bg-danger";
+                                                    <span class="badge @scoreClass score-badge">@diem điểm</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-secondary score-badge">Chưa có</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h5 class="empty-title">Không có dữ liệu</h5>
+                            <p class="empty-description">
+                                Vui lòng chọn học kỳ và loại thống kê để xem dữ liệu
+                            </p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

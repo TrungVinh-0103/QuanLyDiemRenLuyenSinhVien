@@ -3,87 +3,219 @@
     Layout = "~/Views/Shared/_LayoutHoiDong.cshtml";
     ViewData["Title"] = "Lịch sử duyệt";
 }
-<link rel="stylesheet" href="~/css/LSDanhgia_HD.css" />
-<div class="row mb-4">
-    <div class="col-12">
-        <div class="page-header" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); border-radius: 15px; padding: 20px; color: white; text-align: center; animation: slideInDown 0.6s ease;">
-            <h4 class="text-uppercase mb-0">
-                <i class="fas fa-history me-2"></i>
-                LỊCH SỬ DUYỆT PHIẾU
-            </h4>
+
+<link href="~/css/LSDanhGia_HD.css" rel="stylesheet" />
+
+<div class="council-container">
+    <div class="container">
+        <div class="content-card">
+            <!-- Page Header -->
+            <div class="page-header">
+                <h4>
+                    <i class="fas fa-history me-3"></i>
+                    LỊCH SỬ DUYỆT PHIẾU HỘI ĐỒNG
+                </h4>
+            </div>
+
+            @if (Model?.Any() ?? false)
+            {
+                <!-- Stats Cards -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-number">@Model.Count</div>
+                        <div class="stat-label">Tổng đã duyệt</div>
+                    </div>
+                </div>
+
+                <!-- Filter Section -->
+                <div class="filter-section">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <input type="text" class="form-control search-box" placeholder="Tìm kiếm theo tên sinh viên, lớp, học kỳ..." id="searchInput">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="table-responsive">
+                    <table class="modern-table" id="historyTable">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <i class="fas fa-user me-1"></i>
+                                    Sinh viên
+                                </th>
+                                <th>
+                                    <i class="fas fa-users me-1"></i>
+                                    Lớp
+                                </th>
+                                <th>
+                                    <i class="fas fa-calendar me-1"></i>
+                                    Học kỳ
+                                </th>
+                                <th>
+                                    <i class="fas fa-user-check me-1"></i>
+                                    Điểm SV
+                                </th>
+                                <th>
+                                    <i class="fas fa-chalkboard-teacher me-1"></i>
+                                    Điểm GVCN
+                                </th>
+                                <th>
+                                    <i class="fas fa-users-cog me-1"></i>
+                                    Điểm HĐ
+                                </th>
+                                <th>
+                                    <i class="fas fa-calendar-alt me-1"></i>
+                                    Ngày lập
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in Model)
+                            {
+                                <tr style="animation: fadeInUp 0.6s ease; animation-delay: @(Model.IndexOf(p) * 0.05)s;">
+                                    <td>
+                                        <div class="student-info">
+                                            <div class="student-avatar">
+                                                @(p.SinhVien?.HoTen?.Substring(0, 1).ToUpper())
+                                            </div>
+                                            <div>
+                                                <strong>@p.SinhVien?.HoTen</strong>
+                                                <br>
+                                                <small class="text-muted">@p.SinhVien?.MaSV</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="class-badge">@p.SinhVien?.Lop?.TenLop</span>
+                                    </td>
+                                    <td>
+                                        <div class="semester-info">
+                                            @p.HocKy?.TenHocKy<br>
+                                            <small>@p.HocKy?.NamHoc</small>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="score-badge score-student">
+                                            @p.TongDiemTuDanhGia
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="score-badge score-teacher">
+                                            @p.TongDiemGiaoVienDeXuat
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if (p.TongDiemHoiDongDuyet == null)
+                                        {
+                                            <span class="score-badge score-pending">
+                                                Chưa duyệt
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="score-badge score-council">
+                                                @p.TongDiemHoiDongDuyet
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="date-info">
+                                            <i class="fas fa-clock me-1"></i>
+                                            @p.NgayLapPhieu.ToString("dd/MM/yyyy")
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fas fa-history"></i>
+                    <h5>Chưa có lịch sử duyệt phiếu</h5>
+                    <p>Lịch sử sẽ hiển thị sau khi hội đồng duyệt các phiếu đánh giá.</p>
+                </div>
+            }
         </div>
     </div>
 </div>
 
-<div class="row">
-    <div class="col-12">
-        <div class="table-responsive">
-            <table class="table table-custom table-hover">
-                <thead>
-                    <tr class="text-center">
-                        <th><i class="fas fa-user me-2"></i>Sinh viên</th>
-                        <th><i class="fas fa-users me-2"></i>Lớp</th>
-                        <th><i class="fas fa-calendar me-2"></i>Học kỳ</th>
-                        <th><i class="fas fa-user-check me-2"></i>Điểm SV</th>
-                        <th><i class="fas fa-chalkboard-teacher me-2"></i>Điểm GVCN</th>
-                        <th><i class="fas fa-users-cog me-2"></i>Điểm HĐ</th>
-                        <th><i class="fas fa-calendar-alt me-2"></i>Ngày lập</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (Model.Any())
-                    {
-                        @foreach (var p in Model)
-                        {
-                            <tr style="animation: fadeInUp 0.6s ease; animation-delay: @(Model.IndexOf(p) * 0.1)s;">
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <i class="fas fa-user-circle text-primary me-2"></i>
-                                        @p.SinhVien?.HoTen
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="badge bg-info">@p.SinhVien?.Lop?.TenLop</span>
-                                </td>
-                                <td>@p.HocKy?.TenHocKy - @p.HocKy?.NamHoc</td>
-                                <td class="text-center">
-                                    <span class="badge bg-secondary">@p.TongDiemTuDanhGia</span>
-                                </td>
-                                <td class="text-center">
-                                    <span class="badge bg-warning text-dark">@p.TongDiemGiaoVienDeXuat</span>
-                                </td>
-                                <td class="text-center">
-                                    @if (p.TongDiemHoiDongDuyet == null)
-                                    {
-                                        <span class="badge bg-danger">Chưa duyệt</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="badge bg-success">@p.TongDiemHoiDongDuyet</span>
-                                    }
-                                </td>
-                                <td class="text-center">
-                                    <small class="text-muted">
-                                        <i class="fas fa-clock me-1"></i>
-                                        @p.NgayLapPhieu.ToString("dd/MM/yyyy")
-                                    </small>
-                                </td>
-                            </tr>
-                        }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="5" class="text-center py-4">
-                                <div style="color: #6c757d;">
-                                    <i class="fas fa-inbox fa-3x mb-3"></i>
-                                    <p class="mb-0">Chưa có lịch sử duyệt phiếu</p>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Hàm lọc bảng chung
+        function filterTable() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            // Kiểm tra xem phần tử 'statusFilter' có tồn tại không trước khi truy cập
+            const statusFilterElement = document.getElementById('statusFilter');
+            const statusFilter = statusFilterElement ? statusFilterElement.value : 'all'; // Mặc định là 'all' nếu không tìm thấy
+
+            const tableRows = document.querySelectorAll('#historyTable tbody tr');
+
+            tableRows.forEach(row => {
+                const studentName = row.querySelector('td:nth-child(1) strong')?.textContent.toLowerCase() || '';
+                const studentId = row.querySelector('td:nth-child(1) small')?.textContent.toLowerCase() || '';
+                const className = row.querySelector('td:nth-child(2) .class-badge')?.textContent.toLowerCase() || '';
+                const semesterName = row.querySelector('td:nth-child(3) .semester-info')?.childNodes[0]?.textContent.toLowerCase() || '';
+                const academicYear = row.querySelector('td:nth-child(3) small')?.textContent.toLowerCase() || '';
+
+                // Kết hợp tất cả các trường có thể tìm kiếm
+                const searchableText = `${studentName} ${studentId} ${className} ${semesterName} ${academicYear}`;
+
+                const councilScoreElement = row.querySelector('.score-council, .score-pending');
+                let matchesStatus = true;
+
+                if (statusFilter === 'completed') {
+                    matchesStatus = councilScoreElement && councilScoreElement.classList.contains('score-council');
+                } else if (statusFilter === 'pending') {
+                    matchesStatus = councilScoreElement && councilScoreElement.classList.contains('score-pending');
+                }
+
+                const matchesSearch = searchableText.includes(searchTerm);
+
+                if (matchesSearch && matchesStatus) {
+                    row.style.display = '';
+                    row.style.animation = 'fadeIn 0.3s ease';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Gắn kết sự kiện 'input' cho ô tìm kiếm
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', filterTable);
+            }
+
+            // Gắn kết sự kiện 'change' cho bộ lọc trạng thái (nếu có)
+            const statusFilter = document.getElementById('statusFilter');
+            if (statusFilter) {
+                statusFilter.addEventListener('change', filterTable);
+            }
+
+            // Animation cho các hàng của bảng
+            const rows = document.querySelectorAll('.modern-table tbody tr');
+            rows.forEach((row, index) => {
+                row.style.animationDelay = `${index * 0.05}s`;
+            });
+
+            // Thêm hiệu ứng hover cho các huy hiệu điểm số
+            document.querySelectorAll('.score-badge').forEach(badge => {
+                badge.addEventListener('mouseenter', function() {
+                    this.style.transform = 'scale(1.1)';
+                    this.style.transition = 'transform 0.2s ease';
+                });
+
+                badge.addEventListener('mouseleave', function() {
+                    this.style.transform = 'scale(1)';
+                });
+            });
+        });
+    </script>
+}

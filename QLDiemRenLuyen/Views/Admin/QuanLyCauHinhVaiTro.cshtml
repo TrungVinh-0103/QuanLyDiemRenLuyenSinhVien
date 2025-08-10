@@ -11,23 +11,11 @@
         <div class="content-card">
             <h1 class="page-title">👥 Quản Lý Vai Trò Người Dùng</h1>
 
-            <div class="row mb-4">
-                <div class="col-md-4">
+            <div class="row mb-3">
+                <div class="col-md-12">
                     <div class="stats-card">
                         <div class="stats-number">@(Model?.Count ?? 0)</div>
                         <div class="text-muted">Tổng vai trò</div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="stats-card">
-                        <div class="stats-number">@(Model?.Where(x => x.TenVaiTro!.Contains("Admin")).Count() ?? 0)</div>
-                        <div class="text-muted">Admin</div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="stats-card">
-                        <div class="stats-number">@(Model?.Where(x => x.TenVaiTro!.Contains("User")).Count() ?? 0)</div>
-                        <div class="text-muted">User</div>
                     </div>
                 </div>
             </div>
@@ -51,11 +39,11 @@
                 <div class="col-md-6">
                     <input type="text" class="form-control search-box" placeholder="Tìm kiếm vai trò..." id="searchInput">
                 </div>
-                <div class="col-md-6 text-end">
+                @* <div class="col-md-6 text-end">
                     <button class="modern-btn btn-add" data-bs-toggle="modal" data-bs-target="#modalThem">
                         <i class="fas fa-plus me-2"></i>Thêm Vai Trò
                     </button>
-                </div>
+                </div> *@
             </div>
 
             @if (Model == null || !Model.Any())
@@ -95,12 +83,12 @@
                                             <button class="modern-btn btn-edit" data-bs-toggle="modal" data-bs-target="#modalSua_@Model[i].VaiTroID" title="Sửa">
                                                 <i class="fas fa-edit"></i>
                                             </button>
-                                            <form asp-action="XoaVaiTro" method="post" style="display:inline;" onsubmit="return confirm('Xác nhận xóa vai trò này?');">
+                                            @* <form asp-action="XoaVaiTro" method="post" style="display:inline;" onsubmit="return confirm('Xác nhận xóa vai trò này?');">
                                                 <input type="hidden" name="id" value="@Model[i].VaiTroID" />
                                                 <button type="submit" class="modern-btn btn-delete" title="Xóa">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
-                                            </form>
+                                            </form> *@
                                         </div>
                                     </td>
                                 </tr>

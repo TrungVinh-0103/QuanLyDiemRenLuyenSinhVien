@@ -13,33 +13,6 @@
         <div class="content-card">
             <h1 class="page-title">Lịch Sử Trạng Thái Sinh Viên</h1>
 
-            <div class="row mb-4">
-                <div class="col-md-3">
-                    <div class="stats-card">
-                        <div class="stats-number">@(thongtin?.Count ?? 0)</div>
-                        <div class="text-muted">Tổng lịch sử</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stats-card">
-                        <div class="stats-number">@(trangthai?.Count ?? 0)</div>
-                        <div class="text-muted">Loại trạng thái</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stats-card">
-                        <div class="stats-number">@(thongtin?.Where(x => x.NgayCapNhat.Date == DateTime.Today).Count() ?? 0)</div>
-                        <div class="text-muted">Hôm nay</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stats-card">
-                        <div class="stats-number">@(thongtin?.Where(x => x.NgayCapNhat >= DateTime.Today.AddDays(-7)).Count() ?? 0)</div>
-                        <div class="text-muted">Tuần này</div>
-                    </div>
-                </div>
-            </div>
-
             @if (TempData["Success"] != null)
             {
                 <div class="alert alert-success-modern alert-modern">
@@ -124,9 +97,9 @@
                                     </td>
                                     <td>
                                         <div class="btn-group" role="group">
-                                            <button class="modern-btn btn-edit" data-bs-toggle="modal" data-bs-target="#modalSua_@thongTin.LichSuID" title="Sửa">
+                                           @* <button class="modern-btn btn-edit" data-bs-toggle="modal" data-bs-target="#modalSua_@thongTin.LichSuID" title="Sửa">
                                                 <i class="fas fa-edit"></i>
-                                            </button>
+                                            </button>*@
                                             <form asp-action="XoaLichSuTrangThai" asp-route-id="@thongTin.LichSuID" method="post" style="display:inline;" onsubmit="return confirm('Xác nhận xóa lịch sử này?');">
                                                 <button type="submit" class="modern-btn btn-delete" title="Xóa">
                                                     <i class="fas fa-trash"></i>
@@ -143,7 +116,8 @@
         </div>
     </div>
 </div>
-@if (thongtin != null)
+
+@*@if (thongtin != null)
 {
         @foreach (var thongTin in thongtin)
         {
@@ -187,7 +161,7 @@
                 </div>
             </div>
         }
-}
+}*@
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

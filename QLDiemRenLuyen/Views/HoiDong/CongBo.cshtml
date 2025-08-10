@@ -2,115 +2,164 @@
     ViewData["Title"] = "Công bố điểm rèn luyện";
     Layout = "~/Views/Shared/_LayoutHoiDong.cshtml";
 }
+<link href="~/css/CongBo.css" rel="stylesheet" />
 
-<h4 class="text-uppercase text-center">Công bố điểm rèn luyện sinh viên</h4>
+<div class="page-header">
+    <h4 class="text-uppercase mb-0">
+        <i class="fas fa-bullhorn me-3"></i>
+        CÔNG BỐ ĐIỂM RÈN LUYỆN SINH VIÊN
+    </h4>
+</div>
 
 <form method="post" asp-action="XuatKetQua" id="formCongBo">
-    <div class="row mt-4">
-        <div class="col-md-3">
-            <label><strong>Chọn loại thống kê</strong></label>
-            <select class="form-control" id="chonLoai" name="loai" required>
-                <option value="">-- Lọc --</option>
-                <option value="CaNhan">Theo cá nhân</option>
-                <option value="Lop">Theo lớp</option>
-                <option value="HocKy">Theo học kỳ</option>
-                <option value="NamHoc">Theo năm học</option>
-            </select>
+    <div class="filter-card">
+        <div class="row">
+            <div class="col-md-3">
+                <label class="form-label">
+                    <i class="fas fa-filter me-2"></i>
+                    <strong>Chọn loại thống kê</strong>
+                </label>
+                <select class="form-select" id="chonLoai" name="loai" required>
+                    <option value="">-- Chọn loại báo cáo --</option>
+                    <option value="CaNhan">
+                        <i class="fas fa-user"></i> Theo cá nhân
+                    </option>
+                    <option value="Lop">
+                        <i class="fas fa-users"></i> Theo lớp
+                    </option>
+                    <option value="HocKy">
+                        <i class="fas fa-calendar"></i> Theo học kỳ
+                    </option>
+                    <option value="NamHoc">
+                        <i class="fas fa-calendar-alt"></i> Theo năm học
+                    </option>
+                </select>
+            </div>
         </div>
 
         <div class="col-md-12" id="chonCaNhan" style="display:none;">
-            <div class="row">
-                <div class="col-md-3">
-                    <label>Mã sinh viên</label>
-                    <input type="text" class="form-control" name="maSinhVien" placeholder="Nhập mã sinh viên..." />
-                </div>
-                <div class="col-md-3">
-                    <label>Học kỳ</label>
-                    <select class="form-control" name="hocKyIdCaNhan">
-                        @foreach (var hk in (ViewBag.HocKys as List<QLDiemRenLuyen.Models.HocKy> ?? new List<QLDiemRenLuyen.Models.HocKy>()))
-                        {
-                            <option value="@hk.HocKyID">@hk.TenHocKy - @hk.NamHoc | @hk.NienKhoa?.TenNienKhoa</option>
-                        }
-                    </select>
+            <div class="dynamic-section">
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">
+                            <i class="fas fa-id-card me-2"></i>
+                            Mã sinh viên
+                        </label>
+                        <input type="text" class="form-control" name="maSinhVien" placeholder="Nhập mã sinh viên..." />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">
+                            <i class="fas fa-calendar me-2"></i>
+                            Học kỳ
+                        </label>
+                        <select class="form-select" name="hocKyIdCaNhan">
+                            @foreach (var hk in (ViewBag.HocKys as List<QLDiemRenLuyen.Models.HocKy> ?? new List<QLDiemRenLuyen.Models.HocKy>()))
+                            {
+                                <option value="@hk.HocKyID">@hk.TenHocKy - @hk.NamHoc | @hk.NienKhoa?.TenNienKhoa</option>
+                            }
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>
 
         <div class="col-md-3" id="chonLop" style="display:none;">
-            <label>Lớp</label>
-            <select class="form-control" name="lopId">
-                @foreach (var l in (List<QLDiemRenLuyen.Models.Lop>)ViewBag.Lops)
-                {
-                    <option value="@l.LopID">@l.TenLop</option>
-                }
-            </select>
+            <div class="dynamic-section">
+                <label class="form-label">
+                    <i class="fas fa-users me-2"></i>
+                    Lớp
+                </label>
+                <select class="form-select" name="lopId">
+                    @foreach (var l in (List<QLDiemRenLuyen.Models.Lop>)ViewBag.Lops)
+                    {
+                        <option value="@l.LopID">@l.TenLop</option>
+                    }
+                </select>
+            </div>
         </div>
 
         <div class="col-md-3" id="chonHocKy" style="display:none;">
-            <label>Học kỳ</label>
-            <select class="form-control" name="hocKyId">
-                @foreach (var hk in (List<QLDiemRenLuyen.Models.HocKy>)ViewBag.HocKys)
-                {
-                    <option value="@hk.HocKyID">@hk.TenHocKy - @hk.NamHoc | @hk.NienKhoa?.TenNienKhoa</option>
-                }
-            </select>
+            <div class="dynamic-section">
+                <label class="form-label">
+                    <i class="fas fa-calendar me-2"></i>
+                    Học kỳ
+                </label>
+                <select class="form-select" name="hocKyId">
+                    @foreach (var hk in (List<QLDiemRenLuyen.Models.HocKy>)ViewBag.HocKys)
+                    {
+                        <option value="@hk.HocKyID">@hk.TenHocKy - @hk.NamHoc | @hk.NienKhoa?.TenNienKhoa</option>
+                    }
+                </select>
+            </div>
         </div>
 
         <div class="col-md-3" id="chonNamHoc" style="display:none;">
-            <label>Năm học</label>
-            <select class="form-control" name="namHoc">
-                @foreach (var nh in (List<string>)ViewBag.NamHocs)
-                {
-                    <option value="@nh">@nh</option>
-                }
-            </select>
+            <div class="dynamic-section">
+                <label class="form-label">
+                    <i class="fas fa-calendar-alt me-2"></i>
+                    Năm học
+                </label>
+                <select class="form-select" name="namHoc">
+                    @foreach (var nh in (List<string>)ViewBag.NamHocs)
+                    {
+                        <option value="@nh">@nh</option>
+                    }
+                </select>
+            </div>
         </div>
     </div>
 
-  @*   <div class="row mt-4 text-center">
-        <div class="col">
-            <label>Chọn định dạng xuất</label><br />
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="dinhDang" value="PDF" required>
-                <label class="form-check-label">PDF</label>
-            </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input" type="radio" name="dinhDang" value="Excel" required>
-                <label class="form-check-label">Excel</label>
-            </div>
-        </div>
-    </div> *@
-
-    <div class="text-center mt-4">
-        <button type="button" class="btn btn-success btn-lg" data-bs-toggle="modal" data-bs-target="#modalExport">
-            <i class="fas fa-bullhorn me-1"></i> Công bố điểm
+    <div class="text-center mb-4">
+        <button type="button" class="btn btn-modern btn-success-modern me-3" data-bs-toggle="modal" data-bs-target="#modalExport">
+            <i class="fas fa-bullhorn me-2"></i> Công bố điểm
+        </button>
+        <button type="button" class="btn btn-modern btn-primary-modern" id="btnXemKetQua">
+            <i class="fas fa-eye me-2"></i> Xem kết quả
         </button>
     </div>
 
-    <div class="text-center mt-4">
-        <button type="button" class="btn btn-primary btn-lg" id="btnXemKetQua">
-            <i class="fas fa-eye me-1"></i> Xem kết quả
-        </button>
-    </div>
-    <div class="mt-5" id="ketQuaContainer">
-        <!-- Bảng kết quả sẽ được load ở đây -->
-        <div class="alert alert-info text-center">Nhấn "Xem kết quả" để hiển thị dữ liệu</div>
+    <div class="result-container" id="ketQuaContainer">
+        <div class="alert-modern text-center">
+            <i class="fas fa-info-circle me-2"></i>
+            Nhấn "Xem kết quả" để hiển thị dữ liệu
+        </div>
     </div>
 </form>
 
 <!-- Modal Export -->
-<div class="modal fade" id="modalExport" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
+<div class="modal fade modal-modern" id="modalExport" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <form method="post" asp-action="XuatFile" target="_blank">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title">Xuất & Gửi file</h5>
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-file-export me-2"></i>
+                        Xuất & Gửi file
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="mb-2">
-                        <label>Chọn định dạng</label><br />
-                        <input type="radio" name="dinhDang" value="PDF" checked /> PDF
-                        <input type="radio" name="dinhDang" value="Excel" class="ms-3" /> Excel
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-file-alt me-2"></i>
+                            Chọn định dạng xuất file
+                        </label>
+                        <div class="radio-group">
+                            <div class="radio-item">
+                                <input type="radio" name="dinhDang" value="PDF" id="radioPDF" checked />
+                                <label for="radioPDF">
+                                    <i class="fas fa-file-pdf text-danger me-1"></i>
+                                    PDF
+                                </label>
+                            </div>
+                            <div class="radio-item">
+                                <input type="radio" name="dinhDang" value="Excel" id="radioExcel" />
+                                <label for="radioExcel">
+                                    <i class="fas fa-file-excel text-success me-1"></i>
+                                    Excel
+                                </label>
+                            </div>
+                        </div>
                     </div>
                     <div class="mb-2">
                         <input type="hidden" name="loai" id="xLoai" />
@@ -121,41 +170,53 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-success">Xuất và gửi</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-modern btn-success-modern">
+                        <i class="fas fa-download me-2"></i>
+                        Xuất và gửi
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>
+                        Đóng
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-
 @section Scripts {
     <script>
         function hienThiBangKetQua(data) {
-            let html = '<table class="table table-bordered text-center">';
-            html += '<thead class="table-success"><tr><th>STT</th><th>Họ tên</th><th>Mã SV</th><th>Lớp</th><th>Học kỳ</th><th>Năm học</th><th>Điểm</th></tr></thead><tbody>';
-
-            data.forEach((p, i) => {
-                html += `<tr>
-                    <td>${i + 1}</td>
-                    <td>${p.sinhVien.hoTen}</td>
-                    <td>${p.sinhVien.maSV}</td>
-                    <td>${p.sinhVien.lop.tenLop}</td>
-                    <td>${p.hocKy.tenHocKy}</td>
-                    <td>${p.hocKy.namHoc}</td>
-                    <td class="fw-bold">${p.tongDiemHoiDongDuyet}</td>
-                </tr>`;
-            });
-
-            html += '</tbody></table>';
-
-            document.getElementById("ketQuaContainer").innerHTML = html;
+            let ketQuaContainer = document.getElementById("ketQuaContainer");
+            if (data && data.length > 0) {
+                let html = '<table class="table table-modern text-center">';
+                html += '<thead><tr><th>STT</th><th>Họ tên</th><th>Mã SV</th><th>Lớp</th><th>Học kỳ</th><th>Năm học</th><th>Điểm</th><th>Xếp loại</th></tr></thead><tbody>';
+                data.forEach((p, i) => {
+                    html += `<tr>
+                        <td>${i + 1}</td>
+                        <td>${p.sinhVien.hoTen}</td>
+                        <td>${p.sinhVien.maSV}</td>
+                        <td>${p.sinhVien.lop.tenLop}</td>
+                        <td>${p.hocKy.tenHocKy}</td>
+                        <td>${p.hocKy.namHoc}</td>
+                        <td class="fw-bold">${p.tongDiemHoiDongDuyet}</td>
+                        <td class="fw-bold">${p.xepLoai || ""}</td>
+                    </tr>`;
+                });
+                html += '</tbody></table>';
+                ketQuaContainer.innerHTML = html;
+            } else {
+                ketQuaContainer.innerHTML = `
+                    <div class="alert-modern text-center alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Không tìm thấy dữ liệu đánh giá cho lựa chọn này.
+                    </div>
+                `;
+            }
         }
 
         document.getElementById("btnXemKetQua").addEventListener("click", function () {
             const formData = new FormData(document.getElementById("formCongBo"));
-
             fetch("/HoiDong/LayKetQuaAjax", {
                 method: "POST",
                 body: formData
@@ -164,27 +225,71 @@
             .then(data => {
                 hienThiBangKetQua(data);
             })
-            .catch(err => alert("Lỗi khi lấy dữ liệu"));
+            .catch(err => {
+                console.error("Lỗi khi lấy dữ liệu:", err);
+                document.getElementById("ketQuaContainer").innerHTML = `
+                    <div class="alert-modern text-center alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        Đã xảy ra lỗi khi lấy dữ liệu. Vui lòng thử lại.
+                    </div>
+                `;
+            });
         });
 
         document.getElementById("chonLoai").addEventListener("change", function () {
             let loai = this.value;
-            document.getElementById("chonCaNhan").style.display = (loai === "CaNhan") ? "block" : "none";
-            document.getElementById("chonLop").style.display = (loai === "Lop") ? "block" : "none";
-            document.getElementById("chonHocKy").style.display = (loai === "HocKy") ? "block" : "none";
-            document.getElementById("chonNamHoc").style.display = (loai === "NamHoc") ? "block" : "none";
+            // Ẩn tất cả các phần tử dynamic-section trước
+            document.getElementById("chonCaNhan").style.display = "none";
+            document.getElementById("chonLop").style.display = "none";
+            document.getElementById("chonHocKy").style.display = "none";
+            document.getElementById("chonNamHoc").style.display = "none";
+
+            // Hiển thị phần tử tương ứng với loại được chọn
+            if (loai === "CaNhan") {
+                document.getElementById("chonCaNhan").style.display = "block";
+            } else if (loai === "Lop") {
+                document.getElementById("chonLop").style.display = "block";
+            } else if (loai === "HocKy") {
+                document.getElementById("chonHocKy").style.display = "block";
+            } else if (loai === "NamHoc") {
+                document.getElementById("chonNamHoc").style.display = "block";
+            }
+
+            // Xóa nội dung trong ketQuaContainer khi thay đổi loại thống kê
+            document.getElementById("ketQuaContainer").innerHTML = `
+                <div class="alert-modern text-center">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Nhấn "Xem kết quả" để hiển thị dữ liệu
+                </div>
+            `;
         });
 
-            document.getElementById("modalExport").addEventListener("show.bs.modal", function () {
+        document.getElementById("modalExport").addEventListener("show.bs.modal", function () {
             const form = document.getElementById("formCongBo");
-
-            // Lấy giá trị từ form chính
             document.getElementById("xLoai").value = form.loai.value;
-            document.getElementById("xLopId").value = form.lopId?.value || "";
-            document.getElementById("xHocKyId").value = form.hocKyId?.value || "";
-            document.getElementById("xNamHoc").value = form.namHoc?.value || "";
-            document.getElementById("xMaSV").value = form.maSinhVien?.value || "";
+            // Sử dụng Optional Chaining (?) để tránh lỗi nếu phần tử không tồn tại
+            document.getElementById("xLopId").value = form.querySelector('[name="lopId"]') ? form.querySelector('[name="lopId"]').value : "";
+            document.getElementById("xHocKyId").value = form.querySelector('[name="hocKyId"]') ? form.querySelector('[name="hocKyId"]').value : "";
+            document.getElementById("xNamHoc").value = form.querySelector('[name="namHoc"]') ? form.querySelector('[name="namHoc"]').value : "";
+            document.getElementById("xMaSV").value = form.querySelector('[name="maSinhVien"]') ? form.querySelector('[name="maSinhVien"]').value : "";
+             // Thêm giá trị học kỳ cho cá nhân vào modal export
+            document.getElementById("xHocKyIdCaNhan").value = form.querySelector('[name="hocKyIdCaNhan"]') ? form.querySelector('[name="hocKyIdCaNhan"]').value : "";
+        });
+
+        // Khởi tạo trạng thái ban đầu khi trang tải
+        document.addEventListener("DOMContentLoaded", function() {
+            // Đảm bảo trạng thái hiển thị ban đầu của các trường lọc
+            const initialLoai = document.getElementById("chonLoai").value;
+            if (initialLoai) {
+                // Kích hoạt sự kiện change để hiển thị đúng phần tử ban đầu nếu có giá trị được chọn sẵn
+                document.getElementById("chonLoai").dispatchEvent(new Event('change'));
+            } else {
+                // Nếu không có giá trị nào được chọn ban đầu, ẩn tất cả các phần tử động
+                document.getElementById("chonCaNhan").style.display = "none";
+                document.getElementById("chonLop").style.display = "none";
+                document.getElementById("chonHocKy").style.display = "none";
+                document.getElementById("chonNamHoc").style.display = "none";
+            }
         });
     </script>
 }
-

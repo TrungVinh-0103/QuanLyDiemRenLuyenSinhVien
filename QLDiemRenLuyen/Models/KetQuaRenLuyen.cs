@@ -37,5 +37,6 @@ namespace QLDiemRenLuyen.Models
 
         [ForeignKey("XepLoaiID")]
         public CauHinhXepLoai? XepLoai { get; set; }
+
     }
 }

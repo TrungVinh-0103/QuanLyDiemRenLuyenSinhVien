@@ -150,7 +150,7 @@ namespace QLDiemRenLuyen.Controllers
             var tieuChiList = _context.TieuChi.ToList();
             var nhomTieuChiList = _context.NhomTieuChi.ToDictionary(n => n.NhomTieuChiID, n => n.DiemToiDa);
 
-            // ✅ Gom điểm theo từng nhóm tiêu chí
+            // Gom điểm theo từng nhóm tiêu chí
             var tongTheoNhom = new Dictionary<int, int>();
 
             foreach (var ct in chitiet)
@@ -171,7 +171,7 @@ namespace QLDiemRenLuyen.Controllers
                 }
             }
 
-            // ✅ Tổng điểm được tính theo nhóm có giới hạn
+            // Tổng điểm được tính theo nhóm có giới hạn
             int tongDiem = 0;
             foreach (var kv in tongTheoNhom)
             {
@@ -206,7 +206,7 @@ namespace QLDiemRenLuyen.Controllers
                 };
 
                 _context.KetQuaRenLuyen.Add(ketQua);
-                await _context.SaveChangesAsync(); // ✅ LƯU DỮ LIỆU KẾT QUẢ VÀO DB
+                await _context.SaveChangesAsync(); // LƯU DỮ LIỆU KẾT QUẢ VÀO DB
             }
 
             //_context.SaveChanges();
@@ -241,6 +241,7 @@ namespace QLDiemRenLuyen.Controllers
         }
 
         //Công bố kết quả rên luyện
+        // Action cho trang CongBo
         public IActionResult CongBo()
         {
             int? nhanVienID = HttpContext.Session.GetInt32("NhanVienID");
@@ -253,20 +254,6 @@ namespace QLDiemRenLuyen.Controllers
 
             int khoaID = giaoVien.KhoaID ?? 0;
 
-
-            //ViewBag.Lops = _context.Lop
-            //    .Include(k => k.Khoa)
-            //    .Where(l => l.KhoaID == giaoVien!.KhoaID)
-            //    .ToList();
-            //ViewBag.HocKys = _context.HocKy
-            //    .Include(h => h.NienKhoa)
-            //    .Where(h => h.NienKhoa!.NienKhoaID == giaoVien!.NienKhoa!.NienKhoaID)
-            //    .ToList();
-            //ViewBag.NamHocs = _context.HocKy.Select(h => h.NamHoc).Distinct().ToList();
-            //ViewBag.SinhViens = _context.SinhVien
-            //    .Include(l => l.Lop)
-            //    .Where(sv => sv.KhoaID == giaoVien.KhoaID)
-            //    .ToList();
             ViewBag.Lops = _context.Lop
                 .Where(l => l.KhoaID == khoaID)
                 .ToList();
@@ -277,10 +264,18 @@ namespace QLDiemRenLuyen.Controllers
                 .ToList();
 
             ViewBag.HocKys = _context.HocKy.Include(h => h.NienKhoa).ToList();
-            ViewBag.NamHocs = _context.HocKy.Select(h => h.NamHoc).Distinct().ToList();
+
+            // Đảm bảo rằng ViewBag.NamHocs lấy các chuỗi năm học duy nhất
+            // và trả về dưới dạng List<string>
+            ViewBag.NamHocs = _context.HocKy
+                .Select(h => h.NamHoc)
+                .Distinct()
+                .OrderBy(nh => nh) // Sắp xếp để hiển thị đẹp hơn
+                .ToList();
 
             return View();
         }
+
         [HttpPost]
         public IActionResult XuatKetQua(string loai, int? lopId, int? hocKyId, string? namHoc, string? hoTen, string? maSinhVien, string dinhDang)
         {
@@ -328,54 +323,101 @@ namespace QLDiemRenLuyen.Controllers
         }
 
         [HttpPost]
-        public JsonResult LayKetQuaAjax(string loai, int? lopId, int? hocKyId, string? hoTen, string? maSinhVien)
+        public IActionResult LayKetQuaAjax(string loai, string maSinhVien, int? hocKyIdCaNhan, int? lopId, int? hocKyId, string namHoc)
         {
+            // Lấy KhoaID của người dùng đang đăng nhập (Hội đồng)
             int? nhanVienID = HttpContext.Session.GetInt32("NhanVienID");
             if (nhanVienID == null)
-                return Json(new { error = "Không xác định nhân viên" });
+            {
+                return Json(new { success = false, message = "Bạn cần đăng nhập." });
+            }
 
             var giaoVien = _context.NhanVien.Include(g => g.Khoa)
                 .FirstOrDefault(g => g.NhanVienID == nhanVienID);
-            if (giaoVien == null)
-                return Json(new { error = "Không tìm thấy nhân viên" });
 
-            int khoaID = giaoVien.KhoaID ?? 0;
-
-            var query = _context.PhieuDanhGia
-                .Include(p => p.SinhVien).ThenInclude(s => s!.Lop)
-                .Include(p => p.HocKy)
-                .Where(p => p.TrangThaiDanhGiaID == 5 &&
-                            p.SinhVien!.KhoaID == khoaID);
-
-            if (loai == "CaNhan")
+            if (giaoVien == null || giaoVien.KhoaID == null)
             {
-                if (!string.IsNullOrEmpty(maSinhVien))
-                    query = query.Where(p => p.SinhVien!.MaSV.Contains(maSinhVien));
-                if (hocKyId.HasValue)
-                    query = query.Where(p => p.HocKyID == hocKyId);
+                return Json(new { success = false, message = "Không tìm thấy thông tin khoa của người dùng." });
             }
-            else if (loai == "Lop" && lopId.HasValue)
-                query = query.Where(p => p.SinhVien!.LopID == lopId);
-            else if (loai == "HocKy" && hocKyId.HasValue)
-                query = query.Where(p => p.HocKyID == hocKyId);
 
-            var ds = query.Select(p => new
+            int khoaID = giaoVien.KhoaID.Value;
+
+            IQueryable<KetQuaRenLuyen> query = _context.KetQuaRenLuyen
+                .Include(kq => kq.SinhVien)
+                    .ThenInclude(sv => sv!.Lop)
+                .Include(kq => kq.HocKy)
+                    .ThenInclude(hk => hk!.NienKhoa)
+                .Include(kq => kq.XepLoai)
+                .Where(kq => kq.SinhVien!.KhoaID == khoaID); // Lọc theo khoa của Hội đồng
+
+            // Áp dụng logic lọc dựa trên 'loai'
+            switch (loai)
             {
+                case "CaNhan":
+                    if (!string.IsNullOrEmpty(maSinhVien))
+                    {
+                        query = query.Where(kq => kq.SinhVien!.MaSV == maSinhVien);
+                    }
+                    if (hocKyIdCaNhan.HasValue)
+                    {
+                        query = query.Where(kq => kq.HocKyID == hocKyIdCaNhan.Value);
+                    }
+                    break;
+                case "Lop":
+                    if (lopId.HasValue)
+                    {
+                        query = query.Where(kq => kq.SinhVien!.LopID == lopId.Value);
+                    }
+                    break;
+                case "HocKy":
+                    if (hocKyId.HasValue)
+                    {
+                        query = query.Where(kq => kq.HocKyID == hocKyId.Value);
+                    }
+                    break;
+                case "NamHoc":
+                    if (!string.IsNullOrEmpty(namHoc))
+                    {
+                        // Đây là phần quan trọng cần sửa: Lọc chính xác theo chuỗi năm học "2024-2025"
+                        query = query.Where(kq => kq.HocKy!.NamHoc == namHoc);
+                    }
+                    break;
+                default:
+                    // Mặc định hoặc không có lựa chọn nào, có thể trả về rỗng hoặc thông báo
+                    query = query.Where(kq => false); // Không trả về kết quả nào nếu không có loại lọc hợp lệ
+                    break;
+            }
+
+            var ketQua = query.OrderBy(kq => kq.SinhVien!.MaSV).ToList();
+
+            // Lấy TenXepLoai từ bảng CauHinhXepLoai
+            var result = ketQua.Select(p => new
+            {
+                p.SinhVienID,
+                p.HocKyID,
                 p.TongDiemHoiDongDuyet,
                 SinhVien = new
                 {
-                    p.SinhVien!.HoTen,
-                    p.SinhVien.MaSV,
-                    Lop = new { p.SinhVien.Lop!.TenLop }
+                    p.SinhVien?.HoTen,
+                    p.SinhVien?.MaSV,
+                    Lop = new { p.SinhVien?.Lop?.TenLop }
                 },
                 HocKy = new
                 {
-                    p.HocKy!.TenHocKy,
-                    p.HocKy.NamHoc
-                }
+                    p.HocKy?.TenHocKy,
+                    p.HocKy?.NamHoc // Đảm bảo NamHoc được trả về
+                },
+                XepLoai = p.XepLoai?.TenXepLoai // Lấy tên xếp loại
             }).ToList();
 
-            return Json(ds);
+            if (!result.Any() && loai == "NamHoc" && !string.IsNullOrEmpty(namHoc))
+            {
+                // Có thể thêm một log hoặc debug ở đây để kiểm tra giá trị namHoc nhận được
+                // và các bản ghi trong database.
+                Console.WriteLine($"Không tìm thấy dữ liệu cho năm học: {namHoc}");
+            }
+
+            return Json(result);
         }
 
         public IActionResult KetQuaPartial(List<PhieuDanhGia> ds)
@@ -403,6 +445,7 @@ namespace QLDiemRenLuyen.Controllers
                             columns.RelativeColumn();
                             columns.RelativeColumn();
                             columns.RelativeColumn();
+                            columns.RelativeColumn();
                         });
 
                         table.Header(header =>
@@ -413,6 +456,7 @@ namespace QLDiemRenLuyen.Controllers
                             header.Cell().Element(CellStyle).Text("Lớp");
                             header.Cell().Element(CellStyle).Text("Học kỳ");
                             header.Cell().Element(CellStyle).Text("Điểm");
+                            header.Cell().Element(CellStyle).Text("Xếp loại");
 
                             static IContainer CellStyle(IContainer container) =>
                                 container.DefaultTextStyle(x => x.SemiBold()).Padding(2).Background("#EEE");
@@ -437,6 +481,8 @@ namespace QLDiemRenLuyen.Controllers
             return stream.ToArray();
         }
 
+        
+
         private byte[] TaoFileExcel(List<PhieuDanhGia> ds, out string fileName)
         {
             fileName = "KetQuaRenLuyen.xlsx";
@@ -459,6 +505,7 @@ namespace QLDiemRenLuyen.Controllers
             sheet.Cells[2, 4].Value = "Lớp";
             sheet.Cells[2, 5].Value = "Học kỳ";
             sheet.Cells[2, 6].Value = "Điểm";
+            sheet.Cells[2, 7].Value = "XepLoai";
 
             int row = 3;
             int index = 1;
@@ -470,6 +517,10 @@ namespace QLDiemRenLuyen.Controllers
                 sheet.Cells[row, 4].Value = p.SinhVien?.Lop?.TenLop;
                 sheet.Cells[row, 5].Value = $"{p.HocKy?.TenHocKy} - {p.HocKy?.NamHoc}";
                 sheet.Cells[row, 6].Value = p.TongDiemHoiDongDuyet;
+                sheet.Cells[row, 7].Value = p.KetQuaRenLuyen?
+                    .OrderByDescending(kq => kq.NgayCapNhat)
+                    .Select(kq => kq.XepLoai?.TenXepLoai)
+                    .FirstOrDefault() ?? "Chưa xếp loại";
                 row++;
             }
 

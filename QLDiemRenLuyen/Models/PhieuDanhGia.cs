@@ -36,6 +36,8 @@ namespace QLDiemRenLuyen.Models
 
         [ForeignKey("TrangThaiDanhGiaID")]
         public CauHinhTrangThaiDanhGia? TrangThaiDanhGia { get; set; }
+        [InverseProperty("PhieuDanhGia")]
+        public ICollection<KetQuaRenLuyen> KetQuaRenLuyen { get; set; } = new List<KetQuaRenLuyen>();
 
     }
 }

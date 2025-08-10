@@ -17,7 +17,7 @@ namespace QLDiemRenLuyen.Controllers
             _context = context;
         }
 
-        // 🔒 Giả định có session chứa NhanVienID sau khi đăng nhập
+        // Giả định có session chứa NhanVienID sau khi đăng nhập
         private int GetNhanVienID()
         {
             return HttpContext.Session.GetInt32("NhanVienID") ?? 0;
@@ -25,10 +25,6 @@ namespace QLDiemRenLuyen.Controllers
         // Trang chính GVCN
         public IActionResult Index()
         {
-            // Giả sử lấy GVCN theo session (ví dụ hardcode NhanVienID = 1)
-            //var giaoVien = _context.NhanVien.Include(k => k.Khoa).FirstOrDefault(g => g.NhanVienID == 1);
-            //ViewBag.GiaoVien = giaoVien;
-            //return View();
             int nhanVienID = GetNhanVienID();
             var giaoVien = _context.NhanVien.Include(k => k.Khoa)
                 .FirstOrDefault(g => g.NhanVienID == nhanVienID);
@@ -98,7 +94,7 @@ namespace QLDiemRenLuyen.Controllers
                 .Where(c => c.PhieuDanhGiaID == id)
                 .ToList();
 
-            // ✅ Tính tổng điểm sinh viên tự đánh giá
+            // Tính tổng điểm sinh viên tự đánh giá
             int tongDiemSV = chiTietPhieu.Sum(c => c.DiemTuDanhGia);
 
             var vm = new TuDanhGiaViewModel
@@ -129,11 +125,11 @@ namespace QLDiemRenLuyen.Controllers
             var chitiet = _context.ChiTietPhieuDanhGia
                             .Where(c => c.PhieuDanhGiaID == vm.PhieuDanhGiaID).ToList();
 
-            // ✅ Gom nhóm tiêu chí theo nhóm tiêu chí
+            // Gom nhóm tiêu chí theo nhóm tiêu chí
             var tieuChiList = _context.TieuChi.ToList();
             var nhomTieuChiList = _context.NhomTieuChi.ToDictionary(n => n.NhomTieuChiID, n => n.DiemToiDa);
 
-            // ✅ Gom điểm theo nhóm
+            // Gom điểm theo nhóm
             var tongTheoNhom = new Dictionary<int, int>();
 
             foreach (var ct in chitiet)
@@ -154,14 +150,14 @@ namespace QLDiemRenLuyen.Controllers
                 }
             }
 
-            // ✅ Tính tổng điểm GVCN duyệt (có giới hạn theo từng nhóm)
+            // Tính tổng điểm GVCN duyệt (có giới hạn theo từng nhóm)
             int tongDiem = 0;
             foreach (var kv in tongTheoNhom)
             {
                 int nhomID = kv.Key;
                 int diemNhom = kv.Value;
                 int gioiHan = nhomTieuChiList.ContainsKey(nhomID) ? nhomTieuChiList[nhomID] : diemNhom;
-                tongDiem += Math.Min(diemNhom, gioiHan); // ✅ Áp giới hạn ở đây
+                tongDiem += Math.Min(diemNhom, gioiHan); // Áp giới hạn ở đây
             }
 
             // Cập nhật phiếu

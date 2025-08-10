@@ -19,29 +19,11 @@
                 Quản Lý Phiếu Đánh Giá
             </h1>
 
-            <div class="row mb-4">
-                <div class="col-md-3">
+            <div class="row mb-3">
+                <div class="col-md-12">
                     <div class="stats-card">
                         <div class="stats-number">@(Model?.Count ?? 0)</div>
                         <div class="text-muted">Tổng phiếu</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stats-card">
-                        <div class="stats-number">@(Model?.Count(x => x.TongDiemTuDanhGia.HasValue) ?? 0)</div>
-                        <div class="text-muted">Đã tự đánh giá</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stats-card">
-                        <div class="stats-number">@(Model?.Count(x => x.TongDiemGiaoVienDeXuat.HasValue) ?? 0)</div>
-                        <div class="text-muted">GV đã đề xuất</div>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="stats-card">
-                        <div class="stats-number">@(Model?.Count(x => x.TongDiemHoiDongDuyet.HasValue) ?? 0)</div>
-                        <div class="text-muted">HĐ đã duyệt</div>
                     </div>
                 </div>
             </div>

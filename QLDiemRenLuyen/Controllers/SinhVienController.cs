@@ -41,7 +41,7 @@ namespace QLDiemRenLuyen.Controllers
 
             if (sinhVien == null) return RedirectToAction("Index");
 
-            // ✅ Nếu trạng thái là "Đã nghỉ" hoặc "Bảo lưu" → chặn
+            //Nếu trạng thái là "Đã nghỉ" hoặc "Bảo lưu" thì chặn
             if (sinhVien.TrangThai?.TenTrangThai == "Đã nghỉ" || sinhVien.TrangThai?.TenTrangThai == "Bảo lưu")
             {
                 TempData["Loi"] = "Bạn không thể làm bài đánh giá rèn luyện.";
@@ -133,16 +133,16 @@ namespace QLDiemRenLuyen.Controllers
                 });
             }
 
-            // ✅ Tính tổng điểm = tổng từng nhóm (giới hạn theo DiemToiDa nếu vượt)
+            //  Tính tổng điểm = tổng từng nhóm (giới hạn theo DiemToiDa nếu vượt)
             int tongDiem = 0;
             foreach (var nhomId in tongTheoNhom.Keys)
             {
                 int diemNhom = tongTheoNhom[nhomId];
                 int gioiHan = gioiHanTheoNhom[nhomId];
-                tongDiem += Math.Min(diemNhom, gioiHan); // ✅ áp giới hạn tại tổng
+                tongDiem += Math.Min(diemNhom, gioiHan); //  áp giới hạn tại tổng
             }
 
-            // ✅ Tạo và lưu phiếu
+            //  Tạo và lưu phiếu
             var phieu = new PhieuDanhGia
             {
                 SinhVienID = sinhVienID,
@@ -155,7 +155,7 @@ namespace QLDiemRenLuyen.Controllers
             _context.PhieuDanhGia.Add(phieu);
             await _context.SaveChangesAsync();
 
-            // ✅ Gán ID phiếu cho các chi tiết
+            //  Gán ID phiếu cho các chi tiết
             foreach (var ct in chiTietPhieuList)
             {
                 ct.PhieuDanhGiaID = phieu.PhieuDanhGiaID;

@@ -176,7 +176,7 @@
 .modern-form-control {
     border: 2px solid #e0e0e0;
     border-radius: 8px;
-    padding: 8px 12px;
+    padding: 10px 12px;
     font-size: 0.85rem;
     transition: all 0.3s ease;
     background: white;
@@ -232,6 +232,22 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
+
+.search-box {
+    background: white;
+    border-radius: 20px;
+    padding: 12px 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border: 2px solid #e0e0e0;
+    transition: all 0.3s ease;
+    font-size: 0.85rem;
+}
+
+    .search-box:focus {
+        border-color: #f093fb;
+        box-shadow: 0 4px 15px rgba(240, 147, 251, 0.3);
+        outline: none;
+    }
 
 @keyframes fadeInUp {
     from {

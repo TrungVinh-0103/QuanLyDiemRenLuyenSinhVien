@@ -89,12 +89,6 @@ CREATE TABLE SinhVien (
     NgayCapNhatTrangThai DATE DEFAULT GETDATE()
 );
 
--- Bảng Chức vụ (Mới được thêm vào)
---CREATE TABLE ChucVu (
---    ChucVuID INT PRIMARY KEY IDENTITY(1,1),
---    TenChucVu NVARCHAR(50) NOT NULL UNIQUE,
---);
-
 -- Bảng Nhân viên (đã được sửa đổi để dùng ChucVuID)
 CREATE TABLE NhanVien (
     NhanVienID INT PRIMARY KEY IDENTITY(1,1),
@@ -267,7 +261,7 @@ DECLARE @gvcnVaiTroID INT = (SELECT VaiTroID FROM CauHinhVaiTro WHERE TenVaiTro 
 INSERT INTO NhanVien (MaNV, HoTen, KhoaID, VaiTroID) VALUES
 (N'GV001', N'Lê Thị C', 1, @gvcnVaiTroID);
 
-DECLARE @hdVaiTroID INT = (SELECT ChucVuID FROM ChucVu WHERE TenVaiTro = N'Hội đồng');
+DECLARE @hdVaiTroID INT = (SELECT VaiTroID FROM CauHinhVaiTro WHERE TenVaiTro = N'Hội đồng');
 INSERT INTO NhanVien (MaNV, HoTen, KhoaID, VaiTroID) VALUES
 (N'HD001', N'Phạm Văn D', 1, @hdVaiTroID); -- Hội đồng có thể không thuộc khoa cụ thể
 

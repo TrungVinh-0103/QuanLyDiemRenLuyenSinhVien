@@ -18,9 +18,9 @@
 body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
     min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex; /* Bật Flexbox cho body */
+    align-items: center; /* Căn giữa theo chiều dọc */
+    justify-content: center; /* Căn giữa theo chiều ngang */
     position: relative;
     overflow-x: hidden;
 }
@@ -114,6 +114,7 @@ body {
     animation: slideInUp 0.8s ease;
     position: relative;
     overflow: hidden;
+    /* Loại bỏ margin: auto; nếu có, vì flexbox của body đã xử lý căn giữa */
 }
 
     .login-container::before {

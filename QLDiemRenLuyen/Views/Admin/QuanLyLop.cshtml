@@ -50,6 +50,28 @@
             }
 
             <div class="row mb-4">
+                <div class="col-md-8">
+                    <form asp-action="UploadExcelLop" asp-controller="Admin" method="post" enctype="multipart/form-data" class="d-flex align-items-center">
+                        <div class="input-group flex-grow-1 me-3">
+                            <input type="file" name="file" id="customFileLop" class="d-none" accept=".xlsx,.xls" required>
+
+                            <label class="btn btn-outline-secondary d-flex align-items-center" for="customFileLop">
+                                <i class="fas fa-folder-open me-2"></i> <span id="fileNameDisplayLop">Chọn File...</span>
+                            </label>
+
+                            <input type="text" class="form-control" placeholder="Chưa có tệp nào được chọn" aria-label="Tên tệp" readonly id="fileTextDisplayLop">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary"
+                                data-bs-toggle="tooltip" data-bs-placement="top"
+                                title="File Excel phải bao gồm các cột: Tên Lớp, Tên Khoa, Tên Niên Khóa">
+                            <i class="fas fa-upload me-2"></i> Tải lên thông tin Lớp
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="row mb-3">
                 <div class="col-md-6">
                     <input type="text" class="form-control search-box" placeholder="Tìm kiếm lớp..." id="searchInput">
                 </div>
@@ -273,6 +295,22 @@
                     alert('Vui lòng điền đầy đủ thông tin bắt buộc!');
                 }
             });
+        });
+
+            // Khởi tạo tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+
+        // Xử lý hiển thị tên file khi chọn cho phần Lớp
+        document.getElementById('customFileLop').addEventListener('change', function(e) {
+            var fileName = e.target.files[0] ? e.target.files[0].name : 'Chọn File...';
+            document.getElementById('fileNameDisplayLop').textContent = fileName;
+            document.getElementById('fileTextDisplayLop').value = e.target.files[0] ? e.target.files[0].name : '';
+            if (!e.target.files[0]) {
+                document.getElementById('fileTextDisplayLop').placeholder = 'Chưa có tệp nào được chọn';
+            }
         });
     </script>
 }

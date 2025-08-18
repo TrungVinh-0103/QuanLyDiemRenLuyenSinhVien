@@ -7,7 +7,7 @@
     var hocKys = ViewBag.HocKys as List<HocKy> ?? new();
 }
 
-<link href="~/css/QuanLyChuNhiem.css" rel="stylesheet" />
+<link href="~/css/QLChuNhiem.css" rel="stylesheet" />
 
 <div class="admin-container">
     <div class="container-fluid">
@@ -40,8 +40,33 @@
             }
 
             <!-- Actions -->
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <form asp-action="UploadExcelChuNhiem" asp-controller="Admin" method="post" enctype="multipart/form-data" class="d-flex align-items-center">
+                        <div class="input-group flex-grow-1 me-3">
+                            <input type="file" name="file" id="customFileChuNhiem" class="d-none" accept=".xlsx,.xls" required>
+
+                            <label class="btn btn-outline-secondary d-flex align-items-center" for="customFileChuNhiem">
+                                <i class="fas fa-folder-open me-2"></i> <span id="fileNameDisplayChuNhiem">Chọn File...</span>
+                            </label>
+
+                            <input type="text" class="form-control" placeholder="Chưa có tệp nào được chọn" aria-label="Tên tệp" readonly id="fileTextDisplayChuNhiem">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary"
+                                data-bs-toggle="tooltip" data-bs-placement="top"
+                                title="File Excel phải bao gồm các cột: HoTen, TenLop, TenHocKy, GhiChu">
+                            <i class="fas fa-upload me-2"></i> Tải lên thông tin Chủ nhiệm
+                        </button>
+                    </form>
+                </div>
+            </div>
+
             <div class="row mb-3">
-                <div class="col-md-12 text-end">
+                <div class="col-md-6">
+                    <input type="text" class="form-control search-box" placeholder="Tìm kiếm chủ nhiệm..." id="searchInput">
+                </div>
+                <div class="col-md-6 text-end">
                     <button class="modern-btn btn-add" data-bs-toggle="modal" data-bs-target="#modalThem">
                         <i class="fas fa-plus me-1"></i>Thêm Chủ Nhiệm
                     </button>
@@ -270,9 +295,35 @@
         </div>
     }
 }
+
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            const tableRows = document.querySelectorAll('.modern-table tbody tr');
+
+            tableRows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                    row.style.animation = 'fadeIn 0.3s ease';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        });
+
+        // Animation for table rows
+        document.addEventListener('DOMContentLoaded', function() {
+            const rows = document.querySelectorAll('.modern-table tbody tr');
+            rows.forEach((row, index) => {
+                row.style.animationDelay = `${index * 0.1}s`;
+                row.classList.add('animate__animated', 'animate__fadeInUp');
+            });
+        });
+
         // Form validation
         document.querySelectorAll('form').forEach(form => {
             form.addEventListener('submit', function(e) {
@@ -293,6 +344,22 @@
                     alert('Vui lòng điền đầy đủ thông tin bắt buộc!');
                 }
             });
+        });
+
+            // Khởi tạo tooltips (đảm bảo script này chỉ chạy một lần trên trang nếu có nhiều tooltip)
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+
+        // Xử lý hiển thị tên file khi chọn cho phần Chủ nhiệm
+        document.getElementById('customFileChuNhiem').addEventListener('change', function(e) {
+            var fileName = e.target.files[0] ? e.target.files[0].name : 'Chọn File...';
+            document.getElementById('fileNameDisplayChuNhiem').textContent = fileName;
+            document.getElementById('fileTextDisplayChuNhiem').value = e.target.files[0] ? e.target.files[0].name : '';
+            if (!e.target.files[0]) {
+                document.getElementById('fileTextDisplayChuNhiem').placeholder = 'Chưa có tệp nào được chọn';
+            }
         });
     </script>
 }

@@ -39,18 +39,11 @@
                 </div>
             </div>
 
-            @if (TempData["Success"] != null)
+            @if (TempData["ThanhCong"] != null)
             {
                 <div class="alert alert-success-modern alert-modern">
                     <i class="fas fa-check-circle me-2"></i>
-                    @TempData["Success"]
-                </div>
-            }
-            @if (TempData["Error"] != null)
-            {
-                <div class="alert alert-danger-modern alert-modern">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    @TempData["Error"]
+                    @TempData["ThanhCong"]
                 </div>
             }
             @if (TempData["Loi"] != null)
@@ -61,13 +54,49 @@
                 </div>
             }
 
+            <!-- Phần upload Excel -->
+            @*<div class="row mb-4">
+                <div class="col-md-6">
+                    <form asp-action="UploadExcelSinhVien" method="post" enctype="multipart/form-data" class="d-inline">
+                        <div class="input-group">
+                            <input type="file" name="file" id="file" class="form-control" accept=".xlsx,.xls" required />
+                            <div style="margin-left: 0.8rem"></div>
+                            <button type="submit" class="modern-btn btn-add" title="File Excel phải bao gồm các cột: Mã SV, Họ tên, Giới tính, Ngày sinh, Nơi sinh, Khoa, Lớp, Trạng thái">
+                                <i class="fas fa-upload me-2"></i>Tải lên thông tin Sinh viên
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>*@
             <div class="row mb-4">
+                <div class="col-md-8">
+                    <form asp-action="UploadExcelSinhVien" method="post" enctype="multipart/form-data" class="d-flex align-items-center">
+                        <div class="input-group flex-grow-1 me-3">
+                            <input type="file" name="file" id="customFile" class="d-none" accept=".xlsx,.xls" required>
+
+                            <label class="btn btn-outline-secondary d-flex align-items-center" for="customFile">
+                                <i class="fas fa-folder-open me-2"></i> <span id="fileNameDisplay">Chọn File...</span>
+                            </label>
+
+                            <input type="text" class="form-control" placeholder="Chưa có tệp nào được chọn" aria-label="Tên tệp" readonly id="fileTextDisplay">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary"
+                                data-bs-toggle="tooltip" data-bs-placement="top"
+                                title="File Excel phải bao gồm các cột: Mã SV, Họ tên, Giới tính, Ngày sinh, Nơi sinh, Khoa, Lớp, Trạng thái">
+                            <i class="fas fa-upload me-2"></i> Tải lên thông tin Sinh viên
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="row mb-3">
                 <div class="col-md-6">
                     <input type="text" class="form-control search-box" placeholder="Tìm kiếm sinh viên..." id="searchInput">
                 </div>
                 <div class="col-md-6 text-end">
                     <button class="modern-btn btn-add" data-bs-toggle="modal" data-bs-target="#modalThem">
-                        <i class="fas fa-plus me-2"></i>Thêm Sinh Viên
+                        <i class="fas fa-plus me-1"></i>Thêm Sinh Viên
                     </button>
                 </div>
             </div>
@@ -354,7 +383,6 @@
         </div>
     }
 }
-
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
     <script>
@@ -413,6 +441,22 @@
                     alert('Vui lòng điền đầy đủ thông tin bắt buộc!');
                 }
             });
+        });
+
+            // Khởi tạo tooltips
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        })
+
+        // Xử lý hiển thị tên file khi chọn
+        document.getElementById('customFile').addEventListener('change', function(e) {
+            var fileName = e.target.files[0] ? e.target.files[0].name : 'Chọn File...';
+            document.getElementById('fileNameDisplay').textContent = fileName;
+            document.getElementById('fileTextDisplay').value = e.target.files[0] ? e.target.files[0].name : '';
+            if (!e.target.files[0]) {
+                document.getElementById('fileTextDisplay').placeholder = 'Chưa có tệp nào được chọn';
+            }
         });
     </script>
 }

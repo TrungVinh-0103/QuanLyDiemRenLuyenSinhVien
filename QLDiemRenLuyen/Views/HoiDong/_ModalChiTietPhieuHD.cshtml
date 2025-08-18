@@ -1,0 +1,108 @@
+﻿@model QLDiemRenLuyen.ViewModels.TuDanhGiaViewModel
+@{
+    var nhomTieuChis = Model.NhomTieuChi;
+    var chiTiet = Model.ChiTietPhieu ?? new List<ChiTietPhieuDanhGia>();
+}
+<div class="modal-header bg-primary text-white">
+    <h5 class="modal-title">Chi tiết phiếu - Hội đồng</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+<div class="modal-body">
+    <p>
+        <strong>Sinh viên:</strong> @ViewBag.SinhVien?.HoTen (@ViewBag.SinhVien?.MaSV) -
+        <strong>Lớp:</strong> @ViewBag.SinhVien?.Lop?.TenLop
+    </p>
+    <p><strong>Học kỳ:</strong> @ViewBag.HocKy?.TenHocKy - @ViewBag.HocKy?.NamHoc</p>
+
+    <form id="formCapNhatDiemHD">
+        <input type="hidden" name="phieuDanhGiaId" value="@Model.PhieuDanhGiaID" />
+        @if (nhomTieuChis != null)
+        {
+            @foreach (var nhom in nhomTieuChis)
+            {
+                var ctNhom = chiTiet.Where(c => nhom.TieuChi!.Any(t => t.TieuChiID == c.TieuChiID)).ToList();
+                var tongSV = ctNhom.Sum(c => c.DiemTuDanhGia ?? 0);
+                var tongGV = ctNhom.Sum(c => c.DiemGiaoVienDeXuat ?? 0);
+                var tongHD = ctNhom.Sum(c => c.DiemHoiDongDuyet ?? 0);
+
+                <div class="card mt-3 nhom-tc" data-diem-toi-da="@nhom.DiemToiDa">
+                    <div class="card-header bg-info text-white">
+                        @nhom.TenNhom (Tối đa: @nhom.DiemToiDa)
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-bordered text-center">
+                            <thead>
+                                <tr>
+                                    <th>Nội dung</th>
+                                    <th>SV tự đánh giá</th>
+                                    <th>GVCN đề xuất</th>
+                                    <th>HĐ duyệt</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (nhom.TieuChi != null)
+                                {
+                                    foreach (var tc in nhom.TieuChi)
+                                    {
+                                        var ct = chiTiet.FirstOrDefault(x => x.TieuChiID == tc.TieuChiID);
+                                        <tr>
+                                            <td class="text-start">@tc.TenTieuChi</td>
+                                            <td>
+                                                <input type="number" class="form-control text-center"
+                                                       value="@(ct?.DiemTuDanhGia ?? 0)" readonly />
+                                            </td>
+                                            <td>
+                                                <input type="number" class="form-control text-center"
+                                                       value="@(ct?.DiemGiaoVienDeXuat ?? 0)" readonly />
+                                            </td>
+                                            <td>
+                                                <input type="number" class="form-control text-center diem-hd"
+                                                       name="diemMoi[@tc.TieuChiID]"
+                                                       value="@(ct?.DiemHoiDongDuyet ?? 0)"
+                                                       min="0" max="@tc.DiemToiDa" />
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr class="fw-bold">
+                                    <td>Tổng nhóm</td>
+                                    <td class="tong-nhom-sv">@tongSV</td>
+                                    <td class="tong-nhom-gv">@tongGV</td>
+                                    <td class="tong-nhom-hd">@tongHD</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            }
+        }
+        <div class="card shadow-sm mt-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Tổng điểm toàn phiếu</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap justify-content-around align-items-center">
+                    <p class="mb-2 mx-2 fs-5">
+                        Tổng điểm <span class="fw-bold text-success">Sinh viên</span>:
+                        <span id="tong-sv" class="fw-bold text-success">@Model.TongDiemTuDanhGia</span>
+                    </p>
+                    <p class="mb-2 mx-2 fs-5">
+                        Tổng điểm <span class="fw-bold text-info">Giáo viên</span>:
+                        <span id="tong-gv" class="fw-bold text-info">@Model.TongDiemGiaoVienDeXuat</span>
+                    </p>
+                    <p class="mb-0 mx-2 fs-5">
+                        Tổng điểm <span class="fw-bold text-danger">Hội đồng</span>:
+                        <span id="tong-hd" class="fw-bold text-danger">@Model.TongDiemHoiDongDuyet</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+    <button type="button" id="btnLuuHD" class="btn btn-success">Lưu thay đổi</button>
+</div>
+

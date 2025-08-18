@@ -26,6 +26,43 @@
     text-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
+/*.search-box {
+    background: white;
+    border-radius: 20px;
+    padding: 12px 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    border: 2px solid #e0e0e0;
+    transition: all 0.3s ease;
+    font-size: 0.85rem;
+}
+
+    .search-box:focus {
+        border-color: #f093fb;
+        box-shadow: 0 4px 15px rgba(240, 147, 251, 0.3);
+        outline: none;
+    }*/
+/* Cải tiến thanh tìm kiếm */
+.search-container {
+    position: relative;
+    width: 100%;
+}
+
+.search-box {
+    background: white;
+    border-radius: 25px;
+    padding: 15px 25px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e0e0e0;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    width: 100%;
+}
+
+    .search-box:focus {
+        border-color: #4facfe;
+        box-shadow: 0 5px 20px rgba(79, 172, 254, 0.3);
+        outline: none;
+    }
 .modern-table {
     background: white;
     border-radius: 15px;
@@ -67,12 +104,15 @@
 
 .modern-btn {
     border: none;
-    border-radius: 10px;
-    padding: 8px 16px;
-    font-size: 0.875rem;
+    border-radius: 25px;
+    padding: 12px 25px;
     font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     transition: all 0.3s ease;
-    margin: 0 2px;
+    position: relative;
+    overflow: hidden;
+    margin: 5px;
 }
 
     .modern-btn:before {
@@ -103,9 +143,9 @@
     }
 
 .btn-edit {
-    background: linear-gradient(45deg, #ffa726, #ff7043);
+    background: linear-gradient(135deg, #FF9800, #F57C00);
     color: white;
-    box-shadow: 0 3px 10px rgba(255, 167, 38, 0.3);
+    box-shadow: 0 3px 10px rgba(255, 152, 0, 0.3);
 }
 
     .btn-edit:hover {
@@ -129,28 +169,30 @@
 .modern-modal .modal-content {
     border: none;
     border-radius: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     overflow: hidden;
 }
 
 .modern-modal .modal-header {
-    border: none;
-    padding: 2rem 2rem 1rem;
-    background: linear-gradient(45deg, #28a745, #20c997);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
+    border: none;
+    padding: 25px 30px;
 }
 
 .modern-modal .modal-title {
     font-weight: 700;
-    font-size: 1.25rem;
+    font-size: 1.3rem;
 }
 
 .modern-modal .modal-body {
-    padding: 2rem;
+    padding: 30px;
+    background: #f8f9fa;
 }
 
 .modern-form-group {
     margin-bottom: 25px;
+    position: relative;
 }
 
     .modern-form-group label {
@@ -162,17 +204,35 @@
 
 .modern-form-control {
     border: 2px solid #e0e0e0;
-    border-radius: 10px;
-    padding: 12px 15px;
-    font-size: 1rem;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 0.85rem;
     transition: all 0.3s ease;
     background: white;
 }
 
     .modern-form-control:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+        border-color: #f093fb;
+        box-shadow: 0 0 0 0.2rem rgba(240, 147, 251, 0.25);
         outline: none;
+    }
+
+.password-container {
+    position: relative;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #6c757d;
+    transition: color 0.3s ease;
+}
+
+    .password-toggle:hover {
+        color: #667eea;
     }
 
 .alert-modern {
@@ -243,20 +303,14 @@
     font-size: 1.2rem;
 }
 
-.password-container {
-    position: relative;
+.no-results {
+    text-align: center;
+    padding: 40px;
+    color: #6c757d;
 }
 
-.password-toggle {
-    position: absolute;
-    right: 15px;
-    top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
-    color: #666;
-    font-size: 1.2rem;
-}
-
-    .password-toggle:hover {
-        color: #333;
+    .no-results i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        opacity: 0.5;
     }

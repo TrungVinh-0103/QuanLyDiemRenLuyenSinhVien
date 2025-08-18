@@ -31,7 +31,7 @@
                 <div class="filter-section">
                     <div class="row">
                         <div class="col-md-8">
-                            <input type="text" class="form-control search-box" placeholder="Tìm kiếm theo tên sinh viên, lớp, học kỳ..." id="searchInput">
+                            <input type="text" class="form-control search-box" placeholder="Tìm kiếm theo tên sinh viên,  điểm, lớp, học kỳ..." id="searchInput">
                         </div>
                     </div>
                 </div>
@@ -68,6 +68,10 @@
                                 <th>
                                     <i class="fas fa-calendar-alt me-1"></i>
                                     Ngày lập
+                                </th>
+                                <th>
+                                    <i class="fas fa-ellipsis-h me-1"></i>
+                                    Thao tác
                                 </th>
                             </tr>
                         </thead>
@@ -126,6 +130,14 @@
                                             @p.NgayLapPhieu.ToString("dd/MM/yyyy")
                                         </div>
                                     </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info text-white"
+                                                data-bs-toggle="modal"
+                                                data-bs-target="#modalChiTiet"
+                                                onclick="loadChiTiet(@p.PhieuDanhGiaID)">
+                                            <i class="fas fa-eye"></i> Chi tiết
+                                        </button>
+                                    </td>
                                 </tr>
                             }
                         </tbody>
@@ -144,16 +156,22 @@
     </div>
 </div>
 
+<!-- Modal Chi tiết phiếu -->
+<div class="modal fade" id="modalChiTiet" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content" id="modalChiTietContainer">
+            <!-- Nội dung load từ GetChiTietPhieu -->
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        // Hàm lọc bảng chung
+                // Hàm lọc bảng chung
         function filterTable() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            // Kiểm tra xem phần tử 'statusFilter' có tồn tại không trước khi truy cập
-            const statusFilterElement = document.getElementById('statusFilter');
-            const statusFilter = statusFilterElement ? statusFilterElement.value : 'all'; // Mặc định là 'all' nếu không tìm thấy
-
             const tableRows = document.querySelectorAll('#historyTable tbody tr');
 
             tableRows.forEach(row => {
@@ -162,22 +180,15 @@
                 const className = row.querySelector('td:nth-child(2) .class-badge')?.textContent.toLowerCase() || '';
                 const semesterName = row.querySelector('td:nth-child(3) .semester-info')?.childNodes[0]?.textContent.toLowerCase() || '';
                 const academicYear = row.querySelector('td:nth-child(3) small')?.textContent.toLowerCase() || '';
+                const studentScore = row.querySelector('td:nth-child(4) .score-badge')?.textContent.toLowerCase() || '';
+                const teacherScore = row.querySelector('td:nth-child(5) .score-badge')?.textContent.toLowerCase() || '';
+                const councilScore = row.querySelector('td:nth-child(6) .score-badge')?.textContent.toLowerCase() || '';
 
-                // Kết hợp tất cả các trường có thể tìm kiếm
-                const searchableText = `${studentName} ${studentId} ${className} ${semesterName} ${academicYear}`;
-
-                const councilScoreElement = row.querySelector('.score-council, .score-pending');
-                let matchesStatus = true;
-
-                if (statusFilter === 'completed') {
-                    matchesStatus = councilScoreElement && councilScoreElement.classList.contains('score-council');
-                } else if (statusFilter === 'pending') {
-                    matchesStatus = councilScoreElement && councilScoreElement.classList.contains('score-pending');
-                }
+                const searchableText = `${studentName} ${studentId} ${className} ${semesterName} ${academicYear} ${studentScore} ${teacherScore} ${councilScore}`;
 
                 const matchesSearch = searchableText.includes(searchTerm);
 
-                if (matchesSearch && matchesStatus) {
+                if (matchesSearch) {
                     row.style.display = '';
                     row.style.animation = 'fadeIn 0.3s ease';
                 } else {
@@ -193,29 +204,75 @@
                 searchInput.addEventListener('input', filterTable);
             }
 
-            // Gắn kết sự kiện 'change' cho bộ lọc trạng thái (nếu có)
-            const statusFilter = document.getElementById('statusFilter');
-            if (statusFilter) {
-                statusFilter.addEventListener('change', filterTable);
-            }
-
-            // Animation cho các hàng của bảng
             const rows = document.querySelectorAll('.modern-table tbody tr');
             rows.forEach((row, index) => {
                 row.style.animationDelay = `${index * 0.05}s`;
             });
 
-            // Thêm hiệu ứng hover cho các huy hiệu điểm số
             document.querySelectorAll('.score-badge').forEach(badge => {
                 badge.addEventListener('mouseenter', function() {
                     this.style.transform = 'scale(1.1)';
                     this.style.transition = 'transform 0.2s ease';
                 });
-
                 badge.addEventListener('mouseleave', function() {
                     this.style.transform = 'scale(1)';
                 });
             });
+        });
+
+        function loadChiTiet(id) {
+            $.get("/HoiDong/GetChiTietPhieu", { id: id }, function(html) {
+                $("#modalChiTietContainer").html(html);
+                $("#modalChiTiet").modal("show");
+                // Gọi hàm cập nhật tổng điểm sau khi load modal
+                capNhatTongDiem();
+            });
+        }
+
+        $(document).on("click", "#btnLuuHD", function() {
+            var formData = $("#formCapNhatDiemHD").serialize();
+            $.post("/HoiDong/CapNhatDiemHD", formData, function(res) {
+                if (res.success) {
+                    alert("Cập nhật điểm thành công!");
+                    location.reload();
+                } else {
+                    alert("Có lỗi xảy ra khi lưu!");
+                }
+            });
+        });
+
+        // Hàm cập nhật tổng điểm (sử dụng từ _ModalChiTietPhieuHD.cshtml)
+        function capNhatTongDiem() {
+            let tongHD = 0;
+            $(".nhom-tc").each(function () {
+                let gioiHan = parseInt($(this).data("diem-toi-da")) || 0;
+                let tongNhomHD = 0;
+
+                $(this).find(".diem-hd").each(function () {
+                    let hd = parseInt($(this).val()) || 0;
+                    tongNhomHD += hd;
+                });
+
+                if (tongNhomHD > gioiHan) tongNhomHD = gioiHan;
+
+                $(this).find(".tong-nhom-hd").text(tongNhomHD);
+                tongHD += tongNhomHD;
+            });
+            $("#tong-hd").text(tongHD);
+        }
+
+        // Gắn sự kiện input cho .diem-hd
+        $(document).on("input", ".diem-hd", function () {
+            let max = parseInt($(this).attr("max")) || 0;
+            let val = parseInt($(this).val()) || 0;
+            if (val > max) $(this).val(max);
+            if (val < 0) $(this).val(0);
+            capNhatTongDiem();
+        });
+
+        // Tính tổng điểm ban đầu khi modal load
+        $(document).ready(function () {
+            // Không cần trigger input vì capNhatTongDiem đã được gọi trong loadChiTiet
         });
     </script>
 }

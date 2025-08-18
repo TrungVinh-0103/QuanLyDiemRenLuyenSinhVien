@@ -1,0 +1,72 @@
+﻿@model QLDiemRenLuyen.ViewModels.TuDanhGiaViewModel
+@{
+    var nhomTieuChis = Model.NhomTieuChi ?? new();
+    var chiTiet = Model.ChiTietPhieu ?? new();
+}
+<div class="modal-header bg-info text-white">
+    <h5 class="modal-title">Chi tiết phiếu đánh giá</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+<div class="modal-body">
+    <p>
+        <strong>Sinh viên:</strong> @ViewBag.SinhVien?.HoTen (@ViewBag.SinhVien?.MaSV) -
+        <strong>Lớp:</strong> @ViewBag.SinhVien?.Lop?.TenLop
+    </p>
+    <p><strong>Học kỳ:</strong> @ViewBag.HocKy?.TenHocKy - @ViewBag.HocKy?.NamHoc</p>
+
+    @foreach (var nhom in nhomTieuChis)
+    {
+        <div class="card mt-3">
+            <div class="card-header bg-info text-white" >
+                @nhom.TenNhom (Tối đa: @nhom.DiemToiDa)
+            </div>
+            <div class="card-body">
+                <table class="table table-bordered text-center">
+                    <thead>
+                        <tr>
+                            <th>Nội dung</th>
+                            <th>SV tự đánh giá</th>
+                            <th>GVCN đề xuất</th>
+                            <th>HĐ duyệt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (nhom.TieuChi != null)
+                            @foreach (var tc in nhom.TieuChi)
+                            {
+                                var ct = chiTiet.FirstOrDefault(x => x.TieuChiID == tc.TieuChiID);
+                                <tr>
+                                    <td class="text-start">@tc.TenTieuChi</td>
+                                    <td>@(ct?.DiemTuDanhGia ?? 0)</td>
+                                    <td>@(ct?.DiemGiaoVienDeXuat ?? 0)</td>
+                                    <td>@(ct?.DiemHoiDongDuyet ?? 0)</td>
+                                </tr>
+                            }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    <div class="card shadow-sm mt-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Tổng điểm toàn phiếu</h5>
+        </div>
+        <div class="card-body">
+            <div class="d-flex flex-wrap justify-content-around align-items-center">
+                <p class="mb-2 mb-md-0 mx-2 fs-5">
+                    Tổng điểm <span class="fw-bold text-success">Sinh viên</span>: <span id="tong-sv" class="fw-bold text-success">@Model.ChiTietPhieu!.Sum(c => c.DiemTuDanhGia ?? 0)</span>
+                </p>
+                <p class="mb-2 mb-md-0 mx-2 fs-5">
+                    Tổng điểm <span class="fw-bold text-info">Giáo viên</span>: <span id="tong-gv" class="fw-bold text-info">@Model.ChiTietPhieu!.Sum(c => c.DiemGiaoVienDeXuat ?? 0)</span>
+                </p>
+                <p class="mb-0 mx-2 fs-5">
+                    Tổng điểm <span class="fw-bold text-danger">Hội đồng</span>: <span id="tong-hd" class="fw-bold text-danger">@Model.ChiTietPhieu!.Sum(c => c.DiemHoiDongDuyet ?? 0)</span>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+</div>

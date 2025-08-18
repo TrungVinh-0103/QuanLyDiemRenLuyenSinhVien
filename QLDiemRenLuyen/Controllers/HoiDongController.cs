@@ -607,21 +607,21 @@ namespace QLDiemRenLuyen.Controllers
             ViewBag.LopID = LopID;
             ViewBag.Loai = Loai;
 
-            // ⚠️ Kiểm tra bắt buộc chọn Học kỳ và Loại
+            // Kiểm tra bắt buộc chọn Học kỳ và Loại
             if (!HocKyID.HasValue || string.IsNullOrEmpty(Loai))
             {
                 TempData["Error"] = "Vui lòng chọn đầy đủ Học kỳ và Loại thống kê.";
                 return View("ThongKeChuaDanhGiaHoiDong", new List<SinhVien>());
             }
 
-            // ✅ Lấy toàn bộ sinh viên thuộc khoa
+            // Lấy toàn bộ sinh viên thuộc khoa
             var sinhViens = _context.SinhVien
                 .Include(sv => sv.Lop)
                 .Include(sv => sv.KetQuaRenLuyen)
                 .Where(sv => sv.KhoaID == giaoVien.KhoaID)
                 .AsQueryable();
 
-            // ✅ Nếu có chọn Lớp → lọc thêm
+            // Nếu có chọn Lớp → lọc thêm
             if (LopID.HasValue)
                 sinhViens = sinhViens.Where(sv => sv.LopID == LopID);
 
@@ -650,7 +650,89 @@ namespace QLDiemRenLuyen.Controllers
             return View("ThongKeChuaDanhGiaHoiDong", ketQua);
         }
 
+        //==============================================================================
+        // Xem chi tiết phiếu đã duyệt 
+        //Lây thông tin chi tiết phiếu đã duyệt
+        [HttpGet]
+        public IActionResult GetChiTietPhieu(int id)
+        {
+            var phieu = _context.PhieuDanhGia
+                .Include(p => p.SinhVien).ThenInclude(s => s!.Lop)
+                .Include(p => p.HocKy)
+                .FirstOrDefault(p => p.PhieuDanhGiaID == id);
 
+            if (phieu == null) return NotFound();
+
+            var nhomTieuChis = _context.NhomTieuChi
+                .Select(n => new NhomTieuChiViewModel
+                {
+                    NhomTieuChiID = n.NhomTieuChiID,
+                    TenNhom = n.TenNhom,
+                    DiemToiDa = n.DiemToiDa,
+                    TieuChi = _context.TieuChi
+                        .Where(t => t.NhomTieuChiID == n.NhomTieuChiID)
+                        .Select(t => new TieuChiViewModel
+                        {
+                            TieuChiID = t.TieuChiID,
+                            TenTieuChi = t.TenTieuChi,
+                            DiemToiDa = t.DiemToiDa
+                        }).ToList()
+                }).ToList();
+
+            var chiTietPhieu = _context.ChiTietPhieuDanhGia
+                .Where(c => c.PhieuDanhGiaID == id)
+                .ToList();
+
+            var vm = new TuDanhGiaViewModel
+            {
+                PhieuDanhGiaID = id,
+                SinhVienID = phieu.SinhVienID,
+                HocKyID = phieu.HocKyID,
+                NhomTieuChi = nhomTieuChis,
+                ChiTietPhieu = chiTietPhieu,
+                TongDiemTuDanhGia = chiTietPhieu.Sum(c => c.DiemTuDanhGia ?? 0),
+                TongDiemGiaoVienDeXuat = chiTietPhieu.Sum(c => c.DiemGiaoVienDeXuat ?? 0)
+            };
+
+            ViewBag.SinhVien = phieu.SinhVien;
+            ViewBag.HocKy = phieu.HocKy;
+
+            return PartialView("_ModalChiTietPhieuHD", vm);
+        }
+
+        [HttpPost]
+        public IActionResult CapNhatDiemHD(int phieuDanhGiaId, Dictionary<int, int> diemMoi)
+        {
+            var phieu = _context.PhieuDanhGia.FirstOrDefault(p => p.PhieuDanhGiaID == phieuDanhGiaId);
+            if (phieu == null) return Json(new { success = false, message = "Không tìm thấy phiếu." });
+
+            var chiTiet = _context.ChiTietPhieuDanhGia
+                .Where(c => c.PhieuDanhGiaID == phieuDanhGiaId)
+                .ToList();
+
+            var nhomTieuChiList = _context.NhomTieuChi.ToDictionary(n => n.NhomTieuChiID, n => n.DiemToiDa);
+            var tieuChiList = _context.TieuChi.ToList();
+            var tongTheoNhom = new Dictionary<int, int>();
+
+            foreach (var ct in chiTiet)
+            {
+                if (diemMoi.TryGetValue(ct.TieuChiID, out int diem))
+                {
+                    ct.DiemHoiDongDuyet = diem;
+                    var tieuChi = tieuChiList.FirstOrDefault(t => t.TieuChiID == ct.TieuChiID);
+                    if (tieuChi != null)
+                    {
+                        int nhomID = tieuChi.NhomTieuChiID;
+                        tongTheoNhom[nhomID] = tongTheoNhom.GetValueOrDefault(nhomID) + diem;
+                    }
+                }
+            }
+
+            phieu.TongDiemHoiDongDuyet = tongTheoNhom.Sum(n => Math.Min(n.Value, nhomTieuChiList[n.Key]));
+            _context.SaveChanges();
+
+            return Json(new { success = true, message = "Cập nhật điểm thành công!" });
+        }
     }
 }
 

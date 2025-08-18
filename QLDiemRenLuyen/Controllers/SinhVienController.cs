@@ -192,5 +192,58 @@ namespace QLDiemRenLuyen.Controllers
                 .ToList();
             return View(kq);
         }
+
+        //Xem chi tiết phiếu đánh giá
+        [HttpGet]
+        public IActionResult ChiTietPhieuAjax(int id)
+        {
+            var sinhVienID = HttpContext.Session.GetInt32("SinhVienID");
+            if (sinhVienID == null) return Unauthorized();
+
+            var phieu = _context.PhieuDanhGia
+                .Include(p => p.SinhVien).ThenInclude(sv => sv!.Lop)
+                .Include(p => p.HocKy)
+                .FirstOrDefault(p => p.PhieuDanhGiaID == id && p.SinhVienID == sinhVienID);
+
+            if (phieu == null)
+            {
+                return NotFound("Không tìm thấy phiếu đánh giá.");
+            }
+
+            var nhomTieuChis = _context.NhomTieuChi
+                .Select(n => new NhomTieuChiViewModel
+                {
+                    NhomTieuChiID = n.NhomTieuChiID,
+                    TenNhom = n.TenNhom,
+                    DiemToiDa = n.DiemToiDa,
+                    TieuChi = _context.TieuChi
+                        .Where(t => t.NhomTieuChiID == n.NhomTieuChiID)
+                        .Select(t => new TieuChiViewModel
+                        {
+                            TieuChiID = t.TieuChiID,
+                            TenTieuChi = t.TenTieuChi,
+                            DiemToiDa = t.DiemToiDa
+                        }).ToList()
+                }).ToList();
+
+            var chiTietPhieu = _context.ChiTietPhieuDanhGia
+                .Include(c => c.TieuChi)
+                .Where(c => c.PhieuDanhGiaID == id)
+                .ToList();
+
+            var vm = new TuDanhGiaViewModel
+            {
+                PhieuDanhGiaID = id,
+                SinhVienID = phieu.SinhVienID,
+                HocKyID = phieu.HocKyID,
+                NhomTieuChi = nhomTieuChis,
+                ChiTietPhieu = chiTietPhieu
+            };
+
+            ViewBag.SinhVien = phieu.SinhVien;
+            ViewBag.HocKy = phieu.HocKy;
+
+            return PartialView("_ChiTietPhieuModal_SV", vm);
+        }
     }
 }

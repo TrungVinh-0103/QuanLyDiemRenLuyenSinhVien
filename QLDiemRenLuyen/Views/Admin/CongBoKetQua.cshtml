@@ -1,0 +1,295 @@
+﻿@{
+    ViewData["Title"] = "Công bố kết quả rèn luyện";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<link href="~/css/CongBo.css" rel="stylesheet" />
+
+<div class="page-header">
+    <h4 class="text-uppercase mb-0">
+        <i class="fas fa-bullhorn me-3"></i>
+        CÔNG BỐ ĐIỂM RÈN LUYỆN SINH VIÊN (ADMIN)
+    </h4>
+</div>
+
+<form method="post" asp-action="XuatKetQuaAdmin" id="formCongBo">
+    <div class="filter-card">
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <label class="form-label"><strong>Chọn khoa</strong></label>
+                <select class="form-select" id="ddlKhoa" name="khoaId" required>
+                    <option value="">-- Chọn khoa --</option>
+                    @foreach (var k in (List<QLDiemRenLuyen.Models.Khoa>)ViewBag.Khoas)
+                    {
+                        <option value="@k.KhoaID">@k.TenKhoa</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">
+                    <i class="fas fa-filter me-2"></i>
+                    <strong>Chọn loại thống kê</strong>
+                </label>
+                <select class="form-select" id="chonLoai" name="loai" required>
+                    <option value="">-- Chọn loại báo cáo --</option>
+                    <option value="CaNhan">Theo cá nhân</option>
+                    <option value="Lop">Theo lớp</option>
+                    <option value="HocKy">Theo học kỳ</option>
+                    <option value="NamHoc">Theo năm học</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- CaNhan -->
+        <div id="chonCaNhan" style="display:none;">
+            <div class="row">
+                <div class="col-md-6">
+                    <label>Mã sinh viên</label>
+                    <input type="text" class="form-control" name="maSinhVien" placeholder="Nhập mã sinh viên..." />
+                </div>
+                <div class="col-md-6">
+                    <label>Học kỳ</label>
+                    <select class="form-select" name="hocKyIdCaNhan">
+                        @foreach (var hk in (List<QLDiemRenLuyen.Models.HocKy>)ViewBag.HocKys)
+                        {
+                            <option value="@hk.HocKyID">@hk.TenHocKy - @hk.NamHoc</option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lop -->
+        <div id="chonLop" style="display:none;">
+            <label>Lớp</label>
+            <select class="form-select" name="lopId" id="ddlLop">
+                <option value="">-- Chọn lớp --</option>
+            </select>
+        </div>
+
+        <!-- HocKy -->
+        <div id="chonHocKy" style="display:none;">
+            <label>Học kỳ</label>
+            <select class="form-select" name="hocKyId">
+                @foreach (var hk in (List<QLDiemRenLuyen.Models.HocKy>)ViewBag.HocKys)
+                {
+                    <option value="@hk.HocKyID">@hk.TenHocKy - @hk.NamHoc</option>
+                }
+            </select>
+        </div>
+
+        <!-- NamHoc -->
+        <div id="chonNamHoc" style="display:none;">
+            <label>Năm học</label>
+            <select class="form-select" name="namHoc">
+                @foreach (var nh in (List<string>)ViewBag.NamHocs)
+                {
+                    <option value="@nh">@nh</option>
+                }
+            </select>
+        </div>
+    </div>
+
+    <div class="text-center my-3">
+        <button type="button" class="btn btn-modern btn-success-modern me-3" data-bs-toggle="modal" data-bs-target="#modalExport">
+            <i class="fas fa-bullhorn me-2"></i> Công bố điểm
+        </button>
+        <button type="button" class="btn btn-modern btn-primary-modern" id="btnXemKetQua">
+            <i class="fas fa-eye me-2"></i> Xem kết quả
+        </button>
+    </div>
+
+    <div class="result-container" id="ketQuaContainer">
+        <div class="alert-modern text-center">
+            <i class="fas fa-info-circle me-2"></i>
+            Chọn khoa và nhấn "Xem kết quả" để hiển thị dữ liệu
+        </div>
+    </div>
+</form>
+
+<!-- Modal Export -->
+<div class="modal fade modal-modern" id="modalExport" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" asp-action="XuatFileAdmin" target="_blank">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-file-export me-2"></i> Xuất & Gửi file</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div>
+                        <label>Chọn định dạng</label>
+                        <div>
+                            <input type="radio" name="dinhDang" value="PDF" checked /> PDF
+                            <input type="radio" name="dinhDang" value="Excel" /> Excel
+                        </div>
+                    </div>
+                    <input type="hidden" name="loai" id="xLoai" />
+                    <input type="hidden" name="khoaId" id="xKhoaId" />
+                    <input type="hidden" name="lopId" id="xLopId" />
+                    <input type="hidden" name="hocKyId" id="xHocKyId" />
+                    <input type="hidden" name="namHoc" id="xNamHoc" />
+                    <input type="hidden" name="maSinhVien" id="xMaSV" />
+                    <input type="hidden" name="hocKyIdCaNhan" id="xHocKyIdCaNhan" />
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success"><i class="fas fa-download me-2"></i> Xuất và gửi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Load lớp theo khoa
+        $("#ddlKhoa").change(function () {
+            var khoaId = $(this).val();
+            $("#ddlLop").empty().append('<option value="">-- Chọn lớp --</option>');
+            if (khoaId) {
+                $.getJSON('/Admin/GetLopByKhoa', { khoaId: khoaId }, function (data) {
+                    $.each(data, function (i, lop) {
+                        $("#ddlLop").append('<option value="' + lop.lopID + '">' + lop.tenLop + '</option>');
+                    });
+                });
+            }
+        });
+
+        // Hiển thị các form lọc tương ứng
+        $("#chonLoai").change(function () {
+            var loai = $(this).val();
+            $("#chonCaNhan, #chonLop, #chonHocKy, #chonNamHoc").hide();
+            if (loai === "CaNhan") $("#chonCaNhan").show();
+            if (loai === "Lop") $("#chonLop").show();
+            if (loai === "HocKy") $("#chonHocKy").show();
+            if (loai === "NamHoc") $("#chonNamHoc").show();
+        });
+
+        // Xem kết quả
+        $("#btnXemKetQua").click(function () {
+            const formData = new FormData(document.getElementById("formCongBo"));
+            fetch("/Admin/LayKetQuaAjaxAdmin", { method: "POST", body: formData })
+            .then(res => res.json())
+            .then(data => {
+                let html = "";
+                if (data.length > 0) {
+                    html = '<table class="table table-modern text-center"><thead><tr><th>STT</th><th>Họ tên</th><th>Mã SV</th><th>Lớp</th><th>Khoa</th><th>Học kỳ</th><th>Năm học</th><th>Điểm</th><th>Xếp loại</th></tr></thead><tbody>';
+                    data.forEach((p, i) => {
+                        html += `<tr>
+                            <td>${i + 1}</td>
+                            <td>${p.sinhVien.hoTen}</td>
+                            <td>${p.sinhVien.maSV}</td>
+                            <td>${p.sinhVien.lop.tenLop}</td>
+                            <td>${p.sinhVien.lop.khoa.tenKhoa}</td>
+                            <td>${p.hocKy.tenHocKy}</td>
+                            <td>${p.hocKy.namHoc}</td>
+                            <td>${p.tongDiemHoiDongDuyet}</td>
+                            <td>${p.xepLoai || ""}</td>
+                        </tr>`;
+                    });
+                    html += '</tbody></table>';
+                } else {
+                    html = '<div class="alert alert-warning text-center">Không tìm thấy dữ liệu</div>';
+                }
+                $("#ketQuaContainer").html(html);
+            });
+        });
+
+        // Đưa dữ liệu vào modal export
+        $("#modalExport").on("show.bs.modal", function () {
+            const form = document.getElementById("formCongBo");
+            $("#xLoai").val(form.loai.value);
+            $("#xKhoaId").val(form.khoaId.value);
+            $("#xLopId").val(form.querySelector('[name="lopId"]')?.value || "");
+            $("#xHocKyId").val(form.querySelector('[name="hocKyId"]')?.value || "");
+            $("#xNamHoc").val(form.querySelector('[name="namHoc"]')?.value || "");
+            $("#xMaSV").val(form.querySelector('[name="maSinhVien"]')?.value || "");
+            $("#xHocKyIdCaNhan").val(form.querySelector('[name="hocKyIdCaNhan"]')?.value || "");
+        });
+
+                // Nút lọc
+        $("#btnLoc").click(function () {
+            var khoaId = $("#ddlKhoa").val();
+            var hocKyId = $("#ddlHocKy").val();
+            var namHoc = $("#ddlNamHoc").val();
+            var maSV = $("#txtMaSV").val();
+            var lopId = $("#ddlLop").val();
+
+            // Ràng buộc: Nếu lọc cá nhân mà không nhập mã SV -> báo lỗi
+            if (maSV && !hocKyId) {
+                alert("Vui lòng chọn học kỳ khi lọc theo mã sinh viên.");
+                return;
+            }
+
+            // Ràng buộc: Nếu chọn lớp thì phải chọn khoa trước
+            if (lopId && !khoaId) {
+                alert("Vui lòng chọn khoa trước khi chọn lớp.");
+                return;
+            }
+
+            $.post('/Admin/LayKetQuaAjaxAdmin', {
+                loai: 'Loc',
+                khoaId: khoaId,
+                hocKyId: hocKyId,
+                namHoc: namHoc,
+                maSinhVien: maSV,
+                lopId: lopId
+            }, function (data) {
+                var tbody = $("#tblKetQua tbody");
+                tbody.empty();
+                if (data.length > 0) {
+                    $.each(data, function (i, item) {
+                        tbody.append('<tr>' +
+                            '<td>' + item.sinhVien.maSV + '</td>' +
+                            '<td>' + item.sinhVien.hoTen + '</td>' +
+                            '<td>' + item.sinhVien.lop.tenLop + '</td>' +
+                            '<td>' + item.sinhVien.lop.khoa.tenKhoa + '</td>' +
+                            '<td>' + item.hocKy.tenHocKy + '</td>' +
+                            '<td>' + item.hocKy.namHoc + '</td>' +
+                            '<td class="text-center">' + item.tongDiemHoiDongDuyet + '</td>' +
+                            '<td>' + item.xepLoai + '</td>' +
+                            '</tr>');
+                    });
+                } else {
+                    tbody.append('<tr><td colspan="8" class="text-center text-danger">Không có dữ liệu</td></tr>');
+                }
+            });
+        });
+
+        // Nút xuất file
+        $("#btnXuatFile").click(function () {
+            var khoaId = $("#ddlKhoa").val();
+            var hocKyId = $("#ddlHocKy").val();
+            var namHoc = $("#ddlNamHoc").val();
+            var maSV = $("#txtMaSV").val();
+            var lopId = $("#ddlLop").val();
+            var dinhDang = $("#ddlDinhDang").val();
+            var khoGiay = $("#ddlKhoGiay").val();
+
+            // Ràng buộc khi xuất file
+            if (maSV && !hocKyId) {
+                alert("Vui lòng chọn học kỳ khi xuất file theo mã sinh viên.");
+                return;
+            }
+            if (lopId && !khoaId) {
+                alert("Vui lòng chọn khoa trước khi xuất file theo lớp.");
+                return;
+            }
+
+            var form = $('<form>', {
+                action: '/Admin/XuatFileAdmin',
+                method: 'post'
+            }).append($('<input>', { name: 'khoaId', value: khoaId }))
+              .append($('<input>', { name: 'hocKyId', value: hocKyId }))
+              .append($('<input>', { name: 'namHoc', value: namHoc }))
+              .append($('<input>', { name: 'maSinhVien', value: maSV }))
+              .append($('<input>', { name: 'lopId', value: lopId }))
+              .append($('<input>', { name: 'dinhDang', value: dinhDang }))
+              .append($('<input>', { name: 'khoGiay', value: khoGiay }))
+              .append($('<input>', { name: 'loai', value: 'Loc' }));
+
+            $('body').append(form);
+            form.submit();
+        });
+    </script>
+}

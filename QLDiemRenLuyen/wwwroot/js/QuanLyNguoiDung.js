@@ -1,4 +1,21 @@
-﻿// Animation for table rows
+﻿
+// Search functionality
+document.getElementById('searchInput').addEventListener('keyup', function () {
+    const searchTerm = this.value.toLowerCase();
+    const tableRows = document.querySelectorAll('.modern-table tbody tr');
+
+    tableRows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        if (text.includes(searchTerm)) {
+            row.style.display = '';
+            row.style.animation = 'fadeIn 0.3s ease';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+});
+
+// Animation for table rows
 document.addEventListener('DOMContentLoaded', function () {
     const rows = document.querySelectorAll('.modern-table tbody tr');
     rows.forEach((row, index) => {

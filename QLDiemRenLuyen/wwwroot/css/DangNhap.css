@@ -1,0 +1,135 @@
+﻿/* Trong tệp CSS của bạn hoặc trong thẻ <style> */
+
+body {
+    /* Đảm bảo body có chiều cao đầy đủ để căn giữa theo chiều dọc */
+    min-height: 100vh;
+    /* Sử dụng flexbox để căn giữa nội dung */
+    display: flex;
+    justify-content: center; /* Căn giữa theo chiều ngang */
+    align-items: center; /* Căn giữa theo chiều dọc */
+    background-color: #f0f2f5; /* Màu nền nhẹ cho trang */
+    margin: 0; /* Loại bỏ margin mặc định của body */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.login-container {
+    background-color: #ffffff;
+    padding: 2.5rem; /* Tăng padding để form trông rộng rãi hơn */
+    border-radius: 10px; /* Bo tròn góc hơn */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); /* Đổ bóng nổi bật hơn */
+    width: 100%;
+    max-width: 450px; /* Giới hạn chiều rộng tối đa của form */
+    text-align: center;
+    /* Loại bỏ margin-top và margin-bottom nếu có để flexbox hoạt động hiệu quả */
+}
+
+.university-header {
+    background-color: #0056b3; /* Màu xanh đậm hơn */
+    color: white;
+    padding: 1rem 0;
+    border-radius: 8px 8px 0 0; /* Bo tròn góc trên */
+    margin: -2.5rem -2.5rem 2rem -2.5rem; /* Kéo dài header ra sát mép container */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px; /* Khoảng cách giữa logo và tên trường */
+}
+
+.university-logo {
+    font-size: 2.5rem; /* Kích thước icon lớn hơn */
+    color: #ffffff;
+}
+
+.university-name {
+    font-size: 1.6rem; /* Kích thước chữ lớn hơn */
+    margin-bottom: 0;
+    font-weight: 600;
+}
+
+.login-title {
+    color: #333;
+    margin-bottom: 2rem;
+    font-size: 2rem; /* Tiêu đề đăng nhập lớn hơn */
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.form-group {
+    margin-bottom: 1.5rem; /* Khoảng cách giữa các trường form */
+    position: relative;
+}
+
+.form-control-custom {
+    width: 100%;
+    padding: 0.75rem 0.75rem 0.75rem 3rem; /* Tăng padding trái để icon không bị che */
+    border: 1px solid #ced4da;
+    border-radius: 0.5rem; /* Bo tròn góc input */
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.075);
+}
+
+    .form-control-custom:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        outline: none;
+    }
+
+.input-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    font-size: 1.1rem;
+}
+
+.btn-login {
+    width: 100%;
+    padding: 0.85rem;
+    background-color: #007bff; /* Nút màu xanh chính */
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1.2rem; /* Kích thước chữ nút lớn hơn */
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    margin-top: 1.5rem;
+}
+
+    .btn-login:hover {
+        background-color: #0056b3;
+        transform: translateY(-2px); /* Hiệu ứng nhấn nhẹ khi hover */
+    }
+
+.alert-custom {
+    padding: 0.85rem 1.25rem;
+    margin-top: 1.5rem;
+    border: 1px solid transparent;
+    border-radius: 0.5rem;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.alert-danger-custom {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+}
+
+.alert-info-custom {
+    color: #0c5460;
+    background-color: #d1ecf1;
+    border-color: #bee5eb;
+}
+
+.login-footer {
+    margin-top: 2rem;
+    color: #6c757d;
+    font-size: 0.85rem;
+}

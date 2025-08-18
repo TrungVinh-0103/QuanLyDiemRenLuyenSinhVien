@@ -1,10 +1,16 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using BCrypt.Net;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.CodeAnalysis.Scripting;
 using Microsoft.EntityFrameworkCore;
+using OfficeOpenXml;
+using OfficeOpenXml.Style;
 using QLDiemRenLuyen.Data;
 using QLDiemRenLuyen.Models;
 using QLDiemRenLuyen.Models.CauHinh;
-using BCrypt.Net;
+using QLDiemRenLuyen.ViewModels;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 
 namespace QLDiemRenLuyen.Controllers
 {
@@ -1359,10 +1365,208 @@ namespace QLDiemRenLuyen.Controllers
             return RedirectToAction("QuanLyPhieuDanhGia");
         }
 
+        //[HttpGet]
+        //public IActionResult ChiTietPhieu(int id)
+        //{
+        //    TempData["Loi"] = "Vui lòng sử dụng nút 'Chi tiết' trên bảng để xem thông tin.";
+        //    return RedirectToAction("QuanLyPhieuDanhGia");
+        //}
         [HttpGet]
-        public IActionResult ChiTietPhieu(int id)
+        public IActionResult ChiTietPhieuAjax(int id)
         {
-            TempData["Loi"] = "Vui lòng sử dụng nút 'Chi tiết' trên bảng để xem thông tin.";
+            var phieu = _context.PhieuDanhGia
+                .Include(p => p.SinhVien).ThenInclude(sv => sv!.Lop)
+                .Include(p => p.HocKy)
+                .FirstOrDefault(p => p.PhieuDanhGiaID == id);
+
+            if (phieu == null)
+                return NotFound();
+
+            var nhomTieuChis = _context.NhomTieuChi
+                .Select(n => new NhomTieuChiViewModel
+                {
+                    NhomTieuChiID = n.NhomTieuChiID,
+                    TenNhom = n.TenNhom,
+                    DiemToiDa = n.DiemToiDa,
+                    TieuChi = _context.TieuChi
+                        .Where(t => t.NhomTieuChiID == n.NhomTieuChiID)
+                        .Select(t => new TieuChiViewModel
+                        {
+                            TieuChiID = t.TieuChiID,
+                            TenTieuChi = t.TenTieuChi,
+                            DiemToiDa = t.DiemToiDa
+                        }).ToList()
+                }).ToList();
+
+            var chiTietPhieu = _context.ChiTietPhieuDanhGia
+                .Where(c => c.PhieuDanhGiaID == id)
+                .ToList();
+
+            var vm = new TuDanhGiaViewModel
+            {
+                PhieuDanhGiaID = id,
+                SinhVienID = phieu.SinhVienID,
+                HocKyID = phieu.HocKyID,
+                NhomTieuChi = nhomTieuChis,
+                ChiTietPhieu = chiTietPhieu
+            };
+
+            ViewBag.SinhVien = phieu.SinhVien;
+            ViewBag.HocKy = phieu.HocKy;
+
+            return PartialView("_ChiTietPhieuModal", vm);
+        }
+
+        [HttpPost]
+        public IActionResult CapNhatDiemPhieu(
+    int PhieuDanhGiaID,
+    Dictionary<int, int> DiemSV,
+    Dictionary<int, int> DiemGV,
+    Dictionary<int, int> DiemHD)
+        {
+            var phieu = _context.PhieuDanhGia
+                .FirstOrDefault(p => p.PhieuDanhGiaID == PhieuDanhGiaID);
+
+            if (phieu == null)
+                return Json(new { success = false, message = "Không tìm thấy phiếu." });
+
+            var chitiet = _context.ChiTietPhieuDanhGia
+                .Where(c => c.PhieuDanhGiaID == PhieuDanhGiaID)
+                .ToList();
+
+            var tieuChiList = _context.TieuChi.ToList();
+            var nhomTieuChiList = _context.NhomTieuChi
+                .ToDictionary(n => n.NhomTieuChiID, n => n.DiemToiDa);
+
+            var tongTheoNhomSV = new Dictionary<int, int>();
+            var tongTheoNhomGV = new Dictionary<int, int>();
+            var tongTheoNhomHD = new Dictionary<int, int>();
+
+            foreach (var ct in chitiet)
+            {
+                if (DiemSV.TryGetValue(ct.TieuChiID, out int diemSV))
+                    ct.DiemTuDanhGia = diemSV;
+                if (DiemGV.TryGetValue(ct.TieuChiID, out int diemGV))
+                    ct.DiemGiaoVienDeXuat = diemGV;
+                if (DiemHD.TryGetValue(ct.TieuChiID, out int diemHD))
+                    ct.DiemHoiDongDuyet = diemHD;
+
+                var tc = tieuChiList.FirstOrDefault(t => t.TieuChiID == ct.TieuChiID);
+                if (tc != null)
+                {
+                    int nhomID = tc.NhomTieuChiID;
+
+                    tongTheoNhomSV[nhomID] = tongTheoNhomSV.GetValueOrDefault(nhomID) + (ct.DiemTuDanhGia ?? 0);
+                    tongTheoNhomGV[nhomID] = tongTheoNhomGV.GetValueOrDefault(nhomID) + (ct.DiemGiaoVienDeXuat ?? 0);
+                    tongTheoNhomHD[nhomID] = tongTheoNhomHD.GetValueOrDefault(nhomID) + (ct.DiemHoiDongDuyet ?? 0);
+                }
+            }
+
+            // Tính tổng điểm giới hạn theo từng nhóm
+            phieu.TongDiemTuDanhGia = tongTheoNhomSV.Sum(kv => Math.Min(kv.Value, nhomTieuChiList[kv.Key]));
+            phieu.TongDiemGiaoVienDeXuat = tongTheoNhomGV.Sum(kv => Math.Min(kv.Value, nhomTieuChiList[kv.Key]));
+            phieu.TongDiemHoiDongDuyet = tongTheoNhomHD.Sum(kv => Math.Min(kv.Value, nhomTieuChiList[kv.Key]));
+
+            _context.SaveChanges();
+
+            return Json(new { success = true, message = "Cập nhật điểm thành công và đã tính lại điểm tổng!" });
+        }
+
+        // GET: Chi tiết phiếu cho Admin chỉnh sửa
+        public IActionResult ChinhSuaPhieu(int id)
+        {
+            var phieu = _context.PhieuDanhGia
+                .Include(p => p.SinhVien).ThenInclude(sv => sv!.Lop)
+                .Include(p => p.HocKy)
+                .FirstOrDefault(p => p.PhieuDanhGiaID == id);
+
+            if (phieu == null) return NotFound();
+
+            var nhomTieuChis = _context.NhomTieuChi
+                .Select(n => new NhomTieuChiViewModel
+                {
+                    NhomTieuChiID = n.NhomTieuChiID,
+                    TenNhom = n.TenNhom,
+                    DiemToiDa = n.DiemToiDa,
+                    TieuChi = _context.TieuChi
+                        .Where(t => t.NhomTieuChiID == n.NhomTieuChiID)
+                        .Select(t => new TieuChiViewModel
+                        {
+                            TieuChiID = t.TieuChiID,
+                            TenTieuChi = t.TenTieuChi,
+                            DiemToiDa = t.DiemToiDa
+                        }).ToList()
+                }).ToList();
+
+            var chiTietPhieu = _context.ChiTietPhieuDanhGia
+                .Where(c => c.PhieuDanhGiaID == id)
+                .ToList();
+
+            var vm = new TuDanhGiaViewModel
+            {
+                PhieuDanhGiaID = id,
+                SinhVienID = phieu.SinhVienID,
+                HocKyID = phieu.HocKyID,
+                NhomTieuChi = nhomTieuChis,
+                ChiTietPhieu = chiTietPhieu
+            };
+
+            ViewBag.SinhVien = phieu.SinhVien;
+            ViewBag.HocKy = phieu.HocKy;
+
+            return View("ChinhSuaPhieu", vm);
+        }
+
+        // POST: Lưu chỉnh sửa điểm
+        [HttpPost]
+        public async Task<IActionResult> LuuChinhSuaPhieu(TuDanhGiaViewModel vm,
+            Dictionary<int, int> DiemSinhVien,
+            Dictionary<int, int> DiemGVCN,
+            Dictionary<int, int> DiemHoiDong)
+        {
+            var phieu = _context.PhieuDanhGia
+                .FirstOrDefault(p => p.PhieuDanhGiaID == vm.PhieuDanhGiaID);
+            if (phieu == null) return NotFound();
+
+            var chitiet = _context.ChiTietPhieuDanhGia
+                .Where(c => c.PhieuDanhGiaID == vm.PhieuDanhGiaID).ToList();
+
+            var tieuChiList = _context.TieuChi.ToList();
+            var nhomTieuChiList = _context.NhomTieuChi
+                .ToDictionary(n => n.NhomTieuChiID, n => n.DiemToiDa);
+
+            var tongTheoNhomSV = new Dictionary<int, int>();
+            var tongTheoNhomGV = new Dictionary<int, int>();
+            var tongTheoNhomHD = new Dictionary<int, int>();
+
+            foreach (var ct in chitiet)
+            {
+                if (DiemSinhVien.TryGetValue(ct.TieuChiID, out int diemSV))
+                    ct.DiemTuDanhGia = diemSV;
+                if (DiemGVCN.TryGetValue(ct.TieuChiID, out int diemGV))
+                    ct.DiemGiaoVienDeXuat = diemGV;
+                if (DiemHoiDong.TryGetValue(ct.TieuChiID, out int diemHD))
+                    ct.DiemHoiDongDuyet = diemHD;
+
+                var tc = tieuChiList.FirstOrDefault(t => t.TieuChiID == ct.TieuChiID);
+                if (tc != null)
+                {
+                    int nhomID = tc.NhomTieuChiID;
+
+                    tongTheoNhomSV[nhomID] = tongTheoNhomSV.GetValueOrDefault(nhomID) + (ct.DiemTuDanhGia ?? 0);
+                    tongTheoNhomGV[nhomID] = tongTheoNhomGV.GetValueOrDefault(nhomID) + (ct.DiemGiaoVienDeXuat ?? 0);
+                    tongTheoNhomHD[nhomID] = tongTheoNhomHD.GetValueOrDefault(nhomID) + (ct.DiemHoiDongDuyet ?? 0);
+                }
+            }
+
+            // Tính tổng điểm có giới hạn nhóm
+            phieu.TongDiemTuDanhGia = tongTheoNhomSV.Sum(kv => Math.Min(kv.Value, nhomTieuChiList[kv.Key]));
+            phieu.TongDiemGiaoVienDeXuat = tongTheoNhomGV.Sum(kv => Math.Min(kv.Value, nhomTieuChiList[kv.Key]));
+            phieu.TongDiemHoiDongDuyet = tongTheoNhomHD.Sum(kv => Math.Min(kv.Value, nhomTieuChiList[kv.Key]));
+
+            await _context.SaveChangesAsync();
+
+            TempData["Success"] = "Cập nhật điểm thành công!";
             return RedirectToAction("QuanLyPhieuDanhGia");
         }
 
@@ -1858,6 +2062,825 @@ namespace QLDiemRenLuyen.Controllers
                 _context.SaveChanges();
                 TempData["Success"] = "Đã xóa thành công.";
             }
+            return RedirectToAction("QuanLyChuNhiem");
+        }
+        #endregion
+        //=======================================================================================
+        //------------------------------------------------------------------------------------------
+        //=======================================================================================
+        // Công bố kết quả rèn luyện
+        #region CongBoKetQuaRenLuyen_Admin
+
+        // Mở trang công bố
+        public IActionResult CongBoKetQua()
+        {
+            ViewBag.Khoas = _context.Khoa.ToList();
+            ViewBag.HocKys = _context.HocKy
+                .Include(h => h.NienKhoa)
+                .OrderByDescending(h => h.NamHoc)
+                .ThenByDescending(h => h.HocKyID)
+                .ToList();
+
+            ViewBag.NamHocs = _context.HocKy
+                .Select(h => h.NamHoc)
+                .Distinct()
+                .OrderByDescending(nh => nh)
+                .ToList();
+
+            return View();
+        }
+
+        // Lấy dữ liệu kết quả rèn luyện cho Ajax
+        [HttpPost]
+        public IActionResult LayKetQuaAjaxAdmin(string loai, int? khoaId, string? maSinhVien,
+            int? hocKyIdCaNhan, int? lopId, int? hocKyId, string? namHoc)
+        {
+            var query = _context.KetQuaRenLuyen
+                .Include(kq => kq.SinhVien)!.ThenInclude(sv => sv!.Lop)!.ThenInclude(l => l!.Khoa)
+                .Include(kq => kq.HocKy)
+                .Include(kq => kq.XepLoai)
+                .AsQueryable();
+
+            // Lọc theo khoa
+            if (khoaId.HasValue && khoaId > 0)
+                query = query.Where(kq => kq.SinhVien!.KhoaID == khoaId);
+
+            // Lọc theo loại
+            switch (loai)
+            {
+                case "CaNhan":
+                    if (!string.IsNullOrEmpty(maSinhVien))
+                        query = query.Where(kq => kq.SinhVien!.MaSV == maSinhVien);
+                    if (hocKyIdCaNhan.HasValue)
+                        query = query.Where(kq => kq.HocKyID == hocKyIdCaNhan);
+                    break;
+
+                case "Lop":
+                    if (lopId.HasValue)
+                        query = query.Where(kq => kq.SinhVien!.LopID == lopId);
+                    break;
+
+                case "HocKy":
+                    if (hocKyId.HasValue)
+                        query = query.Where(kq => kq.HocKyID == hocKyId);
+                    break;
+
+                case "NamHoc":
+                    if (!string.IsNullOrEmpty(namHoc))
+                        query = query.Where(kq => kq.HocKy!.NamHoc == namHoc);
+                    break;
+            }
+
+            var result = query
+                .OrderBy(kq => kq.SinhVien!.MaSV)
+                .Select(p => new
+                {
+                    p.SinhVienID,
+                    p.HocKyID,
+                    p.TongDiemHoiDongDuyet,
+                    SinhVien = new
+                    {
+                        p.SinhVien!.HoTen,
+                        p.SinhVien.MaSV,
+                        Lop = new
+                        {
+                            p.SinhVien.Lop!.TenLop,
+                            Khoa = new { p.SinhVien.Lop.Khoa!.TenKhoa }
+                        }
+                    },
+                    HocKy = new
+                    {
+                        p.HocKy!.TenHocKy,
+                        p.HocKy.NamHoc
+                    },
+                    XepLoai = p.XepLoai != null ? p.XepLoai.TenXepLoai : ""
+                })
+                .ToList();
+
+            if (!string.IsNullOrEmpty(maSinhVien) && !hocKyIdCaNhan.HasValue)
+            {
+                return Json(new { error = "Vui lòng chọn học kỳ khi lọc theo mã sinh viên." });
+            }
+
+            if (lopId.HasValue && (!khoaId.HasValue || khoaId.Value == 0))
+            {
+                return Json(new { error = "Vui lòng chọn khoa trước khi lọc theo lớp." });
+            }
+
+            return Json(result);
+        }
+
+        // Lấy danh sách lớp theo khoa
+        public JsonResult GetLopByKhoa(int khoaId)
+        {
+            var lops = _context.Lop
+                .Where(l => l.KhoaID == khoaId)
+                .Select(l => new { lopID = l.LopID, tenLop = l.TenLop })
+                .ToList();
+
+            return Json(lops);
+        }
+
+        // Xuất file (PDF / Excel)
+        [HttpPost]
+        public IActionResult XuatFileAdmin(string dinhDang, string loai, int? khoaId,
+            int? lopId, int? hocKyId, string? namHoc, string? maSinhVien, int? hocKyIdCaNhan)
+        {
+            var query = _context.PhieuDanhGia
+                .Include(p => p.SinhVien)!.ThenInclude(sv => sv!.Lop)!.ThenInclude(l => l!.Khoa)
+                .Include(p => p.HocKy)
+                .Include(p => p.KetQuaRenLuyen)!.ThenInclude(kq => kq.XepLoai)
+                .Where(p => p.TrangThaiDanhGiaID == 5); // Chỉ lấy phiếu đã duyệt
+
+            if (khoaId.HasValue && khoaId > 0)
+                query = query.Where(p => p.SinhVien!.KhoaID == khoaId);
+
+            switch (loai)
+            {
+                case "CaNhan":
+                    if (!string.IsNullOrEmpty(maSinhVien))
+                        query = query.Where(p => p.SinhVien!.MaSV == maSinhVien);
+                    if (hocKyIdCaNhan.HasValue)
+                        query = query.Where(p => p.HocKyID == hocKyIdCaNhan);
+                    break;
+
+                case "Lop":
+                    if (lopId.HasValue)
+                        query = query.Where(p => p.SinhVien!.LopID == lopId);
+                    break;
+
+                case "HocKy":
+                    if (hocKyId.HasValue)
+                        query = query.Where(p => p.HocKyID == hocKyId);
+                    break;
+
+                case "NamHoc":
+                    if (!string.IsNullOrEmpty(namHoc))
+                        query = query.Where(p => p.HocKy!.NamHoc == namHoc);
+                    break;
+            }
+
+            var ds = query.ToList();
+            if (!ds.Any())
+                return Content("❌ Không có dữ liệu để xuất!");
+
+            byte[] fileBytes;
+            string fileName;
+            string contentType;
+
+            if (dinhDang == "PDF")
+            {
+                fileBytes = TaoFilePDF(ds, out fileName);
+                contentType = "application/pdf";
+            }
+            else
+            {
+                fileBytes = TaoFileExcel(ds, out fileName);
+                contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            }
+
+            if (!string.IsNullOrEmpty(maSinhVien) && !hocKyId.HasValue)
+            {
+                return Content("❌ Vui lòng chọn học kỳ khi xuất file theo mã sinh viên!");
+            }
+
+            if (lopId.HasValue && (!khoaId.HasValue || khoaId.Value == 0))
+            {
+                return Content("❌ Vui lòng chọn khoa trước khi xuất file theo lớp!");
+            }
+
+            return File(fileBytes, contentType, fileName);
+        }
+
+        // Hàm tạo PDF
+        private byte[] TaoFilePDF(List<PhieuDanhGia> ds, out string fileName)
+        {
+            fileName = "KetQuaRenLuyen_Admin.pdf";
+
+            var doc = QuestPDF.Fluent.Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(20);
+                    page.Header().Text("KẾT QUẢ RÈN LUYỆN SINH VIÊN - ADMIN").FontSize(18).Bold().AlignCenter();
+
+                    page.Content().Table(table =>
+                    {
+                        table.ColumnsDefinition(columns =>
+                        {
+                            //Nhớ đếm kỹ số cột nhe ní
+                            columns.ConstantColumn(30); // STT
+                            columns.RelativeColumn(); // Họ tên
+                            columns.RelativeColumn(); // Mã SV
+                            columns.RelativeColumn(); // Khoa
+                            columns.RelativeColumn(); // Lớp
+                            columns.RelativeColumn(); // Học kỳ
+                            columns.RelativeColumn(); // Năm học
+                            columns.ConstantColumn(40); // Điểm
+                            columns.RelativeColumn(); // Xếp loại
+                        });
+
+                        table.Header(header =>
+                        {
+                            string[] headers = { "STT", "Họ tên", "Mã SV", "Khoa", "Lớp", "Học kỳ", "Năm học", "Điểm", "Xếp loại" };
+                            foreach (var h in headers)
+                                header.Cell().Element(CellStyle).Text(h);
+
+                            static IContainer CellStyle(IContainer container) =>
+                                container.DefaultTextStyle(x => x.SemiBold()).Padding(3).Background("#EEE");
+                        });
+
+                        int index = 1;
+                        foreach (var p in ds)
+                        {
+                            table.Cell().Text(index++.ToString());
+                            table.Cell().Text(p.SinhVien?.HoTen ?? "");
+                            table.Cell().Text(p.SinhVien?.MaSV ?? "");
+                            table.Cell().Text(p.SinhVien?.Lop?.Khoa?.TenKhoa ?? "");
+                            table.Cell().Text(p.SinhVien?.Lop?.TenLop ?? "");
+                            table.Cell().Text(p.HocKy?.TenHocKy ?? "");
+                            table.Cell().Text(p.HocKy?.NamHoc ?? "");
+                            table.Cell().Text(p.TongDiemHoiDongDuyet.ToString());
+                            table.Cell().Text(p.KetQuaRenLuyen?
+                                .OrderByDescending(kq => kq.NgayCapNhat)
+                                .Select(kq => kq.XepLoai?.TenXepLoai)
+                                .FirstOrDefault() ?? "");
+                        }
+                    });
+                });
+            });
+
+            using var stream = new MemoryStream();
+            doc.GeneratePdf(stream);
+            return stream.ToArray();
+        }
+
+        // Hàm tạo Excel
+        private byte[] TaoFileExcel(List<PhieuDanhGia> ds, out string fileName)
+        {
+            fileName = "KetQuaRenLuyen_Admin.xlsx";
+
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            using var package = new ExcelPackage();
+            var sheet = package.Workbook.Worksheets.Add("Kết quả");
+
+            // Tiêu đề
+            sheet.Cells["A1:I1"].Merge = true;
+            sheet.Cells["A1"].Value = "KẾT QUẢ RÈN LUYỆN SINH VIÊN - ADMIN";
+            sheet.Cells["A1"].Style.Font.Size = 18;
+            sheet.Cells["A1"].Style.Font.Bold = true;
+            sheet.Cells["A1"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+            // Header
+            string[] headers = { "STT", "Họ tên", "Mã SV", "Khoa", "Lớp", "Học kỳ", "Năm học", "Điểm", "Xếp loại" };
+            for (int i = 0; i < headers.Length; i++)
+                sheet.Cells[2, i + 1].Value = headers[i];
+
+            int row = 3, index = 1;
+            foreach (var p in ds)
+            {
+                sheet.Cells[row, 1].Value = index++;
+                sheet.Cells[row, 2].Value = p.SinhVien?.HoTen;
+                sheet.Cells[row, 3].Value = p.SinhVien?.MaSV;
+                sheet.Cells[row, 4].Value = p.SinhVien?.Lop?.Khoa?.TenKhoa;
+                sheet.Cells[row, 5].Value = p.SinhVien?.Lop?.TenLop;
+                sheet.Cells[row, 6].Value = p.HocKy?.TenHocKy;
+                sheet.Cells[row, 7].Value = p.HocKy?.NamHoc;
+                sheet.Cells[row, 8].Value = p.TongDiemHoiDongDuyet;
+                sheet.Cells[row, 9].Value = p.KetQuaRenLuyen?
+                    .OrderByDescending(kq => kq.NgayCapNhat)
+                    .Select(kq => kq.XepLoai?.TenXepLoai)
+                    .FirstOrDefault() ?? "";
+                row++;
+            }
+
+            return package.GetAsByteArray();
+        }
+
+        #endregion
+        //=======================================================================================
+        //------------------------------------------------------------------------------------------
+
+
+        //==================CẬP NHẬT UPLOAD FILE EXCEL===========================================
+        // Upload thông tin Sinh viên từ file Excel
+        #region Upload Sinh viên
+        [HttpPost]
+        public async Task<IActionResult> UploadExcelSinhVien(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                TempData["Loi"] = "Vui lòng chọn file Excel.";
+                return RedirectToAction("QuanLySinhVien");
+            }
+
+            if (!Path.GetExtension(file.FileName).Equals(".xlsx", StringComparison.OrdinalIgnoreCase) &&
+                !Path.GetExtension(file.FileName).Equals(".xls", StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["Loi"] = "Vui lòng chọn file Excel (.xlsx hoặc .xls).";
+                return RedirectToAction("QuanLySinhVien");
+            }
+
+            try
+            {
+                // Thiết lập LicenseContext cho EPPlus
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+                using var stream = new MemoryStream();
+                await file.CopyToAsync(stream);
+                using var package = new ExcelPackage(stream);
+                var worksheet = package.Workbook.Worksheets[0];
+                var rowCount = worksheet.Dimension.End.Row;
+
+                for (int row = 2; row <= rowCount; row++)
+                {
+                    var maSV = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
+                    var hoTen = worksheet.Cells[row, 2].Value?.ToString()?.Trim();
+                    var gioiTinh = worksheet.Cells[row, 3].Value?.ToString()?.Trim();
+                    var ngaySinhStr = worksheet.Cells[row, 4].Value?.ToString()?.Trim();
+                    var noiSinh = worksheet.Cells[row, 5].Value?.ToString()?.Trim();
+                    var tenKhoa = worksheet.Cells[row, 6].Value?.ToString()?.Trim();
+                    var tenLop = worksheet.Cells[row, 7].Value?.ToString()?.Trim();
+                    var tenTrangThai = worksheet.Cells[row, 8].Value?.ToString()?.Trim();
+
+                    // Kiểm tra dòng trống để dừng
+                    if (string.IsNullOrEmpty(maSV) && string.IsNullOrEmpty(hoTen) &&
+                        string.IsNullOrEmpty(tenKhoa) && string.IsNullOrEmpty(tenLop))
+                    {
+                        break; // Dừng khi gặp dòng trống hoàn toàn
+                    }
+
+                    // Validation
+                    if (string.IsNullOrEmpty(maSV) || string.IsNullOrEmpty(hoTen) ||
+                        string.IsNullOrEmpty(tenKhoa) || string.IsNullOrEmpty(tenLop))
+                    {
+                        TempData["Loi"] = $"Dòng {row}: Thiếu dữ liệu bắt buộc (MaSV, HoTen, TenKhoa, TenLop).";
+                        continue;
+                    }
+
+                    // Kiểm tra tồn tại của TenKhoa, TenLop, TenTrangThai
+                    var khoa = await _context.Khoa.FirstOrDefaultAsync(k => k.TenKhoa == tenKhoa);
+                    var lop = await _context.Lop.FirstOrDefaultAsync(l => l.TenLop == tenLop);
+                    var trangThai = await _context.CauHinhTrangThaiSinhVien.FirstOrDefaultAsync(t => t.TenTrangThai == tenTrangThai);
+
+                    if (khoa == null)
+                    {
+                        TempData["Loi"] = $"Dòng {row}: TenKhoa '{tenKhoa}' không tồn tại.";
+                        return RedirectToAction("QuanLySinhVien");
+                    }
+                    if (lop == null)
+                    {
+                        TempData["Loi"] = $"Dòng {row}: TenLop '{tenLop}' không tồn tại.";
+                        return RedirectToAction("QuanLySinhVien");
+                    }
+                    if (tenTrangThai != null && trangThai == null)
+                    {
+                        TempData["Loi"] = $"Dòng {row}: TenTrangThai '{tenTrangThai}' không tồn tại.";
+                        return RedirectToAction("QuanLySinhVien");
+                    }
+
+                    if (_context.SinhVien.Any(sv => sv.MaSV == maSV))
+                    {
+                        TempData["Loi"] = $"Dòng {row}: MaSV {maSV} đã tồn tại.";
+                        continue;
+                    }
+
+                    DateTime? ngaySinh = null;
+                    if (!string.IsNullOrEmpty(ngaySinhStr))
+                    {
+                        if (!DateTime.TryParse(ngaySinhStr, out DateTime parsedDate))
+                        {
+                            TempData["Loi"] = $"Dòng {row}: NgaySinh không hợp lệ.";
+                            continue;
+                        }
+                        ngaySinh = parsedDate;
+                    }
+
+                    var sinhVien = new SinhVien
+                    {
+                        MaSV = maSV,
+                        HoTen = hoTen,
+                        GioiTinh = gioiTinh!,
+                        NgaySinh = ngaySinh,
+                        NoiSinh = noiSinh!,
+                        KhoaID = khoa.KhoaID,
+                        LopID = lop.LopID,
+                        TrangThaiID = trangThai?.TrangThaiID ?? (tenTrangThai == null ? 1 : throw new Exception("Trạng thái không hợp lệ")), // Mặc định TrangThaiID = 1 nếu không có
+                        NgayCapNhatTrangThai = DateTime.Now
+                    };
+
+                    _context.SinhVien.Add(sinhVien);
+                    await _context.SaveChangesAsync();
+
+                    // Tự động tạo Người dùng
+                    var password = "1111"; // Mật khẩu mặc định
+                    var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
+                    var nguoiDung = new NguoiDung
+                    {
+                        Username = maSV,
+                        PasswordHash = hashedPassword,
+                        VaiTroID = 1, // VaiTroID = 1 cho Sinh viên
+                        SinhVienID = sinhVien.SinhVienID,
+                        LastLogin = null
+                    };
+
+                    _context.NguoiDung.Add(nguoiDung);
+                    await _context.SaveChangesAsync();
+
+                    // Kiểm tra dữ liệu đã lưu vào CSDL
+                    var savedSinhVien = await _context.SinhVien.FindAsync(sinhVien.SinhVienID);
+                    if (savedSinhVien != null)
+                    {
+                        var savedNguoiDung = await _context.NguoiDung.FirstOrDefaultAsync(nd => nd.SinhVienID == sinhVien.SinhVienID);
+                        if (savedNguoiDung != null)
+                        {
+                            // Dữ liệu đã lưu thành công, không cần hành động thêm
+                        }
+                        else
+                        {
+                            TempData["Loi"] = $"Dòng {row}: Lỗi khi tạo Người dùng cho MaSV {maSV}.";
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        TempData["Loi"] = $"Dòng {row}: Lỗi khi lưu SinhVien với MaSV {maSV}.";
+                        continue;
+                    }
+                }
+
+                TempData["ThanhCong"] = "Đã nhập dữ liệu từ Excel thành công!";
+            }
+            catch (Exception ex)
+            {
+                TempData["Loi"] = $"Lỗi khi xử lý file: {ex.Message}";
+            }
+
+            return RedirectToAction("QuanLySinhVien");
+        }
+        #endregion
+        //=======================================================================================
+        //------------------------------------------------------------------------------------------
+        //=======================================================================================
+        // Upload thông tin Nhân viên từ file Excel
+        #region Upload Nhân viên
+        [HttpPost]
+        public async Task<IActionResult> UploadExcelNhanVien(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                TempData["Loi"] = "Vui lòng chọn file Excel.";
+                return RedirectToAction("QuanLyNhanVien");
+            }
+
+            if (!Path.GetExtension(file.FileName).Equals(".xlsx", StringComparison.OrdinalIgnoreCase) &&
+                !Path.GetExtension(file.FileName).Equals(".xls", StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["Loi"] = "Vui lòng chọn file Excel (.xlsx hoặc .xls).";
+                return RedirectToAction("QuanLyNhanVien");
+            }
+
+            try
+            {
+                // Thiết lập LicenseContext cho EPPlus
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+                using var stream = new MemoryStream();
+                await file.CopyToAsync(stream);
+                using var package = new ExcelPackage(stream);
+                var worksheet = package.Workbook.Worksheets[0];
+                var rowCount = worksheet.Dimension.End.Row;
+
+                for (int row = 2; row <= rowCount; row++)
+                {
+                    var maNV = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
+                    var hoTen = worksheet.Cells[row, 2].Value?.ToString()?.Trim();
+                    var tenKhoa = worksheet.Cells[row, 3].Value?.ToString()?.Trim();
+                    var tenVaiTro = worksheet.Cells[row, 4].Value?.ToString()?.Trim();
+
+                    // Kiểm tra dòng trống để dừng
+                    if (string.IsNullOrEmpty(maNV) && string.IsNullOrEmpty(hoTen) &&
+                        string.IsNullOrEmpty(tenKhoa) && string.IsNullOrEmpty(tenVaiTro))
+                    {
+                        break; // Dừng khi gặp dòng trống hoàn toàn
+                    }
+
+                    // Validation
+                    if (string.IsNullOrEmpty(maNV) || string.IsNullOrEmpty(hoTen) || string.IsNullOrEmpty(tenVaiTro))
+                    {
+                        TempData["Loi"] = $"Dòng {row}: Thiếu dữ liệu bắt buộc (MaNV, HoTen, TenVaiTro).";
+                        continue;
+                    }
+
+                    // Kiểm tra tồn tại của TenKhoa và TenVaiTro
+                    int? khoaID = null;
+                    if (!string.IsNullOrEmpty(tenKhoa))
+                    {
+                        var khoa = await _context.Khoa.FirstOrDefaultAsync(k => k.TenKhoa == tenKhoa);
+                        if (khoa == null)
+                        {
+                            TempData["Loi"] = $"Dòng {row}: TenKhoa '{tenKhoa}' không tồn tại.";
+                            return RedirectToAction("QuanLyNhanVien");
+                        }
+                        khoaID = khoa.KhoaID;
+                    }
+
+                    var vaiTro = await _context.CauHinhVaiTro.FirstOrDefaultAsync(v => v.TenVaiTro == tenVaiTro);
+                    if (vaiTro == null)
+                    {
+                        TempData["Loi"] = $"Dòng {row}: TenVaiTro '{tenVaiTro}' không tồn tại.";
+                        return RedirectToAction("QuanLyNhanVien");
+                    }
+
+                    if (_context.NhanVien.Any(nv => nv.MaNV == maNV))
+                    {
+                        TempData["Loi"] = $"Dòng {row}: MaNV {maNV} đã tồn tại.";
+                        continue;
+                    }
+
+                    var nhanVien = new NhanVien
+                    {
+                        MaNV = maNV,
+                        HoTen = hoTen,
+                        KhoaID = khoaID,
+                        VaiTroID = vaiTro.VaiTroID
+                    };
+
+                    _context.NhanVien.Add(nhanVien);
+                    await _context.SaveChangesAsync();
+
+                    // Tự động tạo Người dùng
+                    var password = "1111"; // Mật khẩu mặc định
+                    var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
+                    var nguoiDung = new NguoiDung
+                    {
+                        Username = maNV,
+                        PasswordHash = hashedPassword,
+                        VaiTroID = vaiTro.VaiTroID,
+                        NhanVienID = nhanVien.NhanVienID,
+                        SinhVienID = null, // Đảm bảo không liên kết với SinhVien
+                        LastLogin = null
+                    };
+
+                    _context.NguoiDung.Add(nguoiDung);
+                    await _context.SaveChangesAsync();
+
+                    // Kiểm tra dữ liệu đã lưu vào CSDL
+                    var savedNhanVien = await _context.NhanVien.FindAsync(nhanVien.NhanVienID);
+                    if (savedNhanVien != null)
+                    {
+                        var savedNguoiDung = await _context.NguoiDung.FirstOrDefaultAsync(nd => nd.NhanVienID == nhanVien.NhanVienID);
+                        if (savedNguoiDung != null)
+                        {
+                            // Dữ liệu đã lưu thành công, không cần hành động thêm
+                        }
+                        else
+                        {
+                            TempData["Loi"] = $"Dòng {row}: Lỗi khi tạo Người dùng cho MaNV {maNV}.";
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        TempData["Loi"] = $"Dòng {row}: Lỗi khi lưu NhanVien với MaNV {maNV}.";
+                        continue;
+                    }
+                }
+
+                TempData["ThanhCong"] = "Đã nhập dữ liệu từ Excel thành công!";
+            }
+            catch (Exception ex)
+            {
+                TempData["Loi"] = $"Lỗi khi xử lý file: {ex.Message}";
+            }
+
+            return RedirectToAction("QuanLyNhanVien");
+        }
+        #endregion
+        //=======================================================================================
+        //------------------------------------------------------------------------------------------
+        //=======================================================================================
+        // Upload thông tin Lớp từ file Excel
+        #region Upload Lớp
+        [HttpPost]
+        public async Task<IActionResult> UploadExcelLop(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                TempData["Loi"] = "Vui lòng chọn file Excel.";
+                return RedirectToAction("QuanLyLop");
+            }
+
+            if (!Path.GetExtension(file.FileName).Equals(".xlsx", StringComparison.OrdinalIgnoreCase) &&
+                !Path.GetExtension(file.FileName).Equals(".xls", StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["Loi"] = "Vui lòng chọn file Excel (.xlsx hoặc .xls).";
+                return RedirectToAction("QuanLyLop");
+            }
+
+            try
+            {
+                // Thiết lập LicenseContext cho EPPlus
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+                using var stream = new MemoryStream();
+                await file.CopyToAsync(stream);
+                using var package = new ExcelPackage(stream);
+                var worksheet = package.Workbook.Worksheets[0];
+                var rowCount = worksheet.Dimension.End.Row;
+
+                for (int row = 2; row <= rowCount; row++)
+                {
+                    var tenLop = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
+                    var tenKhoa = worksheet.Cells[row, 2].Value?.ToString()?.Trim();
+                    var tenNienKhoa = worksheet.Cells[row, 3].Value?.ToString()?.Trim();
+
+                    // Kiểm tra dòng trống để dừng
+                    if (string.IsNullOrEmpty(tenLop) && string.IsNullOrEmpty(tenKhoa) && string.IsNullOrEmpty(tenNienKhoa))
+                    {
+                        break; // Dừng khi gặp dòng trống hoàn toàn
+                    }
+
+                    // Validation
+                    if (string.IsNullOrEmpty(tenLop) || string.IsNullOrEmpty(tenKhoa) || string.IsNullOrEmpty(tenNienKhoa))
+                    {
+                        TempData["Loi"] = $"Dòng {row}: Thiếu dữ liệu bắt buộc (TenLop, TenKhoa, TenNienKhoa).";
+                        continue;
+                    }
+
+                    // Kiểm tra tồn tại của TenKhoa và TenNienKhoa
+                    var khoa = await _context.Khoa.FirstOrDefaultAsync(k => k.TenKhoa == tenKhoa);
+                    var nienKhoa = await _context.NienKhoa.FirstOrDefaultAsync(nk => nk.TenNienKhoa == tenNienKhoa);
+
+                    if (khoa == null)
+                    {
+                        TempData["Loi"] = $"Dòng {row}: TenKhoa '{tenKhoa}' không tồn tại.";
+                        return RedirectToAction("QuanLyLop");
+                    }
+                    if (nienKhoa == null)
+                    {
+                        TempData["Loi"] = $"Dòng {row}: TenNienKhoa '{tenNienKhoa}' không tồn tại.";
+                        return RedirectToAction("QuanLyLop");
+                    }
+
+                    if (_context.Lop.Any(l => l.TenLop == tenLop && l.KhoaID == khoa.KhoaID && l.NienKhoaID == nienKhoa.NienKhoaID))
+                    {
+                        TempData["Loi"] = $"Dòng {row}: Lớp '{tenLop}' với Khoa '{tenKhoa}' và Niên khóa '{tenNienKhoa}' đã tồn tại.";
+                        continue;
+                    }
+
+                    var lop = new Lop
+                    {
+                        TenLop = tenLop,
+                        KhoaID = khoa.KhoaID,
+                        NienKhoaID = nienKhoa.NienKhoaID
+                    };
+
+                    _context.Lop.Add(lop);
+                    await _context.SaveChangesAsync();
+
+                    // Kiểm tra dữ liệu đã lưu vào CSDL
+                    var savedLop = await _context.Lop.FindAsync(lop.LopID);
+                    if (savedLop == null)
+                    {
+                        TempData["Loi"] = $"Dòng {row}: Lỗi khi lưu Lớp với TenLop {tenLop}.";
+                        continue;
+                    }
+                }
+
+                TempData["ThanhCong"] = "Đã nhập dữ liệu từ Excel thành công!";
+            }
+            catch (Exception ex)
+            {
+                TempData["Loi"] = $"Lỗi khi xử lý file: {ex.Message}";
+            }
+
+            return RedirectToAction("QuanLyLop");
+        }
+        #endregion
+        //=======================================================================================
+        //------------------------------------------------------------------------------------------
+        //=======================================================================================
+        // Upload thông tin Chủ nhiệm từ file Excel
+        #region Upload Chủ nhiệm
+        [HttpPost]
+        public async Task<IActionResult> UploadExcelChuNhiem(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+            {
+                TempData["Error"] = "Vui lòng chọn file Excel.";
+                return RedirectToAction("QuanLyChuNhiem");
+            }
+
+            if (!Path.GetExtension(file.FileName).Equals(".xlsx", StringComparison.OrdinalIgnoreCase) &&
+                !Path.GetExtension(file.FileName).Equals(".xls", StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["Error"] = "Vui lòng chọn file Excel (.xlsx hoặc .xls).";
+                return RedirectToAction("QuanLyChuNhiem");
+            }
+
+            try
+            {
+                // Thiết lập LicenseContext cho EPPlus
+                ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+                using var stream = new MemoryStream();
+                await file.CopyToAsync(stream);
+                using var package = new ExcelPackage(stream);
+                var worksheet = package.Workbook.Worksheets[0];
+                var rowCount = worksheet.Dimension.End.Row;
+
+                for (int row = 2; row <= rowCount; row++)
+                {
+                    var hoTen = worksheet.Cells[row, 1].Value?.ToString()?.Trim();
+                    var tenLop = worksheet.Cells[row, 2].Value?.ToString()?.Trim();
+                    var hocKyString = worksheet.Cells[row, 3].Value?.ToString()?.Trim(); // Định dạng "TenHocKy - NamHoc | TenNienKhoa"
+                    var ghiChu = worksheet.Cells[row, 4].Value?.ToString()?.Trim() ?? "Không có";
+
+                    // Kiểm tra dòng trống để dừng
+                    if (string.IsNullOrEmpty(hoTen) && string.IsNullOrEmpty(tenLop) && string.IsNullOrEmpty(hocKyString))
+                    {
+                        break; // Dừng khi gặp dòng trống hoàn toàn
+                    }
+
+                    // Validation
+                    if (string.IsNullOrEmpty(hoTen) || string.IsNullOrEmpty(tenLop) || string.IsNullOrEmpty(hocKyString))
+                    {
+                        TempData["Error"] = $"Dòng {row}: Thiếu dữ liệu bắt buộc (HoTen, TenLop, TenHocKy - NamHoc | TenNienKhoa).";
+                        continue;
+                    }
+
+                    // Kiểm tra tồn tại của HoTen và TenLop
+                    var nhanVien = await _context.NhanVien.FirstOrDefaultAsync(nv => nv.HoTen == hoTen);
+                    var lop = await _context.Lop.FirstOrDefaultAsync(l => l.TenLop == tenLop);
+
+                    if (nhanVien == null)
+                    {
+                        TempData["Error"] = $"Dòng {row}: HoTen '{hoTen}' không tồn tại trong danh sách nhân viên.";
+                        return RedirectToAction("QuanLyChuNhiem");
+                    }
+                    if (lop == null)
+                    {
+                        TempData["Error"] = $"Dòng {row}: TenLop '{tenLop}' không tồn tại.";
+                        return RedirectToAction("QuanLyChuNhiem");
+                    }
+
+                    // Phân tích chuỗi học kỳ "TenHocKy - NamHoc | TenNienKhoa"
+                    var hocKyParts = hocKyString.Split(new[] { " - ", " | " }, StringSplitOptions.None);
+                    if (hocKyParts.Length != 3 || string.IsNullOrEmpty(hocKyParts[0]) || string.IsNullOrEmpty(hocKyParts[1]) || string.IsNullOrEmpty(hocKyParts[2]))
+                    {
+                        TempData["Error"] = $"Dòng {row}: Định dạng học kỳ '{hocKyString}' không hợp lệ. Vui lòng dùng 'TenHocKy - NamHoc | TenNienKhoa'.";
+                        return RedirectToAction("QuanLyChuNhiem");
+                    }
+
+                    var tenHocKy = hocKyParts[0];
+                    var namHoc = hocKyParts[1];
+                    var tenNienKhoa = hocKyParts[2];
+                    var hocKy = await _context.HocKy
+                        .FirstOrDefaultAsync(hk => hk.TenHocKy == tenHocKy && hk.NamHoc == namHoc && hk.NienKhoa!.TenNienKhoa == tenNienKhoa);
+
+                    if (hocKy == null)
+                    {
+                        TempData["Error"] = $"Dòng {row}: Học kỳ '{hocKyString}' không tồn tại.";
+                        return RedirectToAction("QuanLyChuNhiem");
+                    }
+
+                    // Kiểm tra ràng buộc: Mỗi lớp chỉ có 1 GVCN / học kỳ
+                    if (_context.ChuNhiem.Any(cn => cn.LopID == lop.LopID && cn.HocKyID == hocKy.HocKyID))
+                    {
+                        TempData["Error"] = $"Dòng {row}: Lớp '{tenLop}' đã có giáo viên chủ nhiệm trong học kỳ '{hocKyString}'. Mỗi lớp chỉ có 1 GVCN / học kỳ.";
+                        continue;
+                    }
+
+                    var chuNhiem = new ChuNhiem
+                    {
+                        NhanVienID = nhanVien.NhanVienID,
+                        LopID = lop.LopID,
+                        HocKyID = hocKy.HocKyID,
+                        GhiChu = ghiChu
+                    };
+
+                    _context.ChuNhiem.Add(chuNhiem);
+                    await _context.SaveChangesAsync();
+
+                    // Kiểm tra dữ liệu đã lưu vào CSDL
+                    var savedChuNhiem = await _context.ChuNhiem.FindAsync(chuNhiem.ChuNhiemID);
+                    if (savedChuNhiem == null)
+                    {
+                        TempData["Error"] = $"Dòng {row}: Lỗi khi lưu Chủ nhiệm với HoTen {hoTen} và TenLop {tenLop}.";
+                        continue;
+                    }
+                }
+
+                TempData["Success"] = "Đã nhập dữ liệu từ Excel thành công!";
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"Lỗi khi xử lý file: {ex.Message}";
+            }
+
             return RedirectToAction("QuanLyChuNhiem");
         }
         #endregion

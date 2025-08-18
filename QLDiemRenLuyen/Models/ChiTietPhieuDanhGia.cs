@@ -16,7 +16,7 @@ namespace QLDiemRenLuyen.Models
 
         [Required]
         [Range(0, int.MaxValue, ErrorMessage = "Điểm phải là số không âm.")]
-        public int DiemTuDanhGia { get; set; }
+        public int? DiemTuDanhGia { get; set; }
 
         [Range(0, int.MaxValue, ErrorMessage = "Điểm phải là số không âm.")]
         public int? DiemGiaoVienDeXuat { get; set; }

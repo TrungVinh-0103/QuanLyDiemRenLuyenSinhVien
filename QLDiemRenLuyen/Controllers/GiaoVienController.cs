@@ -95,7 +95,7 @@ namespace QLDiemRenLuyen.Controllers
                 .ToList();
 
             // Tính tổng điểm sinh viên tự đánh giá
-            int tongDiemSV = chiTietPhieu.Sum(c => c.DiemTuDanhGia);
+                int tongDiemSV = (int)chiTietPhieu.Sum(c => c.DiemTuDanhGia)!;
 
             var vm = new TuDanhGiaViewModel
             {
@@ -192,5 +192,90 @@ namespace QLDiemRenLuyen.Controllers
 
             return View(ds);
         }
+
+        //==============================================================================
+        // Xem chi tiết phiếu đã duyệt 
+        //Lây thông tin chi tiết phiếu đã duyệt
+        [HttpGet]
+        public IActionResult GetChiTietPhieu(int id)
+        {
+            var phieu = _context.PhieuDanhGia
+                .Include(p => p.SinhVien).ThenInclude(s => s!.Lop)
+                .Include(p => p.HocKy)
+                .FirstOrDefault(p => p.PhieuDanhGiaID == id);
+
+            if (phieu == null) return NotFound();
+
+            var nhomTieuChis = _context.NhomTieuChi
+                .Select(n => new NhomTieuChiViewModel
+                {
+                    NhomTieuChiID = n.NhomTieuChiID,
+                    TenNhom = n.TenNhom,
+                    DiemToiDa = n.DiemToiDa,
+                    TieuChi = _context.TieuChi
+                        .Where(t => t.NhomTieuChiID == n.NhomTieuChiID)
+                        .Select(t => new TieuChiViewModel
+                        {
+                            TieuChiID = t.TieuChiID,
+                            TenTieuChi = t.TenTieuChi,
+                            DiemToiDa = t.DiemToiDa
+                        }).ToList()
+                }).ToList();
+
+            var chiTietPhieu = _context.ChiTietPhieuDanhGia
+                .Where(c => c.PhieuDanhGiaID == id)
+                .ToList();
+
+            var vm = new TuDanhGiaViewModel
+            {
+                PhieuDanhGiaID = id,
+                SinhVienID = phieu.SinhVienID,
+                HocKyID = phieu.HocKyID,
+                NhomTieuChi = nhomTieuChis,
+                ChiTietPhieu = chiTietPhieu,
+                TongDiemTuDanhGia = chiTietPhieu.Sum(c => c.DiemTuDanhGia ?? 0)
+            };
+
+            ViewBag.SinhVien = phieu.SinhVien;
+            ViewBag.HocKy = phieu.HocKy;
+
+            return PartialView("_ModalChiTietPhieuGV", vm);
+        }
+
+        [HttpPost]
+        public IActionResult CapNhatDiemGV(int phieuDanhGiaId, Dictionary<int, int> diemMoi)
+        {
+            var phieu = _context.PhieuDanhGia.FirstOrDefault(p => p.PhieuDanhGiaID == phieuDanhGiaId);
+            if (phieu == null) return Json(new { success = false, message = "Không tìm thấy phiếu." });
+
+            var chiTiet = _context.ChiTietPhieuDanhGia
+                .Where(c => c.PhieuDanhGiaID == phieuDanhGiaId)
+                .ToList();
+
+            var nhomTieuChiList = _context.NhomTieuChi.ToDictionary(n => n.NhomTieuChiID, n => n.DiemToiDa);
+            var tieuChiList = _context.TieuChi.ToList();
+            var tongTheoNhom = new Dictionary<int, int>();
+
+            foreach (var ct in chiTiet)
+            {
+                if (diemMoi.TryGetValue(ct.TieuChiID, out int diem))
+                {
+                    ct.DiemGiaoVienDeXuat = diem;
+                    var tieuChi = tieuChiList.FirstOrDefault(t => t.TieuChiID == ct.TieuChiID);
+                    if (tieuChi != null)
+                    {
+                        int nhomID = tieuChi.NhomTieuChiID;
+                        tongTheoNhom[nhomID] = tongTheoNhom.GetValueOrDefault(nhomID) + diem;
+                    }
+                }
+            }
+
+            phieu.TongDiemGiaoVienDeXuat = tongTheoNhom.Sum(n => Math.Min(n.Value, nhomTieuChiList[n.Key]));
+            _context.SaveChanges();
+
+            return Json(new { success = true, message = "Cập nhật điểm thành công!" });
+        }
+
+
     }
 }

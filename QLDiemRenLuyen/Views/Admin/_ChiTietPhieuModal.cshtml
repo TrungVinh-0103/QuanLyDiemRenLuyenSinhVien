@@ -1,0 +1,111 @@
+﻿@model QLDiemRenLuyen.ViewModels.TuDanhGiaViewModel
+@{
+    var nhomTieuChis = Model.NhomTieuChi ?? new();
+    var chiTiet = Model.ChiTietPhieu ?? new();
+}
+<div class="modal-header bg-primary text-white">
+    <h5 class="modal-title">Chi tiết phiếu đánh giá</h5>
+    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+</div>
+<div class="modal-body">
+    <p>
+        <strong>Sinh viên:</strong> @ViewBag.SinhVien?.HoTen (@ViewBag.SinhVien?.MaSV) -
+        <strong>Lớp:</strong> @ViewBag.SinhVien?.Lop?.TenLop
+    </p>
+    <p><strong>Học kỳ:</strong> @ViewBag.HocKy?.TenHocKy - @ViewBag.HocKy?.NamHoc</p>
+
+    <form id="formCapNhatDiem">
+        <input type="hidden" name="PhieuDanhGiaID" value="@Model.PhieuDanhGiaID" />
+        @foreach (var nhom in nhomTieuChis)
+        {
+            <div class="card mt-3">
+                <div class="card-header bg-info text-white">
+                    @nhom.TenNhom (Tối đa: @nhom.DiemToiDa)
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered text-center" data-diem-toi-da="@nhom.DiemToiDa">
+                        <thead>
+                            <tr>
+                                <th>Nội dung</th>
+                                <th>SV tự đánh giá</th>
+                                <th>GVCN đề xuất</th>
+                                <th>HĐ duyệt</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (nhom.TieuChi != null)
+                                @foreach (var tc in nhom.TieuChi)
+                                {
+                                    var ct = chiTiet.FirstOrDefault(x => x.TieuChiID == tc.TieuChiID);
+                                    <tr>
+                                        <td class="text-start">@tc.TenTieuChi</td>
+                                        <td>
+                                            <input type="number" class="form-control text-center input-diem diem-sv"
+                                                   name="DiemSV[@tc.TieuChiID]"
+                                                   value="@(ct?.DiemTuDanhGia ?? 0)" min="0" max="@tc.DiemToiDa" />
+                                        </td>
+                                        <td>
+                                            <input type="number" class="form-control text-center input-diem diem-gv"
+                                                   name="DiemGV[@tc.TieuChiID]"
+                                                   value="@(ct?.DiemGiaoVienDeXuat ?? 0)" min="0" max="@tc.DiemToiDa" />
+                                        </td>
+                                        <td>
+                                            <input type="number" class="form-control text-center input-diem diem-hd"
+                                                   name="DiemHD[@tc.TieuChiID]"
+                                                   value="@(ct?.DiemHoiDongDuyet ?? 0)" min="0" max="@tc.DiemToiDa" />
+                                        </td>
+                                    </tr>
+                                }
+                        </tbody>
+                        <tfoot>
+                            <tr class="fw-bold">
+                                <td>Tổng nhóm</td>
+                                <td class="tong-nhom-sv">0</td>
+                                <td class="tong-nhom-gv">0</td>
+                                <td class="tong-nhom-hd">0</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        }
+
+        <div class="card shadow-sm mt-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Tổng điểm toàn phiếu</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap justify-content-around align-items-center">
+                    <p class="mb-2 mb-md-0 mx-2 fs-5">
+                        Tổng điểm <span class="fw-bold text-success">Sinh viên</span>: <span id="tong-sv" class="fw-bold text-success">0</span>
+                    </p>
+                    <p class="mb-2 mb-md-0 mx-2 fs-5">
+                        Tổng điểm <span class="fw-bold text-info">Giáo viên</span>: <span id="tong-gv" class="fw-bold text-info">0</span>
+                    </p>
+                    <p class="mb-0 mx-2 fs-5">
+                        Tổng điểm <span class="fw-bold text-danger">Hội đồng</span>: <span id="tong-hd" class="fw-bold text-danger">0</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+    <button type="button" id="btnLuuCapNhat" class="btn btn-success">Lưu thay đổi</button>
+</div>
+
+<script>
+    // Tính điểm ngay khi load modal
+    $(".input-diem").trigger("input");
+
+    $.post('@Url.Action("CapNhatDiemPhieu", "Admin")', formData, function (res) {
+        if (res.success) {
+            alert(res.message);
+            ocation.reload();
+        } else {
+            alert("Có lỗi xảy ra khi lưu!");
+        }
+    });
+
+</script>

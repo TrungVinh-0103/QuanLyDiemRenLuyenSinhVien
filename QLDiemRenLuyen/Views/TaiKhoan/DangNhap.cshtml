@@ -5,114 +5,105 @@
     var DanhSachVaiTro = ViewBag.DanhSachVaiTro as List<CauHinhVaiTro> ?? new List<CauHinhVaiTro>();
 }
 
-<div class="login-container">
-    <!-- University Header -->
-    <div class="university-header">
-        <div class="university-logo">
-            <i class="fas fa-university fa-2x text-white"></i>
-        </div>
-        <h1 class="university-name">TRƯỜNG ĐẠI HỌC NAM CẦN THƠ</h1>
-    </div>
-
-    <!-- Login Title -->
-    <h2 class="login-title">
-        <i class="fas fa-sign-in-alt me-2"></i>
-        ĐĂNG NHẬP
-    </h2>
-
-    <!-- Login Form -->
-    <form method="post" asp-action="DangNhap" asp-controller="TaiKhoan" id="loginForm">
-        <!-- Username Field -->
-        <div class="form-group">
-            <div class="position-relative">
-                <input name="username"
-                       class="form-control-custom form-control-with-icon"
-                       placeholder="Mã đăng nhập"
-                       required
-                       autocomplete="username"
-                       maxlength="20" />
-                <i class="fas fa-user input-icon"></i>
+<div class="d-flex justify-content-center align-items-center min-vh-100">
+    <div class="login-container">
+        <!-- University Header -->
+        <div class="university-header">
+            <div class="university-logo">
+                <i class="fas fa-university fa-2x text-white"></i>
             </div>
+            <h1 class="university-name">TRƯỜNG ĐẠI HỌC NAM CẦN THƠ</h1>
         </div>
 
-        <!-- Password Field -->
-        <div class="form-group">
-            <div class="position-relative">
-                <input type="password"
-                       name="password"
-                       class="form-control-custom form-control-with-icon"
-                       placeholder="Mật khẩu"
-                       required
-                       autocomplete="current-password"
-                       maxlength="50" />
-                <i class="fas fa-lock input-icon"></i>
-                <button type="button"
-                        class="btn btn-link position-absolute end-0 top-50 translate-middle-y me-3 p-0"
-                        style="border: none; background: none; color: #6c757d;"
-                        onclick="togglePassword(this)">
-                    <i class="fas fa-eye"></i>
-                </button>
-            </div>
-        </div>
-
-        <!-- Role Selection -->
-        <div class="form-group">
-            <div class="position-relative">
-                <select name="vaiTro"
-                        class="form-control-custom form-control-with-icon"
-                        required>
-                    @if (!DanhSachVaiTro.Any())
-                    {
-                        <option value="">Không có vai trò nào</option>
-                    }
-                    else
-                    {
-                        //<option value=""></option>
-                        @foreach (var vt in DanhSachVaiTro)
-                        {
-                            <option value="@vt.VaiTroID">
-                                <i class="fas fa-user-tag"></i> @vt.TenVaiTro
-                            </option>
-                        }
-                    }
-                </select>
-                <i class="fas fa-user-cog input-icon"></i>
-            </div>
-        </div>
-
-        <!-- Submit Button -->
-        <button type="submit" class="btn-login">
+        <!-- Login Title -->
+        <h2 class="login-title">
             <i class="fas fa-sign-in-alt me-2"></i>
-            Đăng nhập
-        </button>
+            ĐĂNG NHẬP
+        </h2>
 
-        <!-- Error Messages -->
-        @if (ViewBag.Loi != null)
-        {
-            <div class="alert-custom alert-danger-custom">
-                <i class="fas fa-exclamation-triangle me-2"></i>
-                @ViewBag.Loi
+        <!-- Login Form -->
+        <form method="post" asp-action="DangNhap" asp-controller="TaiKhoan" id="loginForm">
+            <!-- Username Field -->
+            <div class="form-group">
+                <div class="position-relative">
+                    <input name="username"
+                           class="form-control-custom form-control-with-icon"
+                           placeholder="Mã đăng nhập"
+                           required
+                           autocomplete="username"
+                           maxlength="20" />
+                    <i class="fas fa-user input-icon"></i>
+                </div>
             </div>
-        }
 
-        <!-- Info Messages -->
-        @if (ViewBag.ThongBao != null)
-        {
-            <div class="alert-custom alert-info-custom">
-                <i class="fas fa-info-circle me-2"></i>
-                @ViewBag.ThongBao
+            <!-- Password Field -->
+            <div class="form-group">
+                <div class="position-relative">
+                    <input type="password"
+                           name="password"
+                           class="form-control-custom form-control-with-icon"
+                           placeholder="Mật khẩu"
+                           required
+                           autocomplete="current-password"
+                           maxlength="50" />
+                    <i class="fas fa-lock input-icon"></i>
+                    <button type="button"
+                            class="btn btn-link position-absolute end-0 top-50 translate-middle-y me-3 p-0"
+                            style="border: none; background: none; color: #6c757d;"
+                            onclick="togglePassword(this)">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
             </div>
-        }
-    </form>
 
-    <!-- Footer -->
-    <div class="login-footer">
-        <p class="mb-0">
-            <small>
-                <i class="fas fa-copyright me-1"></i>
-                TRƯỜNG ĐẠI HỌC NAM CẦN THƠ
-            </small>
-        </p>
+            <!-- Role Selection -->
+            <div class="form-group">
+                <div class="position-relative">
+                    <select name="vaiTro"
+                            class="form-control-custom form-control-with-icon"
+                            required>
+                        @if (!DanhSachVaiTro.Any())
+                        {
+                            <option value="">Không có vai trò nào</option>
+                        }
+                        else
+                        {
+                            @foreach (var vt in DanhSachVaiTro)
+                            {
+                                <option value="@vt.VaiTroID">
+                                    <i class="fas fa-user-tag"></i> @vt.TenVaiTro
+                                </option>
+                            }
+                        }
+                    </select>
+                    <i class="fas fa-user-cog input-icon"></i>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="btn-login">
+                <i class="fas fa-sign-in-alt me-2"></i>
+                Đăng nhập
+            </button>
+
+            <!-- Error Messages -->
+            @if (ViewBag.Loi != null)
+            {
+                <div class="alert-custom alert-danger-custom">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    @ViewBag.Loi
+                </div>
+            }
+
+            <!-- Info Messages -->
+            @if (ViewBag.ThongBao != null)
+            {
+                <div class="alert-custom alert-info-custom">
+                    <i class="fas fa-info-circle me-2"></i>
+                    @ViewBag.ThongBao
+                </div>
+            }
+        </form>
     </div>
 </div>
 
